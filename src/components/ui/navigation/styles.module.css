@@ -1,0 +1,57 @@
+.headerContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 120rem;
+    height: auto;
+    position: sticky;
+    border-bottom: 1px solid #fefe;
+    padding: 0 1.5rem;
+}
+
+.logoArea {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 25rem;
+}
+.logo {
+    cursor: pointer;
+    max-width: 80px;
+    height: auto;
+}
+
+.headerNav {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 650px;
+    height: 2.6rem;
+    gap: 1rem;
+}
+
+.signContainer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-right: 10rem;
+    gap: 1rem;
+}
+.logInBtn,
+.signBtn,
+.logoutBtn {
+    background-color: #fefe;
+    width: 5rem;
+    height: 2.5rem;
+    border-radius: 8px;
+}
+
+.userIcon {
+    width: 30px;
+    height: auto;
+    cursor: pointer;
+}
+
+.logoutBtn {
+    background-color: #ffcccc;
+}

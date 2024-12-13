@@ -1,0 +1,77 @@
+.signUpContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh; /* 화면 전체 높이 */
+}
+
+.signUpBox {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 30px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 레이블 텍스트 */
+.inputText label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+/* 입력 필드 */
+.inputText input {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* 입력 필드 포커스 및 호버 효과 */
+.inputText input:focus,
+.inputText input:hover {
+    border-color: #0070f3;
+    box-shadow: 0 0 4px rgba(0, 112, 243, 0.4);
+    outline: none;
+}
+
+/* 오류 메시지 */
+.inputText p {
+    font-size: 12px;
+    color: #ff4d4f;
+    margin-top: 5px;
+}
+
+/* 제출 버튼 */
+button[type='submit'] {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background-color: #0070f3;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* 버튼 호버 효과 */
+button[type='submit']:hover {
+    background-color: #005bb5;
+}
+
+/* 버튼 비활성화 스타일 */
+button[type='submit']:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}

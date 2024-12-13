@@ -1,0 +1,38 @@
+.imgCard {
+    position: relative;
+    display: inline-block;
+    margin: 10px;
+    cursor: pointer;
+}
+.imagePreview {
+    position: relative;
+}
+
+.imagePreview button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.deleteButton {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    display: none; /* 기본적으로 숨김 */
+}
+
+.imgCard:hover .deleteButton {
+    display: block;
+}

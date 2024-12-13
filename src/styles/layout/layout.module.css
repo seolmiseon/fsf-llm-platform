@@ -1,0 +1,19 @@
+.layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.section {
+    margin-bottom: 1rem;
+    width: 100%;
+    height: 601px;
+}
+.searchSection {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
