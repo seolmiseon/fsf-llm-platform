@@ -8,7 +8,7 @@ declare module 'next-auth' {
             password?: string;
         };
     }
-    interface Usr {
+    interface User {
         id: string;
         email?: string;
         password?: string;

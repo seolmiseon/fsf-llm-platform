@@ -1,6 +1,8 @@
-import '../styles/globals.css';
+import './globals.css';
 import localFont from 'next/font/local';
-import LayoutComponent from '@/components/layout';
+import { AuthProvider } from '@/components/client-components/providers/AuthProvider';
+import { ModalRoot } from '@/components/ui/modal/ModalRoot';
+import Navigation from '@/components/navigation/Navigation';
 
 const pretendard = localFont({
     src: '../fonts/PretendardVariable.woff2',
@@ -17,7 +19,11 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${pretendard.variable} vsc-initialized`}>
-                <LayoutComponent>{children}</LayoutComponent>
+                <AuthProvider>
+                    <Navigation />
+                    {children}
+                    <ModalRoot />
+                </AuthProvider>
             </body>
         </html>
     );

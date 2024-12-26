@@ -1,0 +1,30 @@
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid #eaeaea;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.leagueName {
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    color: #1a1a1a;
+    margin-top: 1rem;
+}
+
+.countryName {
+    font-size: 0.875rem;
+    color: #666;
+    text-align: center;
+    margin-top: 0.25rem;
+}
