@@ -1,0 +1,34 @@
+.card {
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 20px -10px rgba(0, 0, 0, 0.1);
+}
+
+.badgeContainer {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1rem;
+}
+
+.badge {
+    border-radius: 50%;
+    object-fit: contain;
+}
+
+.teamName {
+    font-size: 1.125rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.rank {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    text-align: center;
+}
