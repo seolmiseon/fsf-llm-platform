@@ -1,3 +1,5 @@
+'use client';
+
 import { useServerSearch } from '@/hooks/useServerSearch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../dialog';
 import { Loader2 } from 'lucide-react';
@@ -9,8 +11,6 @@ export function SearchModal() {
     const { results, loading, error, hasMore, loadMore, handleSearch } =
         useServerSearch();
     const { isOpen, type, close } = useModalStore();
-
-    if (!isOpen || type !== 'search') return null;
 
     return (
         <Dialog>

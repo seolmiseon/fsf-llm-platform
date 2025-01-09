@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import styles from './LeagueCard.module.css';
 import Image from 'next/image';
-import type { Competition } from '@/types/api-responses';
+import type { Competition } from '@/types/api/responses';
 
 interface LeagueCardProps {
     competition: Competition;

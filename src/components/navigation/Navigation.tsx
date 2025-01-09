@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button/Button';
 import FSFLogo from '@/components/ui/logo/FSFLogo';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
-
 import { useModalStore } from '@/store/useModalStore';
 
 export default function Navigation() {
@@ -66,7 +65,11 @@ export default function Navigation() {
                                 aria-label="리그 검색색"
                                 className="pl-10 pr-4 py-2 border rounded-lg"
                                 onFocus={() => {
-                                    open('search');
+                                    open('search', {
+                                        kind: 'search',
+                                        query: '',
+                                        page: 1,
+                                    });
                                 }}
                             />
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />

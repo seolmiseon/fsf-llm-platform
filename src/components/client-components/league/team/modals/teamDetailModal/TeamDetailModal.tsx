@@ -1,0 +1,141 @@
+import { useModalStore } from '@/store/useModalStore';
+import { useTeamData } from '@/hooks/useTeamData';
+import styles from './TeamDetailModal.module.css';
+import { PlayerInfo } from '@/types/api/responses';
+import { getPlaceholderImageUrl } from '@/utils/imageUtils';
+import Image from 'next/image';
+import React from 'react';
+
+interface TeamDetailModalProps {
+    teamId: string;
+    competitionId: string;
+    onClose: () => void;
+}
+
+export const TeamDetailModal = ({
+    teamId,
+    competitionId,
+    onClose,
+}: TeamDetailModalProps) => {
+    const { openPersonDetail } = useModalStore();
+    const { teamData, loading, error } = useTeamData(teamId, competitionId);
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error loading team data</div>;
+    if (!teamData) return null;
+
+    const coach = teamData.coach;
+
+    // 감독 클릭 핸들러
+    const handleCoachClick = (e: React.MouseEvent) => {
+        if (!coach) return;
+
+        openPersonDetail(
+            {
+                id: coach.id,
+                name: coach.name,
+                position: 'Manager',
+                nationality: coach.nationality,
+                dateOfBirth: coach.dateOfBirth,
+                image: coach.image,
+            },
+            {
+                x: e.clientX,
+                y: e.clientY,
+            },
+            teamId
+        );
+    };
+
+    // 선수 클릭 핸들러
+    const handlePlayerClick = (player: PlayerInfo, e: React.MouseEvent) => {
+        openPersonDetail(
+            player,
+            {
+                x: e.clientX,
+                y: e.clientY,
+            },
+            teamId
+        );
+    };
+
+    return (
+        <div className={styles.modalContainer}>
+            <div className={styles.header}>
+                <div className={styles.badgeContainer}>
+                    <Image
+                        src={
+                            teamData.images?.teamBadge ??
+                            getPlaceholderImageUrl('badge')
+                        }
+                        alt={`${teamData.name} badge`}
+                        width={64}
+                        height={64}
+                        className={styles.badge}
+                    />
+                </div>
+                <h2>{teamData.name}</h2>
+                <button onClick={onClose} className={styles.closeButton}>
+                    ✕
+                </button>
+            </div>
+
+            <div className={styles.content}>
+                {coach && (
+                    <section className={styles.manager}>
+                        <h3>Manager</h3>
+                        <div
+                            className={styles.personCard}
+                            onClick={handleCoachClick}
+                        >
+                            <div className={styles.imageContainer}>
+                                <Image
+                                    src={
+                                        coach.image ??
+                                        getPlaceholderImageUrl('manager')
+                                    }
+                                    alt={coach.name}
+                                    width={100}
+                                    height={100}
+                                    className={styles.personImage}
+                                />
+                            </div>
+                            <span>{coach.name}</span>
+                        </div>
+                    </section>
+                )}
+
+                <section className={styles.squad}>
+                    <div className={styles.gridContainer}>
+                        {teamData.squad.map((player) => (
+                            <div
+                                key={player.id}
+                                className={styles.playerCard}
+                                onClick={(e: React.MouseEvent) =>
+                                    handlePlayerClick
+                                }
+                            >
+                                <div className={styles.imageContainer}>
+                                    <Image
+                                        src={
+                                            player.image ??
+                                            getPlaceholderImageUrl('player')
+                                        }
+                                        alt={player.name}
+                                        width={80}
+                                        height={80}
+                                        className={styles.playerImage}
+                                    />
+                                </div>
+                                <span>{player.name}</span>
+                                <span className={styles.position}>
+                                    {player.position}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            </div>
+        </div>
+    );
+};

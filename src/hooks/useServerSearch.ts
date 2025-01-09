@@ -1,6 +1,6 @@
 'use client';
 
-import { SearchResponse, SearchResult } from '@/types/search';
+import { SearchResponse, SearchResult } from '@/types/ui/search';
 import _ from 'lodash';
 import { useSession } from 'next-auth/react';
 import { useCallback, useState } from 'react';

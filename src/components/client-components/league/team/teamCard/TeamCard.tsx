@@ -4,21 +4,33 @@ import React from 'react';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/Card';
 import styles from './TeamCard.module.css';
+import { useModalStore } from '@/store/useModalStore';
+import { TeamResponse } from '@/types/api/responses';
 
 interface TeamCardProps {
-    team: {
-        id: string;
-        name: string;
-        badge: string;
-        rank: string;
-    };
+    team: TeamResponse;
     onClick: () => void;
+    competitionId: string;
 }
 
-export function TeamCard({ team, onClick }: TeamCardProps) {
+export const TeamCard: React.FC<TeamCardProps> = ({
+    team,
+    onClick,
+    competitionId,
+}) => {
+    const { open } = useModalStore();
+
+    const handleClick = () => {
+        onClick();
+        open('teamDetail', {
+            kind: 'team',
+            teamId: team.id.toString(),
+            competitionId,
+        });
+    };
     return (
         <Card
-            onClick={onClick}
+            onClick={handleClick}
             className={`
             p-4 rounded-lg bg-white shadow-md
             ${styles.cardWrapper}
@@ -26,9 +38,9 @@ export function TeamCard({ team, onClick }: TeamCardProps) {
         >
             <CardContent className="flex flex-col items-center gap-3">
                 <div className={styles.badgeContainer}>
-                    {team.badge ? (
+                    {team.crest ? (
                         <Image
-                            src={team.badge}
+                            src={team.crest}
                             alt={`${team.name} badge`}
                             fill
                             className="object-contain"
@@ -43,9 +55,9 @@ export function TeamCard({ team, onClick }: TeamCardProps) {
                 </div>
                 <div className={`text-center ${styles.teamInfo}`}>
                     <h3 className="text-lg font-semibold">{team.name}</h3>
-                    <p className="text-sm text-gray-600">Rank #{team.rank}</p>
+                    <p className="text-sm text-gray-600">{team.tla}</p>
                 </div>
             </CardContent>
         </Card>
     );
-}
+};

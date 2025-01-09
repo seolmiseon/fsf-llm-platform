@@ -1,35 +1,42 @@
 import { NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 
-export async function GET(internalRequest: Request) {
+export async function GET(request: Request) {
     try {
-        const externalRequest = new Request(
-            'https://api.football-data.org/v4/matches',
+        const { searchParams } = new URL(request.url);
+        const path = searchParams.get('path');
+
+        if (!path) {
+            return NextResponse.json(
+                { error: 'Path parameter is required' },
+                { status: 400 }
+            );
+        }
+
+        const response = await fetch(
+            `https://api.football-data.org/v4/${path}`,
             {
                 headers: {
                     'X-Auth-Token': process.env.FOOTBALL_API_KEY as string,
                 },
+                next: { revalidate: 60 }, //1분캐싱싱
             }
         );
-        const externalResponse = await fetch(externalRequest);
-        const data = await externalResponse.json();
-        console.log('요청성공', data);
-        const internalResponse = NextResponse.json(data);
-        const internalRequestHeader = internalRequest.headers;
-        internalResponse.headers.set(
-            'Access-Control-Allow-Origin',
-            internalRequestHeader.get('Origin') || '*'
-        );
-        internalResponse.headers.set(
-            'Access-Control-Allow-Methods',
-            'GET, POST, PUT, DELETE, OPTIONS'
-        );
-        internalResponse.headers.set(
-            'Access-Control-Allow-Headers',
-            'Content-Type, X-Auth-Token, Authorization'
-        );
-        return internalResponse;
+
+        const data = await response.json();
+        if (!response.ok) {
+            return NextResponse.json(
+                { error: `API Error: ${data.message || response.statusText}` },
+                { status: response.status }
+            );
+        }
+
+        return NextResponse.json(data);
     } catch (error) {
         console.log('요청실패', error);
-        // error.status(500).json({ message: 'API 요청에 실패했습니다.' });
+        return NextResponse.json(
+            { error: 'Internal Server Error' },
+            { status: 500 }
+        );
     }
 }

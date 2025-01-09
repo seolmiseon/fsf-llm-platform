@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import styles from './Input.module.css';
 import type { InputProps } from './types';

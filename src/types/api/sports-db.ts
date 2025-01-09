@@ -4,4 +4,5 @@ export interface TeamImages {
     teamLogo?: string;
     teamBanner?: string;
     stadium?: string;
+    badge?: string;
 }

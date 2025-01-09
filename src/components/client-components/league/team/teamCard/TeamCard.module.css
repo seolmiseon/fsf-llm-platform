@@ -1,0 +1,19 @@
+/* TeamCard.module.css */
+.cardWrapper {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cardWrapper:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.badgeContainer {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.teamInfo {
+    width: 100%;
+}

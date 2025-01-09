@@ -8,7 +8,7 @@
 -   [x] Auth Provider 구현
 -   [x] Home Banner ("Full of Soccer Fun")
     -   배경 이미지와 텍스트 오버레이 구현 필요
--   [ ] League Grid Selection
+-   [x] League Grid Selection
     -   8개의 주요 리그 그리드 레이아웃
     -   리그 로고 및 이름 표시
     -   클릭 시 해당 리그 페이지로 이동
@@ -31,22 +31,22 @@
 
 ### 3. League Rankings Page (팀 순위 정보)
 
--   [ ] League Header
+-   [x] League Header
     -   리그 로고 및 정보
 -   [ ] Rankings Table
     -   팀 순위 표
     -   승점, 득실차 등 통계
--   [ ] Team Statistics
+-   [x] Team Statistics
     -   세부 팀 통계 정보
 
 ### 4. Team Detail Page (선수단 구성)
 
--   [ ] Team Profile
+-   [x] Team Profile
     -   팀 로고 및 기본 정보
--   [ ] Squad List
+-   [x] Squad List
     -   선수단 명단
     -   선수 기본 정보
--   [ ] Team Stats
+-   [x] Team Stats
     -   팀 세부 통계
     -   시즌 성적 정보
 
@@ -104,9 +104,9 @@
 
 ## 🔄 Data Integration
 
--   [ ] League Data API 연동
--   [ ] Match Data API 연동
--   [ ] Team & Player Data API 연동
+-   [x] League Data API 연동
+-   [x] Match Data API 연동
+-   [x] Team & Player Data API 연동
 -   [ ] Real-time Updates 구현
 
 ## 📱 Responsive Design

@@ -21,7 +21,7 @@ export default function RootLayout({
             <body className={`${pretendard.variable} vsc-initialized`}>
                 <AuthProvider>
                     <Navigation />
-                    {children}
+                    <main>{children}</main>
                     <ModalRoot />
                 </AuthProvider>
             </body>
