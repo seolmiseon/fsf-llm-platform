@@ -1,5 +1,11 @@
 // 모달 관련 타입들
-export type ModalType = 'teamDetail' | 'personDetail' | 'search' | 'logout';
+export type ModalType =
+    | 'teamDetail'
+    | 'personDetail'
+    | 'search'
+    | 'logout'
+    | 'login'
+    | 'signup';
 
 // 팀 모달 데이터 인터페이스
 export interface TeamModalData {
@@ -40,7 +46,17 @@ export interface SearchModalData {
     page?: number;
 }
 
-export type ModalData = TeamModalData | PersonModalData | SearchModalData;
+// 새로 추가되는 인증 모달 데이터
+export interface AuthModalData {
+    kind: 'auth';
+    mode: 'login' | 'signup' | 'logout';
+}
+
+export type ModalData =
+    | TeamModalData
+    | PersonModalData
+    | SearchModalData
+    | AuthModalData;
 
 // 모달 상태 인터페이스
 export interface ModalState {

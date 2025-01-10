@@ -14,10 +14,15 @@ export function LeagueGrid() {
         const loadCompetitions = async () => {
             try {
                 const footballApi = new FootballDataApi();
-                const data = await footballApi.getCompetitions();
+                const result = await footballApi.getCompetitions();
 
-                const majorLeagues = data.filter(
-                    (comp) =>
+                if (!result.success) {
+                    setError(result.error);
+                    return;
+                }
+
+                const majorLeagues = result.data.filter(
+                    (comp: Competition) =>
                         comp.type === 'LEAGUE' &&
                         [
                             'PL',

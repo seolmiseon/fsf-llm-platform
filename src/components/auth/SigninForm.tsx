@@ -8,7 +8,7 @@ import {
     validateField,
     validateForm,
     ValidationPatterns,
-} from '@/lib/utils/Validation';
+} from '@/utils/Validation';
 import SocialLoginButtons from './SocialLoginButtons';
 import React, { useState } from 'react';
 

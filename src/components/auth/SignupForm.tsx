@@ -3,7 +3,7 @@
 import useSignup from '@/hooks/useSignup';
 import { Button } from '../ui/button/Button';
 import { Input } from '../ui/input/Input';
-import { ValidationPatterns, validateForm } from '@/lib/utils/Validation';
+import { ValidationPatterns, validateForm } from '@/utils/Validation';
 
 export default function SignupForm() {
     const { signup, error, loading } = useSignup();

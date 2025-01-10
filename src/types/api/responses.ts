@@ -108,6 +108,7 @@ export interface TeamResponse extends TeamBase {
             flag?: string;
         };
     };
+    competitionId: string;
     organizedSquad?: SquadByPosition; // 포지션별 정리된 스쿼드
 }
 
@@ -121,6 +122,7 @@ export interface MatchResponse {
     status: string;
     utcDate: string;
     venue: string;
+    referee?: string;
 }
 
 // 7. 경기 관련 타입들의 명확한 정의

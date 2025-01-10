@@ -1,4 +1,5 @@
 import {
+    ApiResponse,
     Competition,
     MatchResponse,
     TeamResponse,
@@ -7,78 +8,92 @@ import {
 export class FootballDataApi {
     private readonly baseUrl: string;
 
-    constructor() {
-        this.baseUrl = '@/app/api/football';
+    constructor(baseUrl = '/api/football') {
+        this.baseUrl = baseUrl;
     }
 
-    // private getHeaders(): HeadersInit {
-    //     return {
-    //         'X-Auth-Token': this.apiKey,
-    //     };
-    // }
+    private async fetchApi<T>(path: string): Promise<ApiResponse<T>> {
+        try {
+            const response = await fetch(`${this.baseUrl}?path=${path}`);
+            const data = await response.json();
 
-    async getCompetitions(): Promise<Competition[]> {
-        const response = await fetch(`${this.baseUrl}?path=/competitions`);
+            if (!response.ok) {
+                return {
+                    success: false,
+                    error: data.error || response.statusText,
+                };
+            }
 
-        if (!response.ok) {
-            throw new Error(
-                `Failed to fetch competitions: ${response.statusText}`
-            );
+            return {
+                success: true,
+                data,
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : 'Unknown error occurred',
+            };
         }
-
-        const data = await response.json();
-        return data.competitions; // API 응답 구조에 따라 이 부분 조정 필요
     }
 
-    async getCompetition(competitionId: string): Promise<Competition> {
-        const response = await fetch(
-            `${this.baseUrl}?path=/competitions/${competitionId}`
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                `Failed to fetch competition: ${response.statusText}`
-            );
-        }
-
-        return response.json();
+    async getCompetitions(): Promise<ApiResponse<Competition[]>> {
+        return this.fetchApi<Competition[]>('/competitions');
     }
 
-    // 해당 리그의 팀 목록 가져오기
+    async getCompetition(
+        competitionId: string
+    ): Promise<ApiResponse<Competition>> {
+        return this.fetchApi<Competition>(`/competitions/${competitionId}`);
+    }
+
     async getTeamsByCompetition(
         competitionId: string
-    ): Promise<TeamResponse[]> {
-        const response = await fetch(
-            `${this.baseUrl}?path=/competitions/${competitionId}/teams`
+    ): Promise<ApiResponse<TeamResponse[]>> {
+        return this.fetchApi<TeamResponse[]>(
+            `/competitions/${competitionId}/teams`
         );
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch teams: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        return data.teams;
     }
 
-    async getTeam(teamId: string): Promise<TeamResponse> {
-        const response = await fetch(`${this.baseUrl}?path=/teams/${teamId}`);
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch team: ${response.statusText}`);
-        }
-
-        return response.json();
+    async getTeam(teamId: string): Promise<ApiResponse<TeamResponse>> {
+        return this.fetchApi<TeamResponse>(`/teams/${teamId}`);
     }
 
-    async getMatch(matchId: string): Promise<MatchResponse> {
-        const response = await fetch(
-            `${this.baseUrl}?path=/matches/${matchId}`
-        );
+    async getMatch(matchId: string): Promise<ApiResponse<MatchResponse>> {
+        return this.fetchApi<MatchResponse>(`/matches/${matchId}`);
+    }
 
-        if (!response.ok) {
-            throw new Error(`Failed to fetch match: ${response.statusText}`);
+    async getLiveMatches(): Promise<ApiResponse<MatchResponse[]>> {
+        try {
+            const response = await fetch(
+                `${this.baseUrl}?path=/matches?status=LIVE`,
+                {
+                    next: { revalidate: 60 }, // 1분 캐싱
+                }
+            );
+
+            if (!response.ok) {
+                return {
+                    success: false,
+                    error: `Failed to fetch live matches: ${response.statusText}`,
+                };
+            }
+
+            const data = await response.json();
+            return {
+                success: true,
+                data: data.matches,
+            };
+        } catch (error: unknown) {
+            return {
+                success: false,
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : 'Failed to fetch live matches',
+            };
         }
-
-        return response.json();
     }
 }

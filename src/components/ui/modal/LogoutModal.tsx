@@ -1,5 +1,5 @@
 import { useModalStore } from '@/store/useModalStore';
-import { Dialog, DialogContent } from '../dialog';
+import { Dialog, DialogContent } from '../common/dialog';
 import { Button } from '../button/Button';
 import { useLogout } from '@/hooks/useLogout';
 

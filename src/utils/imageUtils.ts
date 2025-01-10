@@ -1,6 +1,12 @@
+const placeholderCache = new Map<string, string>();
+
 export const getPlaceholderImageUrl = (
     type: 'badge' | 'player' | 'manager' | 'team'
 ) => {
+    if (placeholderCache.has(type)) {
+        return placeholderCache.get(type)!;
+    }
+
     const encodedSVG = encodeURIComponent(`
         <svg width="150" height="150" xmlns="http://www.w3.org/2000/svg">
             <rect width="150" height="150" fill="#f0f0f0"/>
@@ -10,5 +16,10 @@ export const getPlaceholderImageUrl = (
             </text>
         </svg>
     `);
-    return `data:image/svg+xml;utf8,${encodedSVG}`;
+
+    const url = `data:image/svg+xml;utf8,${encodedSVG}`;
+
+    placeholderCache.set(type, url);
+
+    return url;
 };

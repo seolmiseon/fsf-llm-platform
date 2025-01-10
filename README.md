@@ -68,7 +68,7 @@
     ## 👥 Community Features
 
 -   [ ] User Profile System
-    -   [ ] Profile Page
+    -   [x] Profile Page
     -   [ ] Activity History
     -   [ ] Settings
 -   [ ] League Community
@@ -96,7 +96,7 @@
 -   [ ] Colors
     -   브랜드 컬러
     -   UI 컬러 시스템
--   [ ] Components
+-   [x] Components
     -   버튼
     -   카드
     -   입력 필드

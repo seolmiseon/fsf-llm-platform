@@ -1,0 +1,55 @@
+.container {
+    @apply flex flex-col items-center;
+}
+
+.placeholderLogo {
+    @apply w-full h-full bg-gray-200 rounded-full;
+}
+
+.teamName {
+    @apply font-semibold text-sm truncate;
+}
+.card {
+    @apply w-[300px] p-4 mx-2 cursor-pointer;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    @apply shadow-md;
+}
+
+.card.active {
+    @apply shadow-lg;
+    transform: scale(1.05);
+}
+
+.statusBadge {
+    @apply px-2 py-1 rounded-full text-xs text-white mb-3;
+}
+
+.teamContainer {
+    @apply flex items-center justify-between w-full mb-4;
+}
+
+.teamInfo {
+    @apply flex-1;
+}
+
+.teamInfo.right {
+    @apply text-right;
+}
+
+.teamInfo.left {
+    @apply text-left;
+}
+
+.logoContainer {
+    @apply relative w-8 h-8 mx-auto mb-2;
+}
+.teamName {
+    @apply font-semibold text-sm truncate;
+}
+
+.venueInfo {
+    @apply text-xs text-gray-500;
+}

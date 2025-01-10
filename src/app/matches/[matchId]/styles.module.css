@@ -1,0 +1,64 @@
+/* MatchDetailPage.module.css */
+.container {
+    @apply max-w-7xl mx-auto px-4 py-8;
+}
+
+.header {
+    @apply flex items-center gap-4 mb-8;
+}
+
+.headerTitle {
+    @apply text-2xl font-bold;
+}
+
+.liveBadge {
+    @apply bg-red-500 text-white px-3 py-1 rounded-full text-sm;
+}
+
+.mainContent {
+    @apply grid grid-cols-1 lg:grid-cols-3 gap-8;
+}
+
+.scoreboardSection {
+    @apply lg:col-span-2;
+}
+
+.scoreboardCard {
+    @apply bg-white rounded-lg shadow-md p-6;
+}
+
+.matchInfo {
+    @apply mt-6 text-center text-gray-600;
+}
+
+.statsSection {
+    @apply lg:col-span-1;
+}
+
+.tabsRoot {
+    @apply flex flex-col w-full;
+}
+
+.tabsList {
+    @apply flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 border-b border-gray-200;
+}
+
+.tabsTrigger {
+    @apply inline-block p-4 rounded-t-lg hover:text-gray-600 hover:border-gray-300;
+    /* 활성화된 탭의 스타일은 Radix UI의 data 속성으로 처리됩니다 */
+}
+
+/* 활성화된 탭 스타일 */
+.tabsTrigger[data-state='active'] {
+    @apply text-blue-600 border-b-2 border-blue-600;
+}
+
+/* 탭 컨텐츠 영역 스타일 */
+.tabsContent {
+    @apply py-4;
+}
+
+/* 비활성화된 탭 컨텐츠 숨김 처리 */
+.tabsContent[data-state='inactive'] {
+    @apply hidden;
+}

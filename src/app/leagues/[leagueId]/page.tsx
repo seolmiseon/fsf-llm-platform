@@ -1,39 +1,17 @@
 'use client';
 import { TeamDetailModal } from '@/components/client-components/league/team/modals/teamDetailModal/TeamDetailModal';
 import { TeamCard } from '@/components/client-components/league/team/teamCard/TeamCard';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/common/dialog';
+import { Loading, Error, Empty } from '@/components/ui/common/index';
 import { FootballDataApi } from '@/lib/server/api/football-data';
 import { TeamResponse } from '@/types/api/responses';
+import { useTeams } from '@/hooks/useTeams';
 import { useEffect, useState } from 'react';
 
 export default function LeaguePage({ params }: { params: { id: string } }) {
     const [open, setOpen] = useState(false);
     const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
-    const [teams, setTeams] = useState<TeamResponse[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const loadTeams = async () => {
-            try {
-                const footballApi = new FootballDataApi();
-                const teamsData = await footballApi.getTeamsByCompetition(
-                    params.id
-                );
-                setTeams(teamsData);
-            } catch (error) {
-                setError(
-                    error instanceof Error
-                        ? error.message
-                        : 'Failed to load teams'
-                );
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadTeams();
-    }, [params.id]);
+    const { teams, loading, error, refresh } = useTeams(params.id);
 
     const handleTeamClick = (team: TeamResponse) => {
         setSelectedTeam(team.id.toString());
@@ -41,11 +19,15 @@ export default function LeaguePage({ params }: { params: { id: string } }) {
     };
 
     if (loading) {
-        return <div>Loading teams...</div>;
+        return <Loading type="cards" count={6} />;
     }
 
     if (error) {
-        return <div>Error: {error}</div>;
+        return <Error message={error} retry={refresh} />;
+    }
+
+    if (!teams.length) {
+        return <Empty message="No teams found for this league" />;
     }
 
     return (

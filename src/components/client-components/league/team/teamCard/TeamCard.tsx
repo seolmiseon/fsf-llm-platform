@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/common/card';
 import styles from './TeamCard.module.css';
 import { useModalStore } from '@/store/useModalStore';
 import { TeamResponse } from '@/types/api/responses';

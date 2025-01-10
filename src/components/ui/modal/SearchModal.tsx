@@ -1,7 +1,12 @@
 'use client';
 
 import { useServerSearch } from '@/hooks/useServerSearch';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '../common/dialog';
 import { Loader2 } from 'lucide-react';
 import { useModalStore } from '@/store/useModalStore';
 import { Input } from '../input/Input';

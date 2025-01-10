@@ -3,6 +3,7 @@ import {
     Position,
     PlayerInfo,
     PlayerDetailedInfo,
+    ApiResponse,
 } from '@/types/api/responses';
 
 import {
@@ -12,22 +13,22 @@ import {
     PersonModalData,
 } from '@/types/ui/modal';
 
-export const useModalStore = create<
-    ModalState & {
-        open: (
-            type: ModalType,
-            data: ModalData | null,
-            position?: Position
-        ) => void;
-        openPersonDetail: (
-            playerInfo: PlayerInfo,
-            position: Position,
-            teamId: string
-        ) => void;
-        back: () => void;
-        close: () => void;
-    }
->((set) => ({
+type ModalStore = ModalState & {
+    open: (
+        type: ModalType,
+        data: ModalData | null,
+        position?: Position
+    ) => void;
+    openPersonDetail: (
+        playerInfo: PlayerInfo,
+        position: Position,
+        teamId: string
+    ) => void;
+    back: () => void;
+    close: () => void;
+};
+
+export const useModalStore = create<ModalStore>((set) => ({
     isOpen: false,
     type: null,
     data: null,
@@ -47,6 +48,7 @@ export const useModalStore = create<
             isOpen: true,
             type: 'personDetail',
             data: {
+                kind: 'person',
                 id: playerInfo.id,
                 name: playerInfo.name,
                 position: playerInfo.position,
@@ -58,6 +60,11 @@ export const useModalStore = create<
                 dateOfBirth: playerInfo.dateOfBirth,
                 height: playerInfo.height,
                 weight: playerInfo.weight,
+                currentTeam: {
+                    id: 0, // 이 부분은 실제 데이터에 맞게 수정 필요
+                    name: '',
+                    joined: '',
+                },
             } as PersonModalData,
             position,
             previousModal: state.type
