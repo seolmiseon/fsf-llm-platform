@@ -1,12 +1,19 @@
 import { Error, Loading } from '@/components/ui/common';
 import { FootballDataApi } from '@/lib/server/api/football-data';
-import { MatchResponse } from '@/types/api/responses';
+import { ApiResponse, MatchResponse } from '@/types/api/responses';
 import Image from 'next/image';
 import * as Tabs from '@radix-ui/react-tabs';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import styles from './styles.module.css';
 import { getPlaceholderImageUrl } from '@/utils/imageUtils';
+import {
+    LineupDisplay,
+    MatchStatistics,
+    PositionTable,
+    ScoreDisplay,
+    TeamDisplay,
+} from '@/components/client-components/match';
 
 export default function MatchDetailPage() {
     const params = useParams();
@@ -19,14 +26,17 @@ export default function MatchDetailPage() {
             try {
                 setLoading(true);
                 const api = new FootballDataApi();
-                const result = await api.getMatch(params.matchId as string);
+                const result: ApiResponse<MatchResponse> = await api.getMatch(
+                    params.matchId as string
+                );
 
                 if (!result.success) {
                     setError(result.error);
                     return;
                 }
                 setMatch(result.data);
-            } catch (error) {
+            } catch (e) {
+                setError('Failed to load match details');
             } finally {
                 setLoading(false);
             }
@@ -64,13 +74,16 @@ export default function MatchDetailPage() {
                     <div className={styles.scoreboardCard}>
                         <div className={styles.matchInfo}>
                             {/* 홈팀 */}
-                            {/* <TeamDisplay team={match.homeTeam} align="right" /> */}
+                            <TeamDisplay team={match.homeTeam} align="right" />
 
                             {/* 스코어 */}
-                            {/* <ScoreDisplay match={match} /> */}
+                            <ScoreDisplay
+                                score={match.score}
+                                status={match.status}
+                            />
 
                             {/* 원정팀 */}
-                            {/* <TeamDisplay team={match.awayTeam} align="left" /> */}
+                            <TeamDisplay team={match.awayTeam} align="left" />
                         </div>
 
                         {/* 경기장 & 심판 정보 */}
@@ -87,7 +100,7 @@ export default function MatchDetailPage() {
                         defaultValue="details"
                         className={styles.tabsRoot}
                     >
-                        <Tabs.TabsList className={styles.tabsList}>
+                        <Tabs.List className={styles.tabsList}>
                             <Tabs.TabsTrigger
                                 value="details"
                                 className={styles.tabsTrigger}
@@ -112,21 +125,35 @@ export default function MatchDetailPage() {
                             >
                                 Position table
                             </Tabs.TabsTrigger>
-                        </Tabs.TabsList>
+                        </Tabs.List>
 
-                        <Tabs.TabsContent
+                        <Tabs.Content
                             value="details"
                             className={styles.tabsContent}
                         >
-                            {/* <MatchStatistics statistics={match.statistics} /> */}
-                        </Tabs.TabsContent>
+                            {match.statistics && (
+                                <MatchStatistics
+                                    statistics={match.statistics}
+                                    homeTeamName={match.homeTeam.name}
+                                    awayTeamName={match.awayTeam.name}
+                                />
+                            )}
+                        </Tabs.Content>
 
-                        <Tabs.TabsContent
+                        <Tabs.Content
                             value="liveup"
                             className={styles.tabsContent}
                         >
-                            {/* <LineupDisplay lineup={match.lineup} /> */}
-                        </Tabs.TabsContent>
+                            {match.lineup && (
+                                <LineupDisplay
+                                    matchId={match.id}
+                                    status={match.status}
+                                    kickoff={match.utcDate}
+                                    homeTeam={match.lineup.homeTeam}
+                                    awayTeam={match.lineup.awayTeam}
+                                />
+                            )}
+                        </Tabs.Content>
 
                         <Tabs.Content
                             value="stats"
@@ -139,9 +166,11 @@ export default function MatchDetailPage() {
                             value="position"
                             className={styles.tabsContent}
                         >
-                            {/* 포지션 테이블 내용 */}
+                            <PositionTable
+                                standings={[]}
+                                highlightTeamId={match.homeTeam.id}
+                            />
                         </Tabs.Content>
-                        {/* 추가 탭 컨텐츠... */}
                     </Tabs.Root>
                 </div>
             </div>

@@ -4,7 +4,7 @@ export type ModalType =
     | 'personDetail'
     | 'search'
     | 'logout'
-    | 'login'
+    | 'signin'
     | 'signup';
 
 // 팀 모달 데이터 인터페이스
@@ -49,7 +49,7 @@ export interface SearchModalData {
 // 새로 추가되는 인증 모달 데이터
 export interface AuthModalData {
     kind: 'auth';
-    mode: 'login' | 'signup' | 'logout';
+    mode: 'signin' | 'signup' | 'logout';
 }
 
 export type ModalData =

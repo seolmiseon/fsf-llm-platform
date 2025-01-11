@@ -1,3 +1,5 @@
+import { MatchStatistic, TeamLineup } from './football-data';
+
 export * from './football-data';
 export * from './score-match';
 export * from './sports-db';
@@ -123,6 +125,12 @@ export interface MatchResponse {
     utcDate: string;
     venue: string;
     referee?: string;
+    statistics?: MatchStatistic[];
+    lineup?: {
+        // 옵셔널로 추가
+        homeTeam: TeamLineup;
+        awayTeam: TeamLineup;
+    };
 }
 
 // 7. 경기 관련 타입들의 명확한 정의

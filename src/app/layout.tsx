@@ -6,6 +6,7 @@ import { ErrorBoundary } from '@/components/providers/ErrorBoundary';
 import { ModalRoot } from '@/components/ui/modal/ModalRoot';
 import Navigation from '@/components/navigation/Navigation';
 import type { Metadata } from 'next';
+import Script from 'next/script';
 
 const pretendard = localFont({
     src: '../fonts/PretendardVariable.woff2',
@@ -29,6 +30,13 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
+            <head>
+                <Script
+                    type="text/javascript"
+                    src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.KAKAO_MAP_API_KEY}`}
+                    strategy="beforeInteractive"
+                />
+            </head>
             <body className={`${pretendard.variable} vsc-initialized`}>
                 <ErrorBoundary>
                     <ThemeProvider>

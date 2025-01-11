@@ -5,7 +5,7 @@ import FSFLogo from '@/components/ui/logo/FSFLogo';
 import { Search, Menu, X, User, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useModalStore } from '@/store/useModalStore';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import {
     DropdownMenu,
@@ -19,6 +19,11 @@ export default function Navigation() {
     const { open } = useModalStore();
     const { data: session, status } = useSession();
 
+    useEffect(() => {
+        console.log('Auth status:', status);
+        console.log('Session:', session);
+    }, [status, session]);
+
     const navLinks = [
         { href: '/leagues', label: 'Leagues' },
         { href: '/match', label: 'Match' },
@@ -27,6 +32,9 @@ export default function Navigation() {
     ];
 
     const renderAuthButtons = () => {
+        if (status === 'loading') {
+            return null;
+        }
         if (status === 'authenticated' && session.user) {
             return (
                 <DropdownMenu>
@@ -71,12 +79,12 @@ export default function Navigation() {
         }
 
         return (
-            <>
+            <div className="flex items-center space-x-2">
                 <Button
                     variant="ghost"
                     size="sm"
                     onClick={() =>
-                        open('login', { kind: 'auth', mode: 'login' })
+                        open('signin', { kind: 'auth', mode: 'signin' })
                     }
                 >
                     로그인
@@ -90,7 +98,7 @@ export default function Navigation() {
                 >
                     회원가입
                 </Button>
-            </>
+            </div>
         );
     };
 
@@ -126,7 +134,7 @@ export default function Navigation() {
                     </div>
 
                     {/* Search and Auth Buttons */}
-                    <div className="hidden sm:flex items-center space-x-4">
+                    <div className="hidden items-center space-x-4 sm:flex">
                         <div className="relative">
                             <input
                                 type="text"
@@ -189,9 +197,9 @@ export default function Navigation() {
                                     variant="primary"
                                     size="sm"
                                     onClick={() => {
-                                        open('login', {
+                                        open('signin', {
                                             kind: 'auth',
-                                            mode: 'login',
+                                            mode: 'signin',
                                         });
                                         setIsMenuOpen(false);
                                     }}

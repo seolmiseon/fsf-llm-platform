@@ -2,6 +2,7 @@ import {
     ApiResponse,
     Competition,
     MatchResponse,
+    StandingsResponse,
     TeamResponse,
 } from '@/types/api/responses';
 
@@ -95,5 +96,13 @@ export class FootballDataApi {
                         : 'Failed to fetch live matches',
             };
         }
+    }
+
+    async getStandings(
+        competitionId: string
+    ): Promise<ApiResponse<StandingsResponse>> {
+        return this.fetchApi<StandingsResponse>(
+            `/competitions/${competitionId}/standings`
+        );
     }
 }
