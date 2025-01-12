@@ -30,6 +30,11 @@ export const PersonDetailModal = ({
                         width={120}
                         height={120}
                         className={styles.personImage}
+                        onError={(e) => {
+                            e.currentTarget.src = getPlaceholderImageUrl(
+                                isManager ? 'manager' : 'player'
+                            );
+                        }}
                     />
                 </div>
                 <div className={styles.personInfo}>

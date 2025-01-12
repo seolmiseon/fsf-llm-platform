@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/common/card';
 import { formatMatchTime } from '@/utils/dateFormat';
 import Image from 'next/image';
 import styles from './MatchCard.module.css';
+import { getPlaceholderImageUrl } from '@/utils/imageUtils';
 
 interface MatchCardProps {
     match: MatchResponse;
@@ -55,6 +56,10 @@ export function MatchCard({ match, isActive = false }: MatchCardProps) {
                                     alt={match.homeTeam.name}
                                     fill
                                     className="object-contain"
+                                    onError={(e) => {
+                                        e.currentTarget.src =
+                                            getPlaceholderImageUrl('team');
+                                    }}
                                 />
                             ) : (
                                 <div className={styles.placeholderLogo} />
@@ -80,6 +85,10 @@ export function MatchCard({ match, isActive = false }: MatchCardProps) {
                                     alt={match.awayTeam.name}
                                     fill
                                     className="object-contain"
+                                    onError={(e) => {
+                                        e.currentTarget.src =
+                                            getPlaceholderImageUrl('team');
+                                    }}
                                 />
                             ) : (
                                 <div className={styles.placeholderLogo} />

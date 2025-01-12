@@ -1,0 +1,39 @@
+.carouselContainer {
+    position: relative;
+    width: 100%;
+}
+
+.carouselTrack {
+    display: flex;
+    transition: transform 300ms ease;
+}
+
+.carouselItem {
+    width: 100%;
+    min-width: calc(33.333% - 1rem);
+    padding: 0 0.5rem;
+}
+
+.navigationButton {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 0.5rem;
+    border-radius: 9999px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 200ms ease;
+}
+
+.navigationButton:hover {
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.navigationButton.prev {
+    left: 0;
+}
+
+.navigationButton.next {
+    right: 0;
+}

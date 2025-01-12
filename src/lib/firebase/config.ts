@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
 import { getAuth } from 'firebase/auth';
+import { getStorage } from 'firebase/storage';
 
 export const firebaseConfig = {
     apiKey: process.env.FIREBASE_API_KEY,
@@ -18,3 +19,4 @@ const app = initializeApp(firebaseConfig);
 // Realtime Database 초기화
 export const db = getDatabase(app);
 export const auth = getAuth(app);
+export const storage = getStorage(app);

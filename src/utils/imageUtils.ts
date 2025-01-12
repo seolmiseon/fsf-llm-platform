@@ -1,7 +1,7 @@
 const placeholderCache = new Map<string, string>();
 
 export const getPlaceholderImageUrl = (
-    type: 'badge' | 'player' | 'manager' | 'team'
+    type: 'badge' | 'player' | 'manager' | 'team' | 'league'
 ) => {
     if (placeholderCache.has(type)) {
         return placeholderCache.get(type)!;

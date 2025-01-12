@@ -13,9 +13,11 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropDown/DropDownMenu';
+import Image from 'next/image';
 
 export default function Navigation() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [imageError, setImageError] = useState(false);
     const { open } = useModalStore();
     const { data: session, status } = useSession();
 
@@ -43,27 +45,47 @@ export default function Navigation() {
                             variant="ghost"
                             size="sm"
                             className="relative rounded-full"
+                            aria-label="사용자 메뉴"
                         >
-                            {session.user.image ? (
-                                <img
+                            {session.user.image && !imageError ? (
+                                <Image
                                     src={session.user.image}
-                                    alt="Profile"
-                                    className="w-8 h-8 rounded-full"
+                                    alt={`${
+                                        session.user.name || 'User'
+                                    }'s profile`}
+                                    fill
+                                    className="rounded-full object-cover"
+                                    sizes="32px"
+                                    loading="eager"
+                                    onError={() => setImageError(true)}
                                 />
                             ) : (
-                                <User className="w-5 h-5" />
+                                <User className="w-5 h-5" aria-hidden="true" />
                             )}
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="w-56">
                         <DropdownMenuItem asChild>
-                            <Link href="/profile">프로필</Link>
+                            <Link href="/profile" className="flex items-center">
+                                <User className="mr-2 h-4 w-4" />
+                                프로필
+                            </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                            <Link href="/my-teams">내 팀</Link>
+                            <Link
+                                href="/my-teams"
+                                className="flex items-center"
+                            >
+                                내 팀
+                            </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                            <Link href="/settings">설정</Link>
+                            <Link
+                                href="/settings"
+                                className="flex items-center"
+                            >
+                                설정
+                            </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             className="text-red-600"
@@ -71,6 +93,7 @@ export default function Navigation() {
                                 open('logout', { kind: 'auth', mode: 'logout' })
                             }
                         >
+                            <LogOut className="mr-2 h-4 w-4" />
                             로그아웃
                         </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -180,7 +203,11 @@ export default function Navigation() {
 
                 {/* Mobile menu */}
                 {isMenuOpen && (
-                    <div className="sm:hidden" id="mobile-menu">
+                    <div
+                        className="sm:hidden"
+                        id="mobile-menu"
+                        role="navigation"
+                    >
                         <div className="px-2 pt-2 pb-3 space-y-1">
                             {navLinks.map(({ href, label }) => (
                                 <Link
@@ -192,36 +219,62 @@ export default function Navigation() {
                                     {label}
                                 </Link>
                             ))}
-                            <div className="mt-4 flex flex-col space-y-2 px-3">
-                                <Button
-                                    variant="primary"
-                                    size="sm"
-                                    onClick={() => {
-                                        open('signin', {
-                                            kind: 'auth',
-                                            mode: 'signin',
-                                        });
-                                        setIsMenuOpen(false);
-                                    }}
-                                    className="w-full"
-                                >
-                                    로그인
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                        open('signup', {
-                                            kind: 'auth',
-                                            mode: 'signup',
-                                        });
-                                        setIsMenuOpen(false);
-                                    }}
-                                    className="w-full"
-                                >
-                                    회원가입
-                                </Button>
-                            </div>
+                            {status === 'authenticated' ? (
+                                <>
+                                    <Link
+                                        href="/profile"
+                                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        프로필
+                                    </Link>
+                                    <Button
+                                        variant="primary"
+                                        size="sm"
+                                        onClick={() => {
+                                            open('logout', {
+                                                kind: 'auth',
+                                                mode: 'logout',
+                                            });
+                                            setIsMenuOpen(false);
+                                        }}
+                                        className="w-full mt-2"
+                                    >
+                                        로그아웃
+                                    </Button>
+                                </>
+                            ) : (
+                                <div className="mt-4 flex flex-col space-y-2 px-3">
+                                    <Button
+                                        variant="primary"
+                                        size="sm"
+                                        onClick={() => {
+                                            open('signin', {
+                                                kind: 'auth',
+                                                mode: 'signin',
+                                            });
+                                            setIsMenuOpen(false);
+                                        }}
+                                        className="w-full"
+                                    >
+                                        로그인
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            open('signup', {
+                                                kind: 'auth',
+                                                mode: 'signup',
+                                            });
+                                            setIsMenuOpen(false);
+                                        }}
+                                        className="w-full"
+                                    >
+                                        회원가입
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

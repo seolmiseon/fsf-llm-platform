@@ -72,6 +72,10 @@ export const TeamDetailModal = ({
                         width={64}
                         height={64}
                         className={styles.badge}
+                        onError={(e) => {
+                            e.currentTarget.src =
+                                getPlaceholderImageUrl('badge');
+                        }}
                     />
                 </div>
                 <h2>{teamData.name}</h2>
@@ -98,6 +102,10 @@ export const TeamDetailModal = ({
                                     width={100}
                                     height={100}
                                     className={styles.personImage}
+                                    onError={(e) => {
+                                        e.currentTarget.src =
+                                            getPlaceholderImageUrl('manager');
+                                    }}
                                 />
                             </div>
                             <span>{coach.name}</span>
@@ -125,6 +133,12 @@ export const TeamDetailModal = ({
                                         width={80}
                                         height={80}
                                         className={styles.playerImage}
+                                        onError={(e) => {
+                                            e.currentTarget.src =
+                                                getPlaceholderImageUrl(
+                                                    'player'
+                                                );
+                                        }}
                                     />
                                 </div>
                                 <span>{player.name}</span>

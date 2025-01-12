@@ -4,6 +4,7 @@ import Link from 'next/link';
 import styles from './LeagueCard.module.css';
 import Image from 'next/image';
 import type { Competition } from '@/types/api/responses';
+import { getPlaceholderImageUrl } from '@/utils/imageUtils';
 
 interface LeagueCardProps {
     competition: Competition;
@@ -20,6 +21,10 @@ export function LeagueCard({ competition }: LeagueCardProps) {
                         width={112}
                         height={112}
                         className={styles.logo}
+                        onError={(e) => {
+                            e.currentTarget.src =
+                                getPlaceholderImageUrl('league');
+                        }}
                     />
                 ) : (
                     <div

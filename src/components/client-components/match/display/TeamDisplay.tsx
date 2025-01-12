@@ -28,6 +28,9 @@ export const TeamDisplay = ({ team, align, size = 'md' }: TeamDisplayProps) => {
                     width={64}
                     height={64}
                     className={`${sizeClass[size]} object-contain`}
+                    sizes={
+                        size === 'sm' ? '32px' : size === 'md' ? '48px' : '64px'
+                    }
                     onError={(e) => {
                         e.currentTarget.src = getPlaceholderImageUrl('team');
                     }}

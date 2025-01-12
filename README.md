@@ -12,20 +12,20 @@
     -   8개의 주요 리그 그리드 레이아웃
     -   리그 로고 및 이름 표시
     -   클릭 시 해당 리그 페이지로 이동
--   [ ] Live Matches Section
+-   [x] Live Matches Section
     -   실시간 경기 결과 캐러셀
     -   좌우 스크롤 기능
     -   스코어 및 팀 정보 표시
 
 ### 2. Match Detail Page (실시간 매치 정보)
 
--   [ ] Match Header
+-   [x] Match Header
     -   실시간 스코어보드
     -   팀 로고 및 이름
--   [ ] Live Statistics
+-   [x] Live Statistics
     -   실시간 경기 통계
     -   주요 이벤트 표시
--   [ ] Player Lineup
+-   [x] Player Lineup
     -   양 팀 선발 선수 명단
     -   포메이션 표시
 
@@ -33,7 +33,7 @@
 
 -   [x] League Header
     -   리그 로고 및 정보
--   [ ] Rankings Table
+-   [x] Rankings Table
     -   팀 순위 표
     -   승점, 득실차 등 통계
 -   [x] Team Statistics
@@ -107,7 +107,7 @@
 -   [x] League Data API 연동
 -   [x] Match Data API 연동
 -   [x] Team & Player Data API 연동
--   [ ] Real-time Updates 구현
+-   [x] Real-time Updates 구현
 
 ## 📱 Responsive Design
 
@@ -115,8 +115,46 @@
 -   [ ] Tablet Layout
 -   [ ] Desktop Layout
 
-## 현재 진행 상황
+## 🔧 최근 업데이트 및 개선사항
 
--   기본적인 앱 구조 설정 완료
--   공통 컴포넌트(Navigation, Auth) 구현 완료
--   메인 페이지 배너 작업 진행 중
+### 이미지 최적화 (2024.01.12)
+
+-   [x] 모든 이미지 컴포넌트 Next/Image로 마이그레이션
+-   [x] 이미지 에러 핸들링 구현
+    -   팀 로고
+    -   선수 프로필
+    -   리그 엠블럼
+    -   매니저 이미지
+-   [x] 이미지 placeholder 시스템 구축
+
+### 성능 최적화
+
+-   [x] 이미지 로딩 최적화
+-   [x] 컴포넌트 렌더링 최적화
+-   [ ] API 응답 캐싱 구현 필요
+-   [ ] 번들 사이즈 최적화 필요
+
+## 🚀 배포 정보
+
+-   [x] Firebase 호스팅 설정
+-   [x] 환경변수 설정
+-   [ ] CI/CD 파이프라인 구축
+
+## 🔍 Known Issues
+
+-   [ ] 모바일에서 이미지 렌더링 이슈
+-   [ ] 실시간 매치 데이터 동기화 문제
+-   [ ] 인증 상태 유지 관련 이슈
+
+## 📋 Next Steps
+
+1. Community 기능 구현
+2. 실시간 매치 업데이트 시스템 구축
+3. 반응형 디자인 완성
+4. 성능 최적화
+
+## 🔑 환경 설정
+
+```bash
+
+```
