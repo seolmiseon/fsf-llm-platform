@@ -1,3 +1,5 @@
+'use client';
+
 import { Error, Loading } from '@/components/ui/common';
 import { FootballDataApi } from '@/lib/server/api/football-data';
 import { ApiResponse, MatchResponse } from '@/types/api/responses';

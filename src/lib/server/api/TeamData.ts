@@ -1,3 +1,4 @@
+import { getPlaceholderImageUrl } from '@/utils/imageUtils';
 import { FootballDataApi } from './football-data';
 import { ScoreBatApi } from './scoreHighlight';
 import { SportsDBApi } from './sportsDB';
@@ -5,6 +6,7 @@ import {
     MatchResponse,
     SquadByPosition,
     TeamResponse,
+    TeamImages,
 } from '@/types/api/responses';
 import { MatchHighlight } from '@/types/api/score-match';
 
@@ -25,19 +27,21 @@ export class TeamData {
     ): Promise<TeamResponse> {
         try {
             // 리그존재 여부 확인하기
-            const competition = await this.footballDataApi.getCompetition(
-                competitionId
-            );
+            const competitionResponse =
+                await this.footballDataApi.getCompetition(competitionId);
+            const competition = competitionResponse.success
+                ? competitionResponse.data
+                : null;
             if (!competition) {
                 throw new Error(
                     `Competition with ID ${competitionId} not found`
                 );
             }
 
-            // 팀목록 가져오기기
-            const teams = await this.footballDataApi.getTeamsByCompetition(
-                competitionId
-            );
+            // 팀목록 가져오기
+            const teamsResponse =
+                await this.footballDataApi.getTeamsByCompetition(competitionId);
+            const teams = teamsResponse.success ? teamsResponse.data : [];
             const team = teams.find((t) => t.name === teamName);
 
             if (!team) {
@@ -46,25 +50,28 @@ export class TeamData {
                 );
             }
 
-            // 3. 이미지 정보 가져오기 (SportsDB API는 별도의 제한이 있음)
-            let teamImages;
-
+            // 이미지 정보 가져오기
+            let teamImages: TeamImages = {};
             try {
-                teamImages = await this.sportsDBApi.getTeamImages(team.name);
+                const imagesResponse = await this.sportsDBApi.getTeamImages(
+                    team.name
+                );
+                if (imagesResponse.success) {
+                    teamImages = imagesResponse.data;
+                }
             } catch (imageError) {
                 console.warn('Failed to fetch team images:', imageError);
-                teamImages = {};
             }
+
             return {
                 ...team,
                 images: {
-                    ...teamImages,
                     badge:
                         teamImages.teamBadge ||
                         team.crest ||
-                        '/assets/default-badge.png',
+                        getPlaceholderImageUrl('badge'),
                     stadium:
-                        teamImages.stadium || '/assets/default-stadium.png',
+                        teamImages.stadium || '/images/default-stadium.png',
                 },
                 squad: team.squad,
                 organizedSquad: this.organizeSquadByPosition(team.squad),
@@ -77,7 +84,7 @@ export class TeamData {
         } catch (error) {
             console.error('Error in getTeamDetailedInfo:', error);
             if (error instanceof Error) {
-                throw error; // 구체적인 에러 메시지 유지
+                throw error;
             }
             throw new Error('Failed to fetch team information');
         }
@@ -87,15 +94,23 @@ export class TeamData {
         matchId: string
     ): Promise<MatchResponse & { highlights: MatchHighlight[] }> {
         try {
-            const match = await this.footballDataApi.getMatch(matchId);
+            const matchResponse = await this.footballDataApi.getMatch(matchId);
+            const match = matchResponse.success ? matchResponse.data : null;
+            if (!match) {
+                throw new Error('Failed to fetch match details');
+            }
 
             let highlights: MatchHighlight[] = [];
             try {
-                highlights = await this.scoreBatApi.getMatchHighlights(
-                    match.homeTeam.name,
-                    match.awayTeam.name,
-                    match.utcDate
-                );
+                const highlightsResponse =
+                    await this.scoreBatApi.getMatchHighlights(
+                        match.homeTeam.name,
+                        match.awayTeam.name,
+                        match.utcDate
+                    );
+                highlights = highlightsResponse.success
+                    ? highlightsResponse.data
+                    : [];
             } catch (highlightError) {
                 console.warn('Failed to fetch highlights:', highlightError);
             }

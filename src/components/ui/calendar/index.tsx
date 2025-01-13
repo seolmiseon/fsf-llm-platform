@@ -1,5 +1,4 @@
-// Calendar.tsx
-import styles from './calendar.module.css';
+import styles from './Calendar.module.css';
 import * as React from 'react';
 import { DayPicker } from 'react-day-picker';
 import { cn } from '@/utils/cn';

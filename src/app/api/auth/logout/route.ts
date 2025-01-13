@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/firebase/config';
 import { signOut } from 'firebase/auth';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
-export async function POST(req: Request) {
+export async function POST() {
     try {
         const session = await getServerSession(authOptions);
         if (!session) {
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
             },
             { status: 200 }
         );
-    } catch (error: any) {
+    } catch (error) {
         console.error('Logout error:', error);
         return NextResponse.json(
             { message: 'Failed to logout' },

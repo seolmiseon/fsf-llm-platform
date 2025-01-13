@@ -93,7 +93,7 @@
 
 -   [x] Typography
     -   Pretendard Variable 폰트 적용
--   [ ] Colors
+-   [x] Colors
     -   브랜드 컬러
     -   UI 컬러 시스템
 -   [x] Components

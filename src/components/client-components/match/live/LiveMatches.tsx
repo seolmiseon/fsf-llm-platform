@@ -1,6 +1,5 @@
 'use client';
 
-import { Card } from '@/components/ui/common/card';
 import { Loading, Error, Empty } from '@/components/ui/common';
 import { useLiveMatches } from '@/hooks/useLiveMatches';
 import { MatchCarousel } from '../carousel/MatchCarousel';

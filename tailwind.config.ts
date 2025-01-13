@@ -20,23 +20,16 @@ const config: Config = {
         extend: {
             colors: {
                 primary: {
-                    DEFAULT: '#4F46E5',
-                    dark: '#4338CA',
-                    light: '#818CF8',
+                    DEFAULT: 'hsl(var(--primary))',
+                    foreground: 'hsl(var(--primary-foreground))',
                 },
-                secondary: {
-                    DEFAULT: '#1F2937',
-                    dark: '#111827',
-                    light: '#374151',
+                accent: {
+                    DEFAULT: 'hsl(var(--accent))',
+                    foreground: 'hsl(var(--accent-foreground))',
                 },
-                background: {
-                    DEFAULT: '#FFFFFF',
-                    dark: '#0F172A',
-                },
-                text: {
-                    DEFAULT: '#1F2937',
-                    secondary: '#4B5563',
-                    disabled: '#9CA3AF',
+                muted: {
+                    DEFAULT: 'hsl(var(--muted))',
+                    foreground: 'hsl(var(--muted-foreground))',
                 },
             },
             fontFamily: {

@@ -3,10 +3,19 @@ import { TeamDetailModal } from '@/components/client-components/league/team/moda
 import { TeamCard } from '@/components/client-components/league/team/teamCard/TeamCard';
 import { Dialog, DialogContent } from '@/components/ui/common/dialog';
 import { Loading, Error, Empty } from '@/components/ui/common/index';
-import { FootballDataApi } from '@/lib/server/api/football-data';
 import { TeamResponse } from '@/types/api/responses';
 import { useTeams } from '@/hooks/useTeams';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+
+export async function generateStaticParams() {
+    return [
+        { id: 'PL' }, // Premier League
+        { id: 'PD' }, // La Liga
+        { id: 'SA' }, // Serie A
+        { id: 'BL1' }, // Bundesliga
+        { id: 'FL1' }, // Ligue 1
+    ];
+}
 
 export default function LeaguePage({ params }: { params: { id: string } }) {
     const [open, setOpen] = useState(false);

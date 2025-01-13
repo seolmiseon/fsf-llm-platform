@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import admin from 'firebase-admin';
 
 export async function GET(request: Request) {
@@ -29,8 +29,7 @@ export async function GET(request: Request) {
             .orderBy('title')
             .where('title', '>=', query.toLowerCase())
             .where('title', '<=', query.toLowerCase() + '\uf8ff')
-            .limit(limit + 1)
-            .offset((page - 1) * limit);
+            .limit(limit + 1);
 
         // 쿼리 실행
         const snapshot = await searchQuery.get();
@@ -55,7 +54,4 @@ export async function GET(request: Request) {
             { status: 500 }
         );
     }
-}
-function offset(arg0: number) {
-    throw new Error('Function not implemented.');
 }

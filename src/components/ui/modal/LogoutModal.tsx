@@ -5,10 +5,9 @@ import { useLogout } from '@/hooks/useLogout';
 
 export function LogoutModal() {
     const { isOpen, type, close } = useModalStore();
+    const { handleLogout } = useLogout();
 
     if (!isOpen || type !== 'logout') return null;
-
-    const { handleLogout } = useLogout();
 
     return (
         <Dialog>

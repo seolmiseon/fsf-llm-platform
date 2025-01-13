@@ -1,4 +1,5 @@
 import { MatchStatistic, TeamLineup } from './football-data';
+import { MatchHighlight } from './score-match';
 
 export * from './football-data';
 export * from './score-match';
@@ -127,16 +128,14 @@ export interface MatchResponse {
     referee?: string;
     statistics?: MatchStatistic[];
     lineup?: {
-        // 옵셔널로 추가
         homeTeam: TeamLineup;
         awayTeam: TeamLineup;
     };
+    highlights?: MatchHighlight[];
 }
 
 // 7. 경기 관련 타입들의 명확한 정의
 export interface Competition extends BaseEntity {
-    filter(arg0: (comp: any) => boolean): unknown;
-    // BaseEntity 상속
     area: {
         id: number;
         name: string;
