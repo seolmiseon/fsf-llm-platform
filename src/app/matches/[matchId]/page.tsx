@@ -37,8 +37,8 @@ export default function MatchDetailPage() {
                     return;
                 }
                 setMatch(result.data);
-            } catch (e) {
-                setError('Failed to load match details');
+            } catch (error) {
+                setError(`Failed to load match details: ${error}`);
             } finally {
                 setLoading(false);
             }

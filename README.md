@@ -113,7 +113,7 @@
 
 -   [ ] Mobile Layout
 -   [ ] Tablet Layout
--   [ ] Desktop Layout
+-   [x] Desktop Layout
 
 ## 🔧 최근 업데이트 및 개선사항
 
@@ -143,7 +143,7 @@
 ## 🔍 Known Issues
 
 -   [ ] 모바일에서 이미지 렌더링 이슈
--   [ ] 실시간 매치 데이터 동기화 문제
+-   [x] 실시간 매치 데이터 동기화 문제
 -   [ ] 인증 상태 유지 관련 이슈
 
 ## 📋 Next Steps

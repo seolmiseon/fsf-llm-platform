@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@radix-ui/react-tabs';
 import {
     Select,
@@ -13,7 +13,7 @@ import { DateRangePicker } from '@/components/ui/dateRangePicker';
 import { FootballDataApi } from '@/lib/server/api/football-data';
 import { MatchGrid } from '@/components/client-components/match/gird/MatchGrid';
 import { MatchResponse } from '@/types/api/responses';
-import { DateRange } from 'react-day-picker';
+import { type DateRange } from 'react-day-picker';
 
 export default function MatchesPage() {
     const [activeTab, setActiveTab] = useState('all');
@@ -21,7 +21,6 @@ export default function MatchesPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState('DATE_DESC');
-    const [selectedLeagues, setSelectedLeagues] = useState<string[]>([]);
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
     const sortOptions = [
@@ -74,7 +73,7 @@ export default function MatchesPage() {
     };
 
     // 매치 필터링 및 정렬 로직
-    const getFilteredMatches = () => {
+    const getFilteredMatches = useCallback(() => {
         let filtered = [...matches];
 
         // 탭 기반 필터링 (경기 상태별)
@@ -122,11 +121,11 @@ export default function MatchesPage() {
         });
 
         return filtered;
-    };
+    }, [matches, activeTab, dateRange, sortBy]);
 
     const filteredMatches = useMemo(
         () => getFilteredMatches(),
-        [matches, activeTab, selectedLeagues, dateRange, sortBy]
+        [getFilteredMatches]
     );
 
     if (loading) return <div>Loading...</div>;

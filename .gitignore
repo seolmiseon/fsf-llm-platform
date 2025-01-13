@@ -5,6 +5,7 @@
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+/functions/node_modules
 
 # testing
 /coverage
@@ -35,3 +36,8 @@ serviceAccountKey.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Firebase
+/.firebase/
+.firebase/
+firebase-debug.log

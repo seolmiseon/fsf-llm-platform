@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
-    output: 'export',
-
     images: {
         remotePatterns: [
             {
@@ -12,15 +10,16 @@ const nextConfig = {
             },
         ],
         domains: ['firebasestorage.googleapis.com'],
+        unoptimized: true,
     },
 
     // 프로덕션 빌드 최적화를 위한 추가 설정
-    poweredByHeader: false, // 보안을 위해 X-Powered-By 헤더 제거
+    poweredByHeader: false,
     compiler: {
-        removeConsole: process.env.NODE_ENV === 'production', // 프로덕션에서 console.log 제거
+        removeConsole: process.env.NODE_ENV === 'production',
     },
     experimental: {
-        optimizeCss: true, // CSS 최적화
+        optimizeCss: false,
     },
 };
 

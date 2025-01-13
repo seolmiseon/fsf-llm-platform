@@ -7,16 +7,6 @@ import { TeamResponse } from '@/types/api/responses';
 import { useTeams } from '@/hooks/useTeams';
 import { useState } from 'react';
 
-export async function generateStaticParams() {
-    return [
-        { id: 'PL' }, // Premier League
-        { id: 'PD' }, // La Liga
-        { id: 'SA' }, // Serie A
-        { id: 'BL1' }, // Bundesliga
-        { id: 'FL1' }, // Ligue 1
-    ];
-}
-
 export default function LeaguePage({ params }: { params: { id: string } }) {
     const [open, setOpen] = useState(false);
     const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
