@@ -30,14 +30,12 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <head>
+            <body className={`${pretendard.variable} vsc-initialized`}>
                 <Script
                     type="text/javascript"
-                    src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.KAKAO_MAP_API_KEY}`}
+                    src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY}&libraries=services`}
                     strategy="beforeInteractive"
                 />
-            </head>
-            <body className={`${pretendard.variable} vsc-initialized`}>
                 <ErrorBoundary>
                     <ThemeProvider>
                         <AuthProvider>

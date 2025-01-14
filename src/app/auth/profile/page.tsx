@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 import { Card } from '@/components/ui/common/card';
 import { Loading, Error } from '@/components/ui/common/';
 import { User } from 'lucide-react';
-import { TeamCard } from '@/components/client-components/league/team/teamCard/TeamCard';
+import { TeamCard } from '@/components/league/team/teamCard/TeamCard';
 import { TeamResponse } from '@/types/api/responses';
 
 interface ProfileData {

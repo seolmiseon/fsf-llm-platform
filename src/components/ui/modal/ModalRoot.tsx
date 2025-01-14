@@ -3,8 +3,8 @@
 import { useModalStore } from '@/store/useModalStore';
 import { SearchModal } from './SearchModal';
 import { LogoutModal } from './LogoutModal';
-import { TeamDetailModal } from '../../client-components/league/team/modals/teamDetailModal/TeamDetailModal';
-import { PersonDetailModal } from '../../client-components/league/team/modals/personDetailModal/PersonDetailModal';
+import { TeamDetailModal } from '@/components/league/team/modals/teamDetailModal/TeamDetailModal';
+import { PersonDetailModal } from '@/components/league/team/modals/personDetailModal/PersonDetailModal';
 import { ModalData, TeamModalData, PersonModalData } from '@/types/ui/modal';
 
 export function ModalRoot() {

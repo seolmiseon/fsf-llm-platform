@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select';
 import { DateRangePicker } from '@/components/ui/dateRangePicker';
 import { FootballDataApi } from '@/lib/server/api/football-data';
-import { MatchGrid } from '@/components/client-components/match/gird/MatchGrid';
+import { MatchGrid } from '@/components/match/gird/MatchGrid';
 import { MatchResponse } from '@/types/api/responses';
 import { type DateRange } from 'react-day-picker';
 

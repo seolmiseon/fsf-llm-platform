@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FootballDataApi } from '@/lib/server/api/football-data';
 import { TeamResponse } from '@/types/api/responses';
 
@@ -7,7 +7,7 @@ export const useTeams = (competitionId: string) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const loadTeams = async () => {
+    const loadTeams = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -27,11 +27,11 @@ export const useTeams = (competitionId: string) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [competitionId]);
 
     useEffect(() => {
         loadTeams();
-    }, [competitionId]);
+    }, [loadTeams]);
 
     return {
         teams,

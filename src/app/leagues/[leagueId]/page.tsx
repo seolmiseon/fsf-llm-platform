@@ -1,6 +1,6 @@
 'use client';
-import { TeamDetailModal } from '@/components/client-components/league/team/modals/teamDetailModal/TeamDetailModal';
-import { TeamCard } from '@/components/client-components/league/team/teamCard/TeamCard';
+import { TeamDetailModal } from '@/components/league/team/modals/teamDetailModal/TeamDetailModal';
+import { TeamCard } from '@/components/league/team/teamCard/TeamCard';
 import { Dialog, DialogContent } from '@/components/ui/common/dialog';
 import { Loading, Error, Empty } from '@/components/ui/common/index';
 import { TeamResponse } from '@/types/api/responses';

@@ -1,7 +1,7 @@
 import { HomeBanner } from '@/components/home/HomeBanner';
-import { LeagueGrid } from '@/components/client-components/league/LeagueGrid';
-import { LiveMatches } from '@/components/client-components/match/live/LiveMatches';
-import styles from './styles.module.css';
+import { LeagueGrid } from '@/components/league/LeagueGrid';
+import { LiveMatches } from '@/components/match/live/LiveMatches';
+// import styles from './styles.module.css';
 
 export default function HomePage() {
     return (

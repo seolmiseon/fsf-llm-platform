@@ -1,6 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-import { default as next } from 'next';
+import next from 'next';
 
 // Firebase 초기화
 admin.initializeApp();

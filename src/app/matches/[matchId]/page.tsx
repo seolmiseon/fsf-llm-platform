@@ -15,7 +15,7 @@ import {
     PositionTable,
     ScoreDisplay,
     TeamDisplay,
-} from '@/components/client-components/match';
+} from '@/components/match';
 
 export default function MatchDetailPage() {
     const params = useParams();
