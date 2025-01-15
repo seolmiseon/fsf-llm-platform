@@ -2,16 +2,19 @@
 
 import { useSession } from 'next-auth/react';
 import { Card } from '@/components/ui/common/card';
-import { Loading, Error } from '@/components/ui/common/';
+import { Loading } from '@/components/ui/common/loading';
+import { Error } from '@/components/ui/common/error';
 import { User } from 'lucide-react';
 import { TeamCard } from '@/components/league/team/teamCard/TeamCard';
 import { TeamResponse } from '@/types/api/responses';
+import Image from 'next/image';
+import { getPlaceholderImageUrl } from '@/utils/imageUtils';
 
-interface ProfileData {
-    name: string;
-    email: string;
-    image?: string;
-}
+// interface ProfileData {
+//     name: string;
+//     email: string;
+//     image?: string;
+// }
 
 export default function ProfilePage() {
     const { data: session, status } = useSession({
@@ -43,10 +46,18 @@ export default function ProfilePage() {
                 <Card className="p-6">
                     <div className="flex items-center space-x-4">
                         {session.user?.image ? (
-                            <img
-                                src={session.user.image}
+                            <Image
+                                src={
+                                    session.user.image ||
+                                    getPlaceholderImageUrl('league')
+                                }
                                 alt="Profile"
-                                className="w-16 h-16 rounded-full"
+                                className="rounded-full"
+                                sizes="(max-width: 768px) 16px, 16px"
+                                onError={(e) => {
+                                    const img = e.target as HTMLImageElement;
+                                    img.src = getPlaceholderImageUrl('league');
+                                }}
                             />
                         ) : (
                             <User className="w-16 h-16" />

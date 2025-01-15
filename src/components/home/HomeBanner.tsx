@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import styles from './HomeBanner.module.css';
 import { useState } from 'react';
-import { KakaoMap } from '@/components/ui/maps/KakaoMap';
+// import { KakaoMap } from '@/components/ui/maps/KakaoMap';
 
 export const HomeBanner = () => {
     const [showMap, setShowMap] = useState(false);
@@ -39,7 +39,7 @@ export const HomeBanner = () => {
                         showMap ? styles.fadeIn : styles.fadeOut
                     }`}
                 >
-                    <KakaoMap className="w-full h-full" />
+                    {/* <KakaoMap className="w-full h-full" /> */}
                 </div>
             )}
         </div>

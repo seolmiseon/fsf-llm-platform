@@ -37,6 +37,8 @@ export default function Navigation() {
         if (status === 'loading') {
             return null;
         }
+
+        // 로그인된 상태
         if (status === 'authenticated' && session.user) {
             return (
                 <DropdownMenu>
@@ -66,7 +68,10 @@ export default function Navigation() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                         <DropdownMenuItem asChild>
-                            <Link href="/profile" className="flex items-center">
+                            <Link
+                                href="/auth/profile"
+                                className="flex items-center"
+                            >
                                 <User className="mr-2 h-4 w-4" />
                                 프로필
                             </Link>
@@ -101,8 +106,9 @@ export default function Navigation() {
             );
         }
 
-        return (
-            <div className="flex items-center space-x-2">
+        // 비로그인 상태의 버튼
+        const authButtons = (
+            <>
                 <Button
                     variant="ghost"
                     size="sm"
@@ -121,8 +127,10 @@ export default function Navigation() {
                 >
                     회원가입
                 </Button>
-            </div>
+            </>
         );
+
+        return <div className="flex items-center space-x-2">{authButtons}</div>;
     };
 
     return (
@@ -157,7 +165,7 @@ export default function Navigation() {
                     </div>
 
                     {/* Search and Auth Buttons */}
-                    <div className="hidden items-center space-x-4 sm:flex">
+                    <div className="items-center space-x-4 hidden sm:flex">
                         <div className="relative">
                             <input
                                 type="text"
@@ -219,10 +227,11 @@ export default function Navigation() {
                                     {label}
                                 </Link>
                             ))}
+                            {/* 모바일 메뉴의 인증 버튼도 동일한 스타일 사용 */}
                             {status === 'authenticated' ? (
                                 <>
                                     <Link
-                                        href="/profile"
+                                        href="/auth/profile"
                                         className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                                         onClick={() => setIsMenuOpen(false)}
                                     >
@@ -245,8 +254,9 @@ export default function Navigation() {
                                 </>
                             ) : (
                                 <div className="mt-4 flex flex-col space-y-2 px-3">
+                                    {/* 모바일에서도 동일한 버튼 스타일 사용 */}
                                     <Button
-                                        variant="primary"
+                                        variant="ghost"
                                         size="sm"
                                         onClick={() => {
                                             open('signin', {
@@ -260,7 +270,7 @@ export default function Navigation() {
                                         로그인
                                     </Button>
                                     <Button
-                                        variant="outline"
+                                        variant="primary"
                                         size="sm"
                                         onClick={() => {
                                             open('signup', {

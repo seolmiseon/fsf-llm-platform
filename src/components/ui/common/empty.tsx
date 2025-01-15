@@ -1,4 +1,3 @@
-// components/ui/common/empty.tsx
 export const Empty = ({
     message,
     className = '',

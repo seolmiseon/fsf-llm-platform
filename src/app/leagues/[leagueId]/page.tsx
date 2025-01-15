@@ -2,7 +2,9 @@
 import { TeamDetailModal } from '@/components/league/team/modals/teamDetailModal/TeamDetailModal';
 import { TeamCard } from '@/components/league/team/teamCard/TeamCard';
 import { Dialog, DialogContent } from '@/components/ui/common/dialog';
-import { Loading, Error, Empty } from '@/components/ui/common/index';
+import { Loading } from '@/components/ui/common/loading';
+import { Error } from '@/components/ui/common/error';
+import { Empty } from '@/components/ui/common/empty';
 import { TeamResponse } from '@/types/api/responses';
 import { useTeams } from '@/hooks/useTeams';
 import { useState } from 'react';

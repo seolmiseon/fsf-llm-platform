@@ -9,7 +9,7 @@ const nextConfig = {
                 pathname: '/**',
             },
         ],
-        domains: ['firebasestorage.googleapis.com', 'dapi.kakao.com'],
+        domains: ['firebasestorage.googleapis.com'],
         unoptimized: true,
     },
 
@@ -20,28 +20,6 @@ const nextConfig = {
     },
     experimental: {
         optimizeCss: false,
-    },
-    async headers() {
-        return [
-            {
-                source: '/:path*',
-                headers: [
-                    {
-                        key: 'Content-Security-Policy',
-                        value: [
-                            "default-src 'self'",
-                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.kakao.com dapi.kakao.com",
-                            "img-src 'self' * data: *.kakao.com dapi.kakao.com",
-                            "style-src 'self' 'unsafe-inline'",
-                            "frame-src 'self'",
-                            "connect-src 'self' *.kakao.com dapi.kakao.com",
-                            "worker-src 'self' blob:",
-                            "child-src 'self' blob: *.kakao.com",
-                        ].join('; '),
-                    },
-                ],
-            },
-        ];
     },
 };
 

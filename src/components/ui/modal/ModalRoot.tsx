@@ -6,6 +6,7 @@ import { LogoutModal } from './LogoutModal';
 import { TeamDetailModal } from '@/components/league/team/modals/teamDetailModal/TeamDetailModal';
 import { PersonDetailModal } from '@/components/league/team/modals/personDetailModal/PersonDetailModal';
 import { ModalData, TeamModalData, PersonModalData } from '@/types/ui/modal';
+import { AuthModal } from './AuthModal';
 
 export function ModalRoot() {
     const { type, data, close } = useModalStore();
@@ -24,6 +25,7 @@ export function ModalRoot() {
         <>
             {type === 'search' && <SearchModal />}
             {type === 'logout' && <LogoutModal />}
+            {(type === 'signin' || type === 'signup') && <AuthModal />}
             {type === 'teamDetail' && isTeamModalData(data) && (
                 <TeamDetailModal
                     teamId={data.teamId}
