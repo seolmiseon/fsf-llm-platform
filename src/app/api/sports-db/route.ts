@@ -14,7 +14,7 @@ export async function GET(request: Request) {
 
         const response = await fetch(
             `${
-                process.env.FOOTBALL_BASE_URL
+                process.env.NEXT_PUBLIC_FOOTBALL_BASE_URL
             }/searchteams.php?t=${encodeURIComponent(teamName)}`,
             {
                 next: { revalidate: 3600 }, //1시간 캐싱싱

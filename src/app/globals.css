@@ -84,6 +84,20 @@ code {
     }
 }
 
+.swiper-button-next,
+.swiper-button-prev {
+    color: var(--primary) !important;
+}
+
+.swiper-pagination-bullet-active {
+    background: var(--primary) !important;
+}
+
+/* 슬라이드 컨테이너 높이 조정 */
+.swiper-slide {
+    height: auto !important;
+}
+
 /* 스크롤바 스타일 */
 ::-webkit-scrollbar {
     width: 8px;

@@ -1,4 +1,4 @@
-import { MatchCard } from '../card/MathCard';
+import { MatchCard } from '../card/MatchCard';
 import { MatchResponse } from '@/types/api/responses';
 
 interface MatchGridProps {

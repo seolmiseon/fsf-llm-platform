@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { LeagueCard } from './LeagueCard';
 import { FootballDataApi } from '@/lib/server/api/football-data';
 import type { Competition } from '@/types/api/responses';
+import { KLeagueCards } from './KLeagueCard';
 
 export function LeagueGrid() {
     const [competitions, setCompetitions] = useState<Competition[]>([]);
@@ -75,6 +76,7 @@ export function LeagueGrid() {
             {competitions.map((competition) => (
                 <LeagueCard key={competition.id} competition={competition} />
             ))}
+            <KLeagueCards />
         </div>
     );
 }

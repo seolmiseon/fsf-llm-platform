@@ -107,30 +107,34 @@ export default function Navigation() {
         }
 
         // 비로그인 상태의 버튼
-        const authButtons = (
-            <>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                        open('signin', { kind: 'auth', mode: 'signin' })
-                    }
-                >
-                    로그인
-                </Button>
-                <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() =>
-                        open('signup', { kind: 'auth', mode: 'signup' })
-                    }
-                >
-                    회원가입
-                </Button>
-            </>
-        );
+        if (status === 'unauthenticated' || !session) {
+            return (
+                <div className="flex items-center gap-4">
+                    {' '}
+                    {/* space-x-2를 gap-4로 변경 */}
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                            open('signin', { kind: 'auth', mode: 'signin' })
+                        }
+                    >
+                        로그인
+                    </Button>
+                    <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() =>
+                            open('signup', { kind: 'auth', mode: 'signup' })
+                        }
+                    >
+                        회원가입
+                    </Button>
+                </div>
+            );
+        }
 
-        return <div className="flex items-center space-x-2">{authButtons}</div>;
+        return null;
     };
 
     return (
@@ -165,7 +169,7 @@ export default function Navigation() {
                     </div>
 
                     {/* Search and Auth Buttons */}
-                    <div className="items-center space-x-4 hidden sm:flex">
+                    <div className="hidden sm:flex items-center gap-4">
                         <div className="relative">
                             <input
                                 type="text"
@@ -181,7 +185,9 @@ export default function Navigation() {
                             />
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         </div>
-                        {renderAuthButtons()}
+                        <div className="flex items-center">
+                            {renderAuthButtons()}
+                        </div>
                     </div>
 
                     {/* Mobile menu button */}

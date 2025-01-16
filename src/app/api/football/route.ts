@@ -17,7 +17,8 @@ export async function GET(request: Request) {
             `https://api.football-data.org/v4/${path}`,
             {
                 headers: {
-                    'X-Auth-Token': process.env.FOOTBALL_API_KEY as string,
+                    'X-Auth-Token': process.env
+                        .NEXT_PUBLIC_FOOTBALL_API_KEY as string,
                 },
                 next: { revalidate: 60 }, //1분캐싱싱
             }

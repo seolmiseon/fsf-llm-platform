@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
     try {
         const response = await fetch(
-            `https://www.scorebat.com/video-api/v3/feed/?token=${process.env.SCOREBAT_API_KEY}`,
+            `https://www.scorebat.com/video-api/v3/feed/?token=${process.env.NEXT_PUBLIC_SCOREBAT_API_KEY}`,
             {
                 next: { revalidate: 300 }, //5분캐싱
             }

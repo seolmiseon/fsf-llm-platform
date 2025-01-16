@@ -16,14 +16,23 @@ export class FootballDataApi {
     private async fetchApi<T>(path: string): Promise<ApiResponse<T>> {
         try {
             const response = await fetch(`${this.baseUrl}?path=${path}`);
-            const data = await response.json();
+            console.debug(
+                `API Response Status: ${response.status} for path: ${path}`
+            );
+            const responseData = await response.json();
 
             if (!response.ok) {
                 return {
                     success: false,
-                    error: data.error || response.statusText,
+                    error: responseData.error || response.statusText,
                 };
             }
+
+            // competitions 엔드포인트 처리
+            const data =
+                path === '/competitions'
+                    ? responseData.competitions || responseData
+                    : responseData;
 
             return {
                 success: true,
@@ -53,6 +62,20 @@ export class FootballDataApi {
     async getTeamsByCompetition(
         competitionId: string
     ): Promise<ApiResponse<TeamResponse[]>> {
+        if (!competitionId) {
+            return {
+                success: false,
+                error: 'Competition ID is required',
+            };
+        }
+
+        // competitionId가 유효한 형식인지 검사
+        if (!/^\d+$/.test(competitionId)) {
+            return {
+                success: false,
+                error: 'Invalid competition ID format',
+            };
+        }
         return this.fetchApi<TeamResponse[]>(
             `/competitions/${competitionId}/teams`
         );

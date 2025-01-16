@@ -1,11 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { MatchResponse } from '@/types/api/responses';
-import { MatchCard } from '../card/MathCard';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import clsx from 'clsx';
-import styles from './MatchCarousel.module.css';
+import { MatchCard } from '../card/MatchCard'; // 기존 MatchCard 사용
+
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import { FootballDataApi } from '@/lib/server/api/football-data';
 
 interface MatchCarouselProps {
     matches: MatchResponse[];
@@ -13,55 +17,76 @@ interface MatchCarouselProps {
 }
 
 export function MatchCarousel({
-    matches,
+    matches: initialMatches,
     visibleMatches = 3,
 }: MatchCarouselProps) {
-    const [currentIndex, setCurrentIndex] = useState(0);
+    const [matches, setMatches] = useState<MatchResponse[]>(
+        initialMatches || []
+    );
+    const [loading, setLoading] = useState(!initialMatches);
+
+    useEffect(() => {
+        // initialMatches가 있으면 fetch 하지 않음
+        if (initialMatches) return;
+
+        const fetchLiveMatches = async () => {
+            try {
+                const api = new FootballDataApi();
+                const result = await api.getLiveMatches();
+                if (result.success) {
+                    setMatches(result.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch live matches:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchLiveMatches();
+        const interval = setInterval(fetchLiveMatches, 5 * 60 * 1000);
+        return () => clearInterval(interval);
+    }, [initialMatches]);
+
+    if (loading) {
+        return (
+            <div className="h-48 flex items-center justify-center">
+                Loading...
+            </div>
+        );
+    }
+
+    if (!matches.length) {
+        return (
+            <div className="text-center py-8">
+                <h2 className="text-2xl font-bold mb-4">Live Matches</h2>
+                <p className="text-gray-600">No live matches at the moment</p>
+            </div>
+        );
+    }
 
     return (
-        <div className={styles.carouselContainer}>
-            <div className="overflow-hidden">
-                <div
-                    className={styles.carouselTrack}
-                    style={{
-                        transform: `translateX(-${
-                            currentIndex * (100 / visibleMatches)
-                        }%)`,
-                    }}
-                >
-                    {matches.map((match, index) => (
-                        <div key={match.id} className={styles.carouselItem}>
-                            <MatchCard
-                                match={match}
-                                isActive={index === currentIndex}
-                            />
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {matches.length > visibleMatches && (
-                <>
-                    <button
-                        onClick={() =>
-                            setCurrentIndex((prev) => Math.max(prev - 1, 0))
-                        }
-                        className={clsx(styles.navigationButton, styles.prev)}
-                    >
-                        <ChevronLeft className="w-6 h-6" />
-                    </button>
-                    <button
-                        onClick={() =>
-                            setCurrentIndex((prev) =>
-                                Math.min(prev + 1, matches.length - 1)
-                            )
-                        }
-                        className={clsx(styles.navigationButton, styles.next)}
-                    >
-                        <ChevronRight className="w-6 h-6" />
-                    </button>
-                </>
-            )}
+        <div className="my-8">
+            <h2 className="text-2xl font-bold mb-4">Live Matches</h2>
+            <Swiper
+                modules={[Navigation, Pagination, Autoplay]}
+                spaceBetween={30}
+                slidesPerView={1}
+                navigation
+                pagination={{ clickable: true }}
+                autoplay={{ delay: 3000, disableOnInteraction: false }}
+                breakpoints={{
+                    640: { slidesPerView: Math.min(2, visibleMatches) },
+                    1024: { slidesPerView: Math.min(3, visibleMatches) },
+                }}
+                className="h-48"
+            >
+                {matches.map((match) => (
+                    <SwiperSlide key={match.id}>
+                        <MatchCard match={match} />
+                    </SwiperSlide>
+                ))}
+            </Swiper>
         </div>
     );
 }

@@ -22,13 +22,26 @@ export class TeamData {
     }
 
     async getTeamDetailedInfo(
-        competitionId: string,
+        competitionId: string | undefined,
         teamName: string
     ): Promise<TeamResponse> {
+        if (!competitionId) {
+            throw new Error('Competition ID is required');
+        }
+
+        if (!/^\d+$/.test(competitionId)) {
+            throw new Error('Invalid competition ID format');
+        }
+
+        if (!teamName || teamName.trim() === '') {
+            throw new Error('Team name is required');
+        }
+
         try {
             // 리그존재 여부 확인하기
             const competitionResponse =
                 await this.footballDataApi.getCompetition(competitionId);
+
             const competition = competitionResponse.success
                 ? competitionResponse.data
                 : null;
@@ -41,6 +54,14 @@ export class TeamData {
             // 팀목록 가져오기
             const teamsResponse =
                 await this.footballDataApi.getTeamsByCompetition(competitionId);
+
+            if (!teamsResponse.success) {
+                throw new Error(
+                    teamsResponse.error ||
+                        'Failed to fetch teams for competition'
+                );
+            }
+
             const teams = teamsResponse.success ? teamsResponse.data : [];
             const team = teams.find((t) => t.name === teamName);
 
@@ -60,7 +81,10 @@ export class TeamData {
                     teamImages = imagesResponse.data;
                 }
             } catch (imageError) {
-                console.warn('Failed to fetch team images:', imageError);
+                console.warn('Failed to fetch team images:', {
+                    error: imageError,
+                    teamName: team.name,
+                });
             }
 
             return {
@@ -82,7 +106,11 @@ export class TeamData {
                 },
             };
         } catch (error) {
-            console.error('Error in getTeamDetailedInfo:', error);
+            console.error('Error in getTeamDetailedInfo:', {
+                error,
+                competitionId,
+                teamName,
+            });
             if (error instanceof Error) {
                 throw error;
             }
@@ -93,9 +121,21 @@ export class TeamData {
     async getMatchDetails(
         matchId: string
     ): Promise<MatchResponse & { highlights: MatchHighlight[] }> {
+        if (!matchId || !/^\d+$/.test(matchId)) {
+            throw new Error('Invalid match ID format');
+        }
+
         try {
             const matchResponse = await this.footballDataApi.getMatch(matchId);
+
+            if (!matchResponse.success) {
+                throw new Error(
+                    matchResponse.error || 'Failed to fetch match details'
+                );
+            }
+
             const match = matchResponse.success ? matchResponse.data : null;
+
             if (!match) {
                 throw new Error('Failed to fetch match details');
             }
@@ -112,7 +152,12 @@ export class TeamData {
                     ? highlightsResponse.data
                     : [];
             } catch (highlightError) {
-                console.warn('Failed to fetch highlights:', highlightError);
+                console.warn('Failed to fetch highlights:', {
+                    error: highlightError,
+                    matchId,
+                    homeTeam: match.homeTeam.name,
+                    awayTeam: match.awayTeam.name,
+                });
             }
 
             return {
@@ -120,7 +165,10 @@ export class TeamData {
                 highlights,
             };
         } catch (error) {
-            console.error('Error in getMatchDetails:', error);
+            console.error('Error in getMatchDetails:', {
+                error,
+                matchId,
+            });
             if (error instanceof Error) {
                 throw error;
             }

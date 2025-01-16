@@ -41,7 +41,9 @@ export const Input = ({
     const showError = error || validationError;
 
     return (
-        <div>
+        <div
+            className={`${styles.inputContainer} ${error ? styles.error : ''}`}
+        >
             {label && <label className={styles.label}>{label}</label>}
             <input
                 className={`${styles.input} ${className || ''}`}
