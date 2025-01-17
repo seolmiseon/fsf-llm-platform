@@ -140,10 +140,10 @@ export default function Navigation() {
     return (
         <header className="bg-white shadow-sm">
             <nav
-                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+                className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md"
                 aria-label="Main navigation"
             >
-                <div className="flex justify-between h-16">
+                <div className="max-w-6xl mx-auto flex justify-between h-16 px-4">
                     {/* Logo */}
                     <div className="flex items-center">
                         <Link href="/" className="flex-shrink-0">

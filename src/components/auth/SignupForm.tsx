@@ -3,10 +3,12 @@
 import useSignup from '@/hooks/useSignup';
 import { Button } from '../ui/button/Button';
 import { Input } from '../ui/input/Input';
-import { ValidationPatterns, validateForm } from '@/utils/Validation';
+import { ValidationPatterns } from '@/utils/Validation';
+import { useModalStore } from '@/store/useModalStore';
 
 export default function SignupForm() {
     const { signup, error, loading } = useSignup();
+    const { switchToSignin } = useModalStore();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -17,6 +19,7 @@ export default function SignupForm() {
             password: formData.get('password') as string,
             name: formData.get('name') as string,
         });
+        switchToSignin();
     };
 
     return (

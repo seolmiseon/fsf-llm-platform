@@ -10,7 +10,7 @@ import {
     ValidationPatterns,
 } from '@/utils/Validation';
 import SocialLoginButtons from './SocialLoginButtons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export default function SigninForm() {
     const { error: authError, loading, handleSignIn } = useSignin();
@@ -22,6 +22,12 @@ export default function SigninForm() {
     const [validationErrors, setValidationErrors] = useState<
         Record<string, string>
     >({});
+
+    useEffect(() => {
+        if (status === 'authenticated') {
+            // 로그인 성공 후 처리 (예: 리다이렉트)
+        }
+    }, [status]);
 
     if (status === 'authenticated') {
         return <div>이미 로그인되어있습니다, {session.user?.email}</div>;
@@ -43,12 +49,17 @@ export default function SigninForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
         const errors = validateForm(formData, ['email', 'password']);
         if (Object.keys(errors).length > 0) {
             setValidationErrors(errors);
             return;
         }
-        await handleSignIn(formData.email, formData.password);
+        try {
+            await handleSignIn(formData.email, formData.password);
+        } catch (error) {
+            console.error('Login error:', error);
+        }
     };
 
     return (
@@ -60,7 +71,7 @@ export default function SigninForm() {
                     placeholder="이메일을 입력하세요"
                     value={formData.email}
                     onChange={handleChange}
-                    pattern={validationErrors.email}
+                    error={validationErrors.email}
                     required
                 />
 
@@ -70,7 +81,7 @@ export default function SigninForm() {
                     placeholder="비밀번호를 입력하세요"
                     value={formData.password}
                     onChange={handleChange}
-                    pattern={validationErrors.password}
+                    error={validationErrors.password}
                     required
                 />
             </div>

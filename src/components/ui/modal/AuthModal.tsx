@@ -17,8 +17,8 @@ export function AuthModal() {
 
     return (
         <Dialog open={isOpen} onOpenChange={close}>
-            <DialogContent className="sm:max-w-[520px] p-8 rounded-2xl mx-4 bg-white">
-                <div className="flex flex-col items-center w-full">
+            <DialogContent className="sm:max-w-[520px] p-8 rounded-2xl mx-4 bg-white min-h-[600px]">
+                <div className="flex flex-col items-center w-full h-full">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-semibold text-center mb-6">
                             {type === 'signin' ? '로그인' : '회원가입'}

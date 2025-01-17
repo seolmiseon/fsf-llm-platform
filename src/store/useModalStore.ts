@@ -24,6 +24,7 @@ type ModalStore = ModalState & {
         position: Position,
         teamId: string
     ) => void;
+    switchToSignin: () => void;
     back: () => void;
     close: () => void;
 };
@@ -74,6 +75,15 @@ export const useModalStore = create<ModalStore>((set) => ({
                   }
                 : undefined,
         })),
+
+    switchToSignin: () =>
+        set({
+            isOpen: true,
+            type: 'signin',
+            data: { kind: 'auth', mode: 'signin' },
+            position: undefined,
+            previousModal: undefined,
+        }),
 
     back: () =>
         set((state) =>

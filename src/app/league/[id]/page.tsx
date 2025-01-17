@@ -9,7 +9,11 @@ import { TeamResponse } from '@/types/api/responses';
 import { useTeams } from '@/hooks/useTeams';
 import { useState } from 'react';
 
-export default function LeaguePage({ params }: { params: { id: string } }) {
+export default function LeagueDetailPage({
+    params,
+}: {
+    params: { id: string };
+}) {
     const [open, setOpen] = useState(false);
     const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
     const { teams, loading, error, refresh } = useTeams(params.id);
