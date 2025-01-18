@@ -29,6 +29,7 @@ export default function SigninForm() {
 
     useEffect(() => {
         if (status === 'authenticated') {
+            console.log('Authenticated! Closing modal and refreshing...');
             close();
             router.refresh();
             router.push('/');
@@ -55,14 +56,22 @@ export default function SigninForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        console.log('Form submitted');
 
         const errors = validateForm(formData, ['email', 'password']);
         if (Object.keys(errors).length > 0) {
+            console.log('Validation errors:', errors);
             setValidationErrors(errors);
             return;
         }
         try {
-            await handleSignIn(formData.email, formData.password);
+            const success = await handleSignIn(
+                formData.email,
+                formData.password
+            );
+            if (success) {
+                console.log('로그인 성공!');
+            }
         } catch (error) {
             console.error('Login error:', error);
         }

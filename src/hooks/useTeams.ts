@@ -9,7 +9,6 @@ export const useTeams = (competitionId: string) => {
 
     const loadTeams = useCallback(async () => {
         try {
-            // 유효성 검사 추가
             if (!competitionId) {
                 setError('Competition ID is required');
                 setLoading(false);
@@ -22,7 +21,14 @@ export const useTeams = (competitionId: string) => {
             const api = new FootballDataApi();
             const result = await api.getTeamsByCompetition(competitionId);
 
+            console.log('Teams data structure:', {
+                success: result.success,
+                data: result.success ? result.data : null,
+                error: 'error' in result ? result.error : null,
+            });
+
             if (result.success) {
+                console.log('Setting teams:', result.data);
                 setTeams(result.data);
             } else {
                 setError(result.error);

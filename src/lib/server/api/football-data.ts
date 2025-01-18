@@ -28,11 +28,29 @@ export class FootballDataApi {
                 };
             }
 
+            // API 응답 구조에 따라 데이터 추출
+            let data = responseData;
+
             // competitions 엔드포인트 처리
-            const data =
-                path === '/competitions'
-                    ? responseData.competitions || responseData
-                    : responseData;
+            if (path === '/competitions') {
+                data = responseData.competitions || responseData;
+            }
+            // teams 엔드포인트 처리 추가
+            // API 응답에서 teams 배열이 있다면 그것을 사용
+            else if (path.includes('/teams')) {
+                data = responseData.teams || responseData;
+            }
+            // matches 엔드포인트 처리
+            else if (path.includes('/matches')) {
+                data = responseData.matches || responseData;
+            }
+
+            // 디버깅을 위한 로그 추가
+            console.log('Processed API data:', {
+                path,
+                rawData: responseData,
+                processedData: data,
+            });
 
             return {
                 success: true,

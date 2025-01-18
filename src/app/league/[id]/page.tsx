@@ -17,6 +17,7 @@ export default function LeagueDetailPage({
     const [open, setOpen] = useState(false);
     const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
     const { teams, loading, error, refresh } = useTeams(params.id);
+    console.log('Teams in page:', teams);
 
     const handleTeamClick = (team: TeamResponse) => {
         setSelectedTeam(team.id.toString());

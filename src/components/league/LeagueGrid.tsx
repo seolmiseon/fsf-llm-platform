@@ -22,13 +22,18 @@ export function LeagueGrid() {
                     return;
                 }
 
+                console.log(
+                    'API leagues:',
+                    result.data.map((comp) => comp.code)
+                );
                 const majorLeagues = result.data.filter(
                     (comp: Competition) =>
                         comp.type === 'LEAGUE' &&
-                        ['PL', 'BL1', 'SA', 'PD', 'FL1', 'CL'].includes(
+                        ['PL', 'BL1', 'SA', 'PD', 'FL1', 'ELC'].includes(
                             comp.code
                         )
                 );
+
                 setCompetitions(majorLeagues);
             } catch (error) {
                 setError(

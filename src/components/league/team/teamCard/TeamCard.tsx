@@ -29,7 +29,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
             if (team.crest) {
                 try {
                     // Firebase Storage의 팀 크레스트 이미지 경로
-                    const crestRef = ref(storage, `teams/${team.id}/crest`);
+                    const crestRef = ref(storage, `teams/${team.id}/crest.png`);
                     const url = await getDownloadURL(crestRef);
                     setImageUrl(url);
                 } catch (error) {
@@ -72,8 +72,10 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                         <Image
                             src={imageUrl}
                             alt={`${team.name} badge`}
-                            fill
-                            className="object-contain"
+                            width={80}
+                            height={80}
+                            className="object-contain p-1"
+                            style={{ width: 'auto', height: 'auto' }}
                         />
                     ) : (
                         <div className="w-full h-full bg-gradient-to-br from-gray-600 to-gray-800 rounded-full flex items-center justify-center">

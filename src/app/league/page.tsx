@@ -71,7 +71,7 @@ export default function LeaguePage() {
                     competitions.map((competition) => (
                         <Link
                             key={competition.id}
-                            href={`/league/${competition.code}`}
+                            href={`/league/${competition.id}`}
                             className="block p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
                         >
                             <div className="flex items-center space-x-4">

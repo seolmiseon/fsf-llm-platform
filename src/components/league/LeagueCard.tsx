@@ -12,7 +12,7 @@ interface LeagueCardProps {
 
 export function LeagueCard({ competition }: LeagueCardProps) {
     return (
-        <Link href={`/league/${competition.code}`} className={styles.card}>
+        <Link href={`/league/${competition.id}`} className={styles.card}>
             <div className={styles.logoContainer}>
                 {competition.emblem ? (
                     <Image

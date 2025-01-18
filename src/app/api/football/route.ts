@@ -25,6 +25,7 @@ export async function GET(request: Request) {
         );
 
         const data = await response.json();
+        console.log('Raw API response:', data?.teams);
         if (!response.ok) {
             return NextResponse.json(
                 { error: `API Error: ${data.message || response.statusText}` },
@@ -45,7 +46,7 @@ export async function GET(request: Request) {
                             );
                             return {
                                 ...team,
-                                crest: storageUrl, // 원본 URL을 Storage URL로 교체
+                                crest: storageUrl || team.crest, // 원본 URL을 Storage URL로 교체
                             };
                         } catch (error) {
                             console.error(
