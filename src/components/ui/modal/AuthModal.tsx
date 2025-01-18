@@ -17,7 +17,7 @@ export function AuthModal() {
 
     return (
         <Dialog open={isOpen} onOpenChange={close}>
-            <DialogContent className="sm:max-w-[520px] p-8 rounded-2xl mx-4 bg-white min-h-[600px]">
+            <DialogContent className="sm:max-w-[520px] p-8 rounded-2xl mx-4 bg-white min-h-[600px] fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                 <div className="flex flex-col items-center w-full h-full">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-semibold text-center mb-6">

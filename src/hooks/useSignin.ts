@@ -16,13 +16,17 @@ export const useSignin = () => {
                 email,
                 password,
                 redirect: false,
+                callbackUrl: '/',
             });
             if (result?.error) {
                 setError('이메일 또는 비밀번호가 올바르지 않습니다.');
                 return;
             }
-            router.push('/');
-            router.refresh();
+
+            if (result?.ok) {
+                router.push('/');
+                router.refresh();
+            }
         } catch (error) {
             setError('로그인 중 오류가 발생했습니다.');
             console.error(error);

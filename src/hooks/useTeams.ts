@@ -16,12 +16,6 @@ export const useTeams = (competitionId: string) => {
                 return;
             }
 
-            // 숫자만 허용하는 유효성 검사
-            if (!/^\d+$/.test(competitionId)) {
-                setError('Invalid competition ID format');
-                setLoading(false);
-                return;
-            }
             setLoading(true);
             setError(null);
 

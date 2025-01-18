@@ -14,21 +14,39 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropDown/DropDownMenu';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 
 export default function Navigation() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [imageError, setImageError] = useState(false);
     const { open } = useModalStore();
     const { data: session, status } = useSession();
+    const pathname = usePathname();
 
     useEffect(() => {
         console.log('Auth status:', status);
         console.log('Session:', session);
     }, [status, session]);
 
+    // 현재 경로에 따른 적절한 href 반환
+    const getHref = (basePath: string) => {
+        if (pathname?.startsWith(`/${basePath}/`)) {
+            return pathname;
+        }
+
+        return `/${basePath}`;
+    };
+
     const navLinks = [
-        { href: '/leagues', label: 'Leagues' },
-        { href: '/match', label: 'Match' },
+        {
+            href: getHref('league'),
+            label: 'League',
+        },
+        {
+            href: getHref('match'),
+            label: 'Match',
+        },
+
         { href: '/stats', label: 'Stats' },
         { href: '/community', label: 'Community' },
     ];
@@ -39,7 +57,7 @@ export default function Navigation() {
         }
 
         // 로그인된 상태
-        if (status === 'authenticated' && session.user) {
+        if (status === 'authenticated' && session?.user) {
             return (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -138,7 +156,7 @@ export default function Navigation() {
     };
 
     return (
-        <header className="bg-white shadow-sm">
+        <header className="bg-white shadow-sm h-16">
             <nav
                 className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md"
                 aria-label="Main navigation"

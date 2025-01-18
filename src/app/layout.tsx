@@ -40,7 +40,7 @@ export default function RootLayout({
                     <ThemeProvider>
                         <AuthProvider>
                             <Navigation />
-                            <main>{children}</main>
+                            <main className="pt-16">{children}</main>
                             <ModalRoot />
                         </AuthProvider>
                     </ThemeProvider>

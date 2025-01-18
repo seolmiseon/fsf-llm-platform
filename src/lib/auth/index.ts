@@ -3,7 +3,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import NaverProvider from 'next-auth/providers/naver';
 import KakaoProvider from 'next-auth/providers/kakao';
 import { FirestoreAdapter } from '@auth/firebase-adapter';
-import Credentials from 'next-auth/providers/credentials';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import { cert } from 'firebase-admin/app';
 import { auth } from '@/lib/firebase/config';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -11,22 +11,23 @@ import { User } from 'next-auth';
 import { Adapter } from 'next-auth/adapters';
 
 export const authOptions: AuthOptions = {
-    // adapter: FirestoreAdapter({
-    //     credential: cert({
-    //         projectId: process.env.FIREBASE_PROJECT_ID,
-    //         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    //         privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    //     }),
-    // }) as Adapter,
+    adapter: FirestoreAdapter({
+        credential: cert({
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        }),
+    }) as Adapter,
 
     providers: [
-        Credentials({
+        CredentialsProvider({
+            id: 'credentials',
             name: 'Credentials',
             credentials: {
                 email: { label: 'Email', type: 'email' },
                 password: { label: 'Password', type: 'password' },
             },
-            // credentials -> credentials로 수정 필요
+
             async authorize(
                 credentials: Record<'email' | 'password', string> | undefined
             ): Promise<User | null> {

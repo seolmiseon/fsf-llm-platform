@@ -9,7 +9,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { getPlaceholderImageUrl } from '@/utils/imageUtils';
 
-export default function LeaguesPage() {
+export default function LeaguePage() {
     const [competitions, setCompetitions] = useState<Competition[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -71,7 +71,7 @@ export default function LeaguesPage() {
                     competitions.map((competition) => (
                         <Link
                             key={competition.id}
-                            href={`/leagues/${competition.code}`}
+                            href={`/league/${competition.code}`}
                             className="block p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
                         >
                             <div className="flex items-center space-x-4">

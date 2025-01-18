@@ -25,16 +25,9 @@ export function LeagueGrid() {
                 const majorLeagues = result.data.filter(
                     (comp: Competition) =>
                         comp.type === 'LEAGUE' &&
-                        [
-                            'PL',
-                            'BL1',
-                            'SA',
-                            'PD',
-                            'FL1',
-                            'CL',
-                            'KL1',
-                            'KL2',
-                        ].includes(comp.code)
+                        ['PL', 'BL1', 'SA', 'PD', 'FL1', 'CL'].includes(
+                            comp.code
+                        )
                 );
                 setCompetitions(majorLeagues);
             } catch (error) {

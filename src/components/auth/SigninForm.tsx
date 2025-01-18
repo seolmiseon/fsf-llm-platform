@@ -11,6 +11,8 @@ import {
 } from '@/utils/Validation';
 import SocialLoginButtons from './SocialLoginButtons';
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useModalStore } from '@/store/useModalStore';
 
 export default function SigninForm() {
     const { error: authError, loading, handleSignIn } = useSignin();
@@ -22,12 +24,16 @@ export default function SigninForm() {
     const [validationErrors, setValidationErrors] = useState<
         Record<string, string>
     >({});
+    const router = useRouter();
+    const { close } = useModalStore();
 
     useEffect(() => {
         if (status === 'authenticated') {
-            // 로그인 성공 후 처리 (예: 리다이렉트)
+            close();
+            router.refresh();
+            router.push('/');
         }
-    }, [status]);
+    }, [status, close, router]);
 
     if (status === 'authenticated') {
         return <div>이미 로그인되어있습니다, {session.user?.email}</div>;
