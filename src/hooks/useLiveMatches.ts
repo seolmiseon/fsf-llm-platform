@@ -23,7 +23,13 @@ export const useLiveMatches = () => {
                 return;
             }
 
-            setMatches(result.data);
+            const sortedMatches = result.data.sort(
+                (a, b) =>
+                    new Date(b.utcDate).getTime() -
+                    new Date(a.utcDate).getTime()
+            );
+
+            setMatches(sortedMatches);
         } catch (error) {
             console.error('Error:', error);
             setError(error instanceof Error ? error.message : 'Unknown error');

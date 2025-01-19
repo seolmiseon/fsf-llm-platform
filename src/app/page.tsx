@@ -5,13 +5,13 @@ import { LiveMatches } from '@/components/match/live/LiveMatches';
 
 export default function HomePage() {
     return (
-        <div className="min-h-screen ">
+        <div>
             <HomeBanner />
-            <main className="max-w-7xl mx-auto px-4 py-12">
+            <main className="max-w-7xl mx-auto  py-8">
                 <section>
                     <LeagueGrid />
                 </section>
-                <section className="mt-12">
+                <section className="mt-8">
                     <h2 className="text-2xl font-bold mb-6">Live Matches</h2>
                     <LiveMatches />
                 </section>

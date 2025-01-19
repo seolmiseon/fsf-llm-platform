@@ -8,6 +8,7 @@ import { MatchCarousel } from '../carousel/MatchCarousel';
 
 export function LiveMatches() {
     const { matches, loading, error, refetch } = useLiveMatches();
+    console.log('LiveMatches component - data:', { matches, loading, error });
 
     if (loading) {
         return (
