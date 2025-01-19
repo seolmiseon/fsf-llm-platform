@@ -1,10 +1,5 @@
 import { create } from 'zustand';
-import {
-    Position,
-    PlayerInfo,
-    PlayerDetailedInfo,
-    ApiResponse,
-} from '@/types/api/responses';
+import { Position, PlayerInfo } from '@/types/api/responses';
 
 import {
     ModalState,
@@ -92,6 +87,7 @@ export const useModalStore = create<ModalStore>((set) => ({
                       isOpen: true,
                       type: state.previousModal.type,
                       data: state.previousModal.data,
+                      position: state.previousModal.position,
                       previousModal: undefined,
                   }
                 : {
@@ -103,11 +99,21 @@ export const useModalStore = create<ModalStore>((set) => ({
         ),
 
     close: () =>
-        set({
-            isOpen: false,
-            type: null,
-            data: null,
-            position: undefined,
-            previousModal: undefined,
-        }),
+        set((state) =>
+            state.previousModal
+                ? {
+                      isOpen: true,
+                      type: state.previousModal.type,
+                      data: state.previousModal.data,
+                      position: state.previousModal.position,
+                      previousModal: undefined,
+                  }
+                : {
+                      isOpen: false,
+                      type: null,
+                      data: null,
+                      position: undefined,
+                      previousModal: undefined,
+                  }
+        ),
 }));

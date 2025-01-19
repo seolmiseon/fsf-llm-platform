@@ -1,13 +1,20 @@
 'use client';
 import { TeamDetailModal } from '@/components/league/team/modals/teamDetailModal/TeamDetailModal';
 import { TeamCard } from '@/components/league/team/teamCard/TeamCard';
-import { Dialog, DialogContent } from '@/components/ui/common/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/common/dialog';
 import { Loading } from '@/components/ui/common/loading';
 import { Error } from '@/components/ui/common/error';
 import { Empty } from '@/components/ui/common/empty';
 import { TeamResponse } from '@/types/api/responses';
 import { useTeams } from '@/hooks/useTeams';
 import { useState } from 'react';
+import { useModalStore } from '@/store/useModalStore';
 
 export default function LeagueDetailPage({
     params,
@@ -17,6 +24,7 @@ export default function LeagueDetailPage({
     const [open, setOpen] = useState(false);
     const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
     const { teams, loading, error, refresh } = useTeams(params.id);
+    const modalState = useModalStore();
     console.log('Teams in page:', teams);
 
     const handleTeamClick = (team: TeamResponse) => {
@@ -50,14 +58,28 @@ export default function LeagueDetailPage({
             </div>
 
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent>
-                    {selectedTeam && (
-                        <TeamDetailModal
-                            teamId={selectedTeam}
-                            competitionId={params.id}
-                            onClose={() => setOpen(false)}
-                        />
-                    )}
+                <DialogContent
+                    className={`${
+                        modalState.type === 'personDetail'
+                            ? 'opacity-50 backdrop-blur-sm'
+                            : ''
+                    }`}
+                >
+                    <DialogHeader>
+                        <DialogTitle>Team Details</DialogTitle>
+                        <DialogDescription id="team-modal">
+                            Team information and squad details
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="team-modal-description">
+                        {selectedTeam && (
+                            <TeamDetailModal
+                                teamId={selectedTeam}
+                                competitionId={params.id}
+                                onClose={() => setOpen(false)}
+                            />
+                        )}
+                    </div>
                 </DialogContent>
             </Dialog>
         </>

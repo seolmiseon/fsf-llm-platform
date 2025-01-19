@@ -4,6 +4,20 @@ export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const teamName = searchParams.get('team');
+        const playerId = searchParams.get('playerId');
+
+        if (playerId) {
+            const response = await fetch(
+                `${
+                    process.env.NEXT_PUBLIC_FOOTBALL_BASE_URL
+                }/lookupplayer.php?id=${encodeURIComponent(playerId)}`,
+                {
+                    next: { revalidate: 3600 },
+                }
+            );
+            const data = await response.json();
+            return NextResponse.json(data);
+        }
 
         if (!teamName) {
             return NextResponse.json(

@@ -1,3 +1,5 @@
+import { Position } from '../api/responses';
+
 // 모달 관련 타입들
 export type ModalType =
     | 'teamDetail'
@@ -70,5 +72,6 @@ export interface ModalState {
     previousModal?: {
         type: ModalType;
         data: ModalData;
+        position?: Position;
     };
 }

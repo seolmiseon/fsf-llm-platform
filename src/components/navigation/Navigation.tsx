@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button/Button';
 import FSFLogo from '@/components/ui/logo/FSFLogo';
-import { Search, Menu, X, User, LogOut } from 'lucide-react';
+import { Search, Menu, X, User, LogOut, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useModalStore } from '@/store/useModalStore';
 import { useEffect, useState } from 'react';
@@ -37,11 +37,15 @@ export default function Navigation() {
         return `/${basePath}`;
     };
 
+    const leagues = [
+        { id: 'PL', name: 'Premier League' },
+        { id: 'PD', name: 'La Liga' },
+        { id: 'SA', name: 'Serie A' },
+        { id: 'BL1', name: 'Bundesliga' },
+        { id: 'FL1', name: 'Ligue 1' },
+    ];
+
     const navLinks = [
-        {
-            href: getHref('league'),
-            label: 'League',
-        },
         {
             href: getHref('match'),
             label: 'Match',
@@ -175,6 +179,32 @@ export default function Navigation() {
 
                     {/* Desktop Navigation */}
                     <div className="hidden sm:flex sm:items-center sm:space-x-8">
+                        <div className="flex items-center">
+                            <Link
+                                href={`/league/${leagues[0].id}`}
+                                className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                            >
+                                League
+                            </Link>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger>
+                                    <ChevronDown className="h-4 w-4" />
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                    {leagues.map((league) => (
+                                        <DropdownMenuItem
+                                            key={league.id}
+                                            asChild
+                                        >
+                                            <Link href={`/league/${league.id}`}>
+                                                {league.name}
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+
                         {navLinks.map(({ href, label }) => (
                             <Link
                                 key={href}
@@ -234,6 +264,7 @@ export default function Navigation() {
                 </div>
 
                 {/* Mobile menu */}
+
                 {isMenuOpen && (
                     <div
                         className="sm:hidden"
@@ -241,6 +272,38 @@ export default function Navigation() {
                         role="navigation"
                     >
                         <div className="px-2 pt-2 pb-3 space-y-1">
+                            <div className="flex items-center">
+                                <Link
+                                    href={`/league/${leagues[0].id}`}
+                                    className="flex-1 px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    League
+                                </Link>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger>
+                                        <ChevronDown className="h-4 w-4" />
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                        {leagues.map((league) => (
+                                            <DropdownMenuItem
+                                                key={league.id}
+                                                asChild
+                                            >
+                                                <Link
+                                                    href={`/league/${league.id}`}
+                                                    onClick={() =>
+                                                        setIsMenuOpen(false)
+                                                    }
+                                                >
+                                                    {league.name}
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+
                             {navLinks.map(({ href, label }) => (
                                 <Link
                                     key={href}
@@ -251,6 +314,7 @@ export default function Navigation() {
                                     {label}
                                 </Link>
                             ))}
+
                             {/* 모바일 메뉴의 인증 버튼도 동일한 스타일 사용 */}
                             {status === 'authenticated' ? (
                                 <>

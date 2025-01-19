@@ -74,8 +74,8 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                             alt={`${team.name} badge`}
                             width={80}
                             height={80}
-                            className="object-contain p-1"
-                            style={{ width: 'auto', height: 'auto' }}
+                            className={styles.teamBadge}
+                            priority
                         />
                     ) : (
                         <div className="w-full h-full bg-gradient-to-br from-gray-600 to-gray-800 rounded-full flex items-center justify-center">

@@ -120,7 +120,7 @@ export const TeamDetailModal = ({
                                 key={player.id}
                                 className={styles.playerCard}
                                 onClick={(e: React.MouseEvent) =>
-                                    handlePlayerClick
+                                    handlePlayerClick(player, e)
                                 }
                             >
                                 <div className={styles.imageContainer}>

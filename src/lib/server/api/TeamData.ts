@@ -23,7 +23,7 @@ export class TeamData {
 
     async getTeamDetailedInfo(
         competitionId: string | undefined,
-        teamName: string
+        teamId: string
     ): Promise<TeamResponse> {
         if (!competitionId) {
             throw new Error('Competition ID is required');
@@ -33,8 +33,8 @@ export class TeamData {
             throw new Error('Invalid competition ID format');
         }
 
-        if (!teamName || teamName.trim() === '') {
-            throw new Error('Team name is required');
+        if (!teamId || teamId.trim() === '') {
+            throw new Error('Team ID is required');
         }
 
         try {
@@ -45,6 +45,7 @@ export class TeamData {
             const competition = competitionResponse.success
                 ? competitionResponse.data
                 : null;
+
             if (!competition) {
                 throw new Error(
                     `Competition with ID ${competitionId} not found`
@@ -63,11 +64,11 @@ export class TeamData {
             }
 
             const teams = teamsResponse.success ? teamsResponse.data : [];
-            const team = teams.find((t) => t.name === teamName);
+            const team = teams.find((t) => t.id.toString() === teamId);
 
             if (!team) {
                 throw new Error(
-                    `Team ${teamName} not found in competition ${competition.name}`
+                    `Team ${teamId} not found in competition ${competition.name}`
                 );
             }
 
@@ -83,7 +84,7 @@ export class TeamData {
             } catch (imageError) {
                 console.warn('Failed to fetch team images:', {
                     error: imageError,
-                    teamName: team.name,
+                    teamId: team.name,
                 });
             }
 
@@ -109,7 +110,7 @@ export class TeamData {
             console.error('Error in getTeamDetailedInfo:', {
                 error,
                 competitionId,
-                teamName,
+                teamId,
             });
             if (error instanceof Error) {
                 throw error;

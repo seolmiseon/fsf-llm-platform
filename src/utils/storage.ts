@@ -32,7 +32,7 @@ export async function uploadImageToStorage(imageUrl: string, path: string) {
         return await getDownloadURL(snapshot.ref);
     } catch (error) {
         console.error('Image upload error:', error);
-        // 원본 이미지 URL을 반환하여 폴백 처리
-        return imageUrl;
+
+        return null;
     }
 }
