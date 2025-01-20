@@ -31,7 +31,7 @@ export async function GET(request: Request) {
                 process.env.NEXT_PUBLIC_FOOTBALL_BASE_URL
             }/searchteams.php?t=${encodeURIComponent(teamName)}`,
             {
-                next: { revalidate: 3600 }, //1시간 캐싱싱
+                next: { revalidate: 3600 },
             }
         );
 

@@ -36,7 +36,7 @@ export async function GET(request: Request) {
                 'X-Auth-Token': process.env
                     .NEXT_PUBLIC_FOOTBALL_API_KEY as string,
             },
-            next: { revalidate: 60 }, //1분캐싱싱
+            next: { revalidate: 60 }, //1분캐싱
         });
 
         const data = await response.json();

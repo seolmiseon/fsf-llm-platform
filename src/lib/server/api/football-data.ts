@@ -110,7 +110,7 @@ export class FootballDataApi {
     async getLiveMatches(): Promise<ApiResponse<MatchResponse[]>> {
         try {
             const response = await fetch(
-                `${this.baseUrl}?path=/matches?status=LIVE`,
+                `${this.baseUrl}?path=/matches&status=IN_PLAY`,
                 {
                     next: { revalidate: 60 }, // 1분 캐싱
                 }
