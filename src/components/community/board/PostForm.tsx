@@ -1,41 +1,51 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/config';
 import { Post } from '@/types/community/community';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button/Button';
 import { Input } from '@/components/ui/input/Input';
+import { Textarea } from '@/components/ui/textArea/TextArea';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default function PostForm() {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [user, setUser] = useState(auth.currentUser);
     const router = useRouter();
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setUser(user);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
 
         try {
-            const user = auth.currentUser;
             if (!user) {
                 alert('로그인이 필요합니다');
                 return;
             }
 
-            const postData = (Omit<Post, 'id'>() = {
+            const postData: Post = {
                 title,
                 content,
                 authorId: user.uid,
-                authoraName: user.displayName || '익명',
+                authorName: user.displayName || '익명',
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),
                 likes: 0,
                 views: 0,
-                commentContent: 0,
-            });
+                commentCount: 0,
+            };
 
             const docRef = await addDoc(collection(db, 'posts'), postData);
 
@@ -66,6 +76,7 @@ export default function PostForm() {
                     type="text"
                     placeholder="제목을 입력해주세요"
                     value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                     required
                 />
             </div>
@@ -77,12 +88,12 @@ export default function PostForm() {
                 >
                     내용
                 </label>
-                <textarea
-                    id="content"
+                <Textarea
+                    id={content}
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
+                    placeholder="내용을 입력하세요"
                     rows={10}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     required
                 />
             </div>
