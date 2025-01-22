@@ -1,7 +1,12 @@
 import { ButtonHTMLAttributes, forwardRef } from 'react';
 import styles from './Button.module.css';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline';
+type ButtonVariant =
+    | 'primary'
+    | 'secondary'
+    | 'ghost'
+    | 'outline'
+    | 'destructive';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

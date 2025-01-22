@@ -23,7 +23,7 @@ export function usePosts() {
         try {
             setLoading(true);
             const postsQuery = query(
-                collection(db, 'posts'),
+                collection(db, 'community'),
                 orderBy(sortBy === 'latest' ? 'createdAt' : 'views', 'desc')
             );
 
@@ -44,7 +44,7 @@ export function usePosts() {
 
     const incrementViews = useCallback(async (id: string) => {
         try {
-            const postRef = doc(db, 'posts', id);
+            const postRef = doc(db, 'community', id);
             await updateDoc(postRef, {
                 views: increment(1),
             });
@@ -64,7 +64,7 @@ export function usePosts() {
     const toggleLike = useCallback(
         async (id: string) => {
             try {
-                const postRef = doc(db, 'posts', id);
+                const postRef = doc(db, 'community', id);
 
                 // 현재 게시글 찾기
                 const currentPost = posts.find((post) => post.id === id);

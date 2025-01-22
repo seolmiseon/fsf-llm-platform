@@ -39,6 +39,20 @@
     background-color: rgba(0, 0, 0, 0.05);
 }
 
+.destructive {
+    background-color: rgb(239 68 68); /* red-500 */
+    color: white;
+}
+
+.destructive:hover {
+    background-color: rgb(220 38 38); /* red-600 */
+}
+
+.destructive:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* 크기 변형 */
 .sm {
     padding: 0.5rem 1rem;

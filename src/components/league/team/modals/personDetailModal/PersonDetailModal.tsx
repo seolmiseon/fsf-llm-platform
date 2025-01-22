@@ -15,6 +15,7 @@ import {
 
 interface PersonDetailModalProps {
     person: PlayerDetailedInfo;
+    onClose: () => void;
 }
 
 export const PersonDetailModal = ({ person }: PersonDetailModalProps) => {
