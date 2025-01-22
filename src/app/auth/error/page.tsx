@@ -11,26 +11,29 @@ function ErrorContent() {
 
     const getErrorMessage = (error: string | null) => {
         switch (error) {
-            case 'Configuration':
-                return '서버 설정에 문제가 있습니다. 잠시 후 다시 시도해주세요.';
-            case 'AccessDenied':
-                return '접근 권한이 없습니다.';
-            case 'Verification':
-                return '인증 링크가 만료되었거나 이미 사용되었습니다.';
-            case 'OAuthSignin':
-                return '소셜 로그인 연동 중 문제가 발생했습니다.';
-            case 'OAuthCallback':
-                return '소셜 로그인 인증 중 문제가 발생했습니다.';
-            case 'OAuthCreateAccount':
-                return '소셜 계정으로 회원가입 중 문제가 발생했습니다.';
-            case 'EmailCreateAccount':
-                return '이메일 계정 생성 중 문제가 발생했습니다.';
-            case 'Callback':
-                return '인증 처리 중 문제가 발생했습니다.';
-            case 'OAuthAccountNotLinked':
-                return '이미 다른 방식으로 가입된 이메일입니다.';
+            case 'auth/user-not-found':
+                return '등록되지 않은 사용자입니다.';
+            case 'auth/wrong-password':
+                return '잘못된 비밀번호입니다.';
+            case 'auth/invalid-email':
+                return '유효하지 않은 이메일 주소입니다.';
+            case 'auth/email-already-in-use':
+                return '이미 사용 중인 이메일 주소입니다.';
+            case 'auth/weak-password':
+                return '비밀번호가 너무 약합니다.';
+            case 'auth/popup-closed-by-user':
+                return '로그인 창이 닫혔습니다. 다시 시도해주세요.';
+            case 'auth/operation-not-allowed':
+                return '이 로그인 방식은 현재 사용할 수 없습니다.';
+            case 'auth/network-request-failed':
+                return '네트워크 연결에 실패했습니다.';
+            // 일반 에러
+            case 'user-cancelled':
+                return '사용자가 로그인을 취소했습니다.';
+            case 'network-error':
+                return '네트워크 연결을 확인해주세요.';
             default:
-                return '로그인 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.';
+                return '인증 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.';
         }
     };
 

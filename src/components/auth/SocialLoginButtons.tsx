@@ -1,26 +1,56 @@
 'use client';
 import { Button } from '../ui/button/Button';
-import { signIn } from 'next-auth/react';
 import { FcGoogle } from 'react-icons/fc';
 import { RiKakaoTalkFill } from 'react-icons/ri';
 import { SiNaver } from 'react-icons/si';
+import { auth } from '@/lib/firebase/config';
+import {
+    GoogleAuthProvider,
+    signInWithPopup,
+    OAuthProvider,
+} from 'firebase/auth';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useRouter } from 'next/navigation';
+import { Error } from '../ui/common';
 
-interface SocialLoginProps {
-    onLogin?: (provider: string) => Promise<void>;
-}
+export default function SocialLoginButtons() {
+    const router = useRouter();
+    const setUser = useAuthStore((state) => state.setUser);
 
-export default function SocialLoginButtons({ onLogin }: SocialLoginProps) {
     const handleSocialLogin = async (provider: string) => {
         try {
-            if (onLogin) {
-                await onLogin(provider);
-            } else {
-                await signIn(provider, { callbackUrl: '/' });
+            let authProvider;
+            switch (provider) {
+                case 'google':
+                    authProvider = new GoogleAuthProvider();
+                    break;
+                case 'kakao':
+                    authProvider = new OAuthProvider('kakao.com');
+                    break;
+                case 'naver':
+                    authProvider = new OAuthProvider('naver.com');
+                    break;
+                default:
+                    return <Error message="지원하지 않는 로그인 방식입니다." />;
             }
+
+            const result = await signInWithPopup(auth, authProvider);
+            setUser(result.user);
+            router.push('/');
         } catch (error) {
+            console.error(`${provider} login error:`, error);
+            if (error instanceof Error) {
+                return (
+                    <Error
+                        message="로그인에 실패했습니다. 다시 시도해주세요."
+                        retry={() => handleSocialLogin(provider)}
+                    />
+                );
+            }
             console.error(`${provider} login error:`, error);
         }
     };
+
     return (
         <div className="space-y-3">
             <Button

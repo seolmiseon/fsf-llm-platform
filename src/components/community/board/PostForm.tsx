@@ -37,12 +37,16 @@ export default function PostForm() {
     const router = useRouter();
 
     useEffect(() => {
+        console.log('PostForm 마운트 시 Auth 상태:', auth.currentUser);
         const unsubscribe = onAuthStateChanged(auth, (user) => {
+            console.log('Auth 상태 변경됨:', user?.email);
             setUser(user);
             setAuthChecked(true);
         });
 
         return () => unsubscribe();
+        console.log('PostForm 언마운트');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (!authChecked) {

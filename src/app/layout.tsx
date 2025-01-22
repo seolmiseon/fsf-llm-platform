@@ -1,12 +1,9 @@
 import './globals.css';
 import localFont from 'next/font/local';
-import { AuthProvider } from '@/components/providers/AuthProvider';
-import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary';
 import { ModalRoot } from '@/components/ui/modal/ModalRoot';
 import Navigation from '@/components/navigation/Navigation';
 import type { Metadata } from 'next';
-// import Script from 'next/script';
 
 const pretendard = localFont({
     src: '../fonts/PretendardVariable.woff2',
@@ -37,13 +34,9 @@ export default function RootLayout({
                     strategy="beforeInteractive"
                 /> */}
                 <ErrorBoundary>
-                    <ThemeProvider>
-                        <AuthProvider>
-                            <Navigation />
-                            <main className="pt-16">{children}</main>
-                            <ModalRoot />
-                        </AuthProvider>
-                    </ThemeProvider>
+                    <Navigation />
+                    <main className="pt-16">{children}</main>
+                    <ModalRoot />
                 </ErrorBoundary>
             </body>
         </html>

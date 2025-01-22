@@ -72,7 +72,7 @@
     -   [ ] Activity History
     -   [ ] Settings
 -   [ ] League Community
-    -   [ ] Discussion Board
+    -   [x] Discussion Board
     -   [ ] Comment System
     -   [ ] User Interactions
 -   [ ] Match Community
@@ -144,12 +144,12 @@
 
 -   [ ] 모바일에서 이미지 렌더링 이슈
 -   [x] 실시간 매치 데이터 동기화 문제
--   [ ] 인증 상태 유지 관련 이슈
+-   [x] 인증 상태 유지 관련 이슈
 
 ## 📋 Next Steps
 
 1. Community 기능 구현
-2. 실시간 매치 업데이트 시스템 구축
+2. 실시간 매치 업데이트 시스템 구축 ok
 3. 반응형 디자인 완성
 4. 성능 최적화
 
