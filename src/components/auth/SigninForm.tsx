@@ -1,7 +1,9 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
-import { useSignin } from '@/hooks/useSignin';
+import { useState } from 'react';
+import { useAuthStore } from '@/store/useAuthStore';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase/config';
 import { Button } from '../ui/button/Button';
 import { Input } from '../ui/input/Input';
 import {
@@ -10,13 +12,13 @@ import {
     ValidationPatterns,
 } from '@/utils/Validation';
 import SocialLoginButtons from './SocialLoginButtons';
-import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useModalStore } from '@/store/useModalStore';
+import { Error } from '../ui/common/error';
 
 export default function SigninForm() {
-    const { error: authError, loading, handleSignIn } = useSignin();
-    const { data: session, status } = useSession();
+    const { setUser } = useAuthStore();
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -26,19 +28,6 @@ export default function SigninForm() {
     >({});
     const router = useRouter();
     const { close } = useModalStore();
-
-    useEffect(() => {
-        if (status === 'authenticated') {
-            console.log('Authenticated! Closing modal and refreshing...');
-            close();
-            router.refresh();
-            router.push('/');
-        }
-    }, [status, close, router]);
-
-    if (status === 'authenticated') {
-        return <div>이미 로그인되어있습니다, {session.user?.email}</div>;
-    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -56,24 +45,31 @@ export default function SigninForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Form submitted');
+        setLoading(true);
 
         const errors = validateForm(formData, ['email', 'password']);
         if (Object.keys(errors).length > 0) {
-            console.log('Validation errors:', errors);
             setValidationErrors(errors);
+            setLoading(false);
             return;
         }
+
         try {
-            const success = await handleSignIn(
+            const userCredential = await signInWithEmailAndPassword(
+                auth,
                 formData.email,
                 formData.password
             );
-            if (success) {
-                console.log('로그인 성공!');
-            }
-        } catch (error) {
-            console.error('Login error:', error);
+            setUser(userCredential.user);
+            close();
+            router.push('/');
+        } catch (error: any) {
+            console.error('Signin error:', error);
+            setValidationErrors({
+                auth: '이메일 또는 비밀번호가 올바르지 않습니다.',
+            });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -100,15 +96,13 @@ export default function SigninForm() {
                     required
                 />
             </div>
-            {Object.values(validationErrors).map(
-                (error, index) =>
-                    error && (
-                        <p key={index} className="text-red-500 text-sm">
-                            {error}
-                        </p>
-                    )
+
+            {validationErrors.auth && (
+                <Error
+                    message={validationErrors.auth}
+                    retry={() => setValidationErrors({})}
+                />
             )}
-            {authError && <p className="text-red-500 text-sm">{authError}</p>}
 
             <Button type="submit" fullWidth disabled={loading}>
                 {loading ? '로그인 중...' : '로그인'}

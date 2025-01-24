@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Card } from '@/components/ui/common/card';
 import { Loading } from '@/components/ui/common/loading';
 import { Error } from '@/components/ui/common/error';
@@ -17,26 +17,14 @@ import { getPlaceholderImageUrl } from '@/utils/imageUtils';
 // }
 
 export default function ProfilePage() {
-    const { data: session, status } = useSession({
-        required: true, // 페이지에 인증 필수 설정
-        onUnauthenticated() {
-            // 인증되지 않은 경우의 처리를 커스터마이즈 할 수 있습니다
-            return (
-                <Error message="로그인이 필요한 페이지입니다. 로그인 후 이용해주세요." />
-            );
-        },
-    });
+    const { user, loading } = useAuthStore();
 
-    if (status === 'loading') {
-        return <Loading />;
-    }
+    if (loading) return <Loading />;
 
-    if (!session?.user) {
-        return <Error message="사용자 정보를 불러올 수 없습니다." />;
-    }
+    if (!user) return <Error message="로그인이 필요합니다." />;
 
     // 프로필 데이터 안전하게 추출
-    const userTeams = (session.user.teams as TeamResponse[]) || [];
+    const userTeams = (user.teams as TeamResponse[]) || [];
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
@@ -45,10 +33,10 @@ export default function ProfilePage() {
                 {/* 프로필 정보 */}
                 <Card className="p-6">
                     <div className="flex items-center space-x-4">
-                        {session.user?.image ? (
+                        {user?.image ? (
                             <Image
                                 src={
-                                    session.user.image ||
+                                    user.image ||
                                     getPlaceholderImageUrl('league')
                                 }
                                 alt="Profile"
@@ -64,11 +52,9 @@ export default function ProfilePage() {
                         )}
                         <div>
                             <h2 className="text-xl font-semibold">
-                                {session.user?.name || '사용자'}
+                                {user?.name || '사용자'}
                             </h2>
-                            <p className="text-gray-600">
-                                {session.user?.email}
-                            </p>
+                            <p className="text-gray-600">{user?.email}</p>
                         </div>
                     </div>
                 </Card>

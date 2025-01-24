@@ -1,40 +1,55 @@
 'use client';
-
-import useSignup from '@/hooks/useSignup';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Button } from '../ui/button/Button';
 import { Input } from '../ui/input/Input';
 import { ValidationPatterns } from '@/utils/Validation';
 import { useModalStore } from '@/store/useModalStore';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '@/lib/firebase/config';
+import { useState } from 'react';
+import { Error } from '../ui/common/error';
 
 export default function SignupForm() {
-    const { signup, error, loading } = useSignup();
+    const { setUser } = useAuthStore();
+    const [loading, setLoading] = useState(false);
+    const [validationErrors, setValidationErrors] = useState<
+        Record<string, string>
+    >({});
     const { switchToSignin } = useModalStore();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setLoading(true);
+
         const formData = new FormData(e.currentTarget);
 
-        await signup({
-            email: formData.get('email') as string,
-            password: formData.get('password') as string,
-            name: formData.get('name') as string,
-        });
-        switchToSignin();
-    };
+        try {
+            const userCredential = await createUserWithEmailAndPassword(
+                auth,
+                formData.get('email') as string,
+                formData.get('password') as string
+            );
 
+            await updateProfile(userCredential.user, {
+                displayName: formData.get('name') as string,
+            });
+
+            setUser(userCredential.user);
+            switchToSignin();
+        } catch (error: any) {
+            console.error('Signup error:', error);
+        }
+    };
     return (
         <form
             onSubmit={handleSubmit}
             className="space-y-4 w-full max-w-md mx-auto"
         >
-            {error && <p className="text-red-500">{error}</p>}
-
             <Input
                 name="name"
                 type="text"
                 placeholder="이름을 입력하세요"
                 validation={ValidationPatterns.name}
-                disabled={loading}
                 required
                 helperText="실명을 입력하세요"
             />
@@ -44,7 +59,6 @@ export default function SignupForm() {
                 type="email"
                 placeholder="이메일을 입력하세요"
                 label="이메일"
-                disabled={loading}
                 validation={ValidationPatterns.email}
                 required
             />
@@ -55,15 +69,15 @@ export default function SignupForm() {
                 placeholder="비밀번호를 입력하세요"
                 label="비밀번호"
                 validation={ValidationPatterns.password}
-                disabled={loading}
                 required
             />
-            <Button
-                type="submit"
-                variant="primary"
-                fullWidth
-                disabled={loading}
-            >
+            {validationErrors.auth && (
+                <Error
+                    message={validationErrors.auth}
+                    retry={() => setValidationErrors({})}
+                />
+            )}
+            <Button type="submit" variant="primary" fullWidth>
                 {loading ? '회원가입중...' : '회원가입'}
             </Button>
         </form>

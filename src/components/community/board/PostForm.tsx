@@ -20,6 +20,7 @@ type AlertDialogState = {
     isOpen: boolean;
     message: string;
     variant: 'default' | 'destructive' | 'success';
+    onClose: () => void;
 };
 
 export default function PostForm() {
@@ -33,6 +34,7 @@ export default function PostForm() {
         isOpen: false,
         message: '',
         variant: 'default',
+        onClose: () => {},
     });
     const router = useRouter();
 
@@ -71,6 +73,7 @@ export default function PostForm() {
                 isOpen: true,
                 message: '제목은 2자 이상 입력해주세요.',
                 variant: 'destructive',
+                onClose: () => {},
             });
             setIsSubmitting(false);
             return;
@@ -81,6 +84,7 @@ export default function PostForm() {
                 isOpen: true,
                 message: '내용은 10자 이상 입력해주세요.',
                 variant: 'destructive',
+                onClose: () => {},
             });
             setIsSubmitting(false);
             return;
@@ -113,11 +117,8 @@ export default function PostForm() {
                 isOpen: true,
                 message: '게시글이 작성되었습니다',
                 variant: 'success',
+                onClose: () => router.push(`/community/${docRef.id}`),
             });
-
-            setTimeout(() => {
-                router.push(`/community/${docRef.id}`);
-            }, 1500);
         } catch (error: any) {
             console.error('저장 실패', error);
             if (error.code === 'permission-denied') {

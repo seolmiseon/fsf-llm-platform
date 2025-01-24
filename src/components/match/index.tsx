@@ -3,3 +3,8 @@ export { default as ScoreDisplay } from './display/ScoreDisplay';
 export { default as MatchStatistics } from './statistics/MatchStatistics';
 export { default as LineupDisplay } from './lineup/LineupDisplay';
 export { default as PositionTable } from './table/PositionTable';
+export { MatchCarousel } from './carousel/MatchCarousel';
+export { MatchVideo } from './video/MatchVideo';
+export { MatchGrid } from './gird/MatchGrid';
+export { LiveMatches } from './live/LiveMatches';
+export { MatchCard } from './card/MatchCard';

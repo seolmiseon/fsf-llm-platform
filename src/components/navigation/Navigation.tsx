@@ -5,8 +5,8 @@ import FSFLogo from '@/components/ui/logo/FSFLogo';
 import { Search, Menu, X, User, LogOut, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useModalStore } from '@/store/useModalStore';
-import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useState } from 'react';
+import { useAuthStore } from '@/store/useAuthStore';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -20,20 +20,13 @@ export default function Navigation() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [imageError, setImageError] = useState(false);
     const { open } = useModalStore();
-    const { data: session, status } = useSession();
+    const { user, loading } = useAuthStore();
     const pathname = usePathname();
 
-    useEffect(() => {
-        console.log('Auth status:', status);
-        console.log('Session:', session);
-    }, [status, session]);
-
-    // 현재 경로에 따른 적절한 href 반환
     const getHref = (basePath: string) => {
         if (pathname?.startsWith(`/${basePath}/`)) {
             return pathname;
         }
-
         return `/${basePath}`;
     };
 
@@ -50,18 +43,30 @@ export default function Navigation() {
             href: getHref('match'),
             label: 'Match',
         },
-
-        { href: '/stats', label: 'Stats' },
-        { href: '/community', label: 'Community' },
+        {
+            href: '/stats',
+            label: 'Stats',
+        },
+        {
+            href: '/community',
+            label: 'Community',
+            onClick: (e: React.MouseEvent) => {
+                if (!user) {
+                    e.preventDefault();
+                    open('signin', {
+                        kind: 'auth',
+                        mode: 'signin',
+                    });
+                }
+            },
+        },
     ];
 
     const renderAuthButtons = () => {
-        if (status === 'loading') {
-            return null;
-        }
+        if (loading) return null;
 
-        // 로그인된 상태
-        if (status === 'authenticated' && session?.user) {
+        //로그인 상태
+        if (user) {
             return (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -71,12 +76,10 @@ export default function Navigation() {
                             className="relative rounded-full"
                             aria-label="사용자 메뉴"
                         >
-                            {session.user.image && !imageError ? (
+                            {user.image && !imageError ? (
                                 <Image
-                                    src={session.user.image}
-                                    alt={`${
-                                        session.user.name || 'User'
-                                    }'s profile`}
+                                    src={user.image}
+                                    alt={`${user.name || 'User'}'s profile`}
                                     fill
                                     className="rounded-full object-cover"
                                     sizes="32px"
@@ -128,56 +131,45 @@ export default function Navigation() {
             );
         }
 
-        // 비로그인 상태의 버튼
-        if (status === 'unauthenticated' || !session) {
-            return (
-                <div className="flex items-center gap-4">
-                    {' '}
-                    {/* space-x-2를 gap-4로 변경 */}
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                            open('signin', { kind: 'auth', mode: 'signin' })
-                        }
-                    >
-                        로그인
-                    </Button>
-                    <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() =>
-                            open('signup', { kind: 'auth', mode: 'signup' })
-                        }
-                    >
-                        회원가입
-                    </Button>
-                </div>
-            );
-        }
-
-        return null;
+        //비로그인 상태
+        return (
+            <div className="flex items-center gap-4">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                        open('signin', { kind: 'auth', mode: 'signin' })
+                    }
+                >
+                    로그인
+                </Button>
+                <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() =>
+                        open('signup', { kind: 'auth', mode: 'signup' })
+                    }
+                >
+                    회원가입
+                </Button>
+            </div>
+        );
     };
 
     return (
         <header className="bg-white shadow-sm h-16">
-            <nav
-                className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md"
-                aria-label="Main navigation"
-            >
+            <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md">
                 <div className="max-w-6xl mx-auto flex justify-between h-16 px-4">
-                    {/* Logo */}
                     <div className="flex items-center">
                         <Link href="/" className="flex-shrink-0">
                             <FSFLogo
-                                width={80}
-                                height={80}
+                                width={100}
+                                height={110}
                                 className="hover:opacity-80 transition-opacity"
                             />
                         </Link>
                     </div>
 
-                    {/* Desktop Navigation */}
                     <div className="hidden sm:flex sm:items-center sm:space-x-8">
                         <div className="flex items-center">
                             <Link
@@ -205,10 +197,11 @@ export default function Navigation() {
                             </DropdownMenu>
                         </div>
 
-                        {navLinks.map(({ href, label }) => (
+                        {navLinks.map(({ href, label, onClick }) => (
                             <Link
                                 key={href}
                                 href={href}
+                                onClick={onClick}
                                 className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                             >
                                 {label}
@@ -216,7 +209,6 @@ export default function Navigation() {
                         ))}
                     </div>
 
-                    {/* Search and Auth Buttons */}
                     <div className="hidden sm:flex items-center gap-4">
                         <div className="relative">
                             <input
@@ -238,7 +230,6 @@ export default function Navigation() {
                         </div>
                     </div>
 
-                    {/* Mobile menu button */}
                     <div className="sm:hidden flex items-center">
                         <button
                             type="button"
@@ -263,14 +254,9 @@ export default function Navigation() {
                     </div>
                 </div>
 
-                {/* Mobile menu */}
-
+                {/* Mobile Menu (isMenuOpen 시) */}
                 {isMenuOpen && (
-                    <div
-                        className="sm:hidden"
-                        id="mobile-menu"
-                        role="navigation"
-                    >
+                    <div className="sm:hidden" id="mobile-menu">
                         <div className="px-2 pt-2 pb-3 space-y-1">
                             <div className="flex items-center">
                                 <Link
@@ -304,19 +290,21 @@ export default function Navigation() {
                                 </DropdownMenu>
                             </div>
 
-                            {navLinks.map(({ href, label }) => (
+                            {navLinks.map(({ href, label, onClick }) => (
                                 <Link
                                     key={href}
                                     href={href}
+                                    onClick={(e) => {
+                                        onClick?.(e);
+                                        setIsMenuOpen(false);
+                                    }}
                                     className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                                    onClick={() => setIsMenuOpen(false)}
                                 >
                                     {label}
                                 </Link>
                             ))}
 
-                            {/* 모바일 메뉴의 인증 버튼도 동일한 스타일 사용 */}
-                            {status === 'authenticated' ? (
+                            {user ? (
                                 <>
                                     <Link
                                         href="/auth/profile"
@@ -342,7 +330,6 @@ export default function Navigation() {
                                 </>
                             ) : (
                                 <div className="mt-4 flex flex-col space-y-2 px-3">
-                                    {/* 모바일에서도 동일한 버튼 스타일 사용 */}
                                     <Button
                                         variant="ghost"
                                         size="sm"

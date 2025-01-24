@@ -1,15 +1,22 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from 'firebase-admin';
 import admin from 'firebase-admin';
 
 export async function GET(request: Request) {
     try {
         // 인증 확인
-        const session = await getServerSession(authOptions);
-        if (!session) {
+        const token = request.headers.get('Authorization')?.split('Bearer ')[1];
+        if (!token) {
             return NextResponse.json(
-                { error: '인증이 필요합니다.' },
+                { error: '토큰이 없습니다.' },
+                { status: 401 }
+            );
+        }
+
+        const decodedToken = await auth().verifyIdToken(token);
+        if (!decodedToken) {
+            return NextResponse.json(
+                { error: '유효하지 않은 토큰입니다.' },
                 { status: 401 }
             );
         }
@@ -27,8 +34,8 @@ export async function GET(request: Request) {
         const searchQuery = db
             .collection('posts')
             .orderBy('title')
-            .where('title', '>=', query.toLowerCase())
-            .where('title', '<=', query.toLowerCase() + '\uf8ff')
+            .where('title', '>=', query)
+            .where('title', '<=', query + '\uf8ff')
             .limit(limit + 1);
 
         // 쿼리 실행

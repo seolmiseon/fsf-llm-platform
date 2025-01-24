@@ -1,4 +1,4 @@
-import { HomeBanner } from '@/components/home/HomeBanner';
+import { HomeBanner } from '@/components/banner/HomeBanner';
 import { LeagueGrid } from '@/components/league/LeagueGrid';
 import { LiveMatches } from '@/components/match/live/LiveMatches';
 // import styles from './styles.module.css';

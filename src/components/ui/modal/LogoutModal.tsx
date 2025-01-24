@@ -1,13 +1,21 @@
 import { useModalStore } from '@/store/useModalStore';
 import { Dialog, DialogContent } from '../common/dialog';
 import { Button } from '../button/Button';
-import { useLogout } from '@/hooks/useLogout';
+import { auth } from '@/lib/firebase/config';
 
 export function LogoutModal() {
     const { isOpen, type, close } = useModalStore();
-    const { handleLogout } = useLogout();
 
     if (!isOpen || type !== 'logout') return null;
+
+    const handleLogout = async () => {
+        try {
+            await auth.signOut();
+            close();
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    };
 
     return (
         <Dialog>

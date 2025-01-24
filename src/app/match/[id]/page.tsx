@@ -2,7 +2,11 @@
 
 import { Error, Loading } from '@/components/ui/common';
 import { FootballDataApi } from '@/lib/server/api/football-data';
-import { ApiResponse, MatchResponse } from '@/types/api/responses';
+import {
+    ApiResponse,
+    MatchHighlight,
+    MatchResponse,
+} from '@/types/api/responses';
 import Image from 'next/image';
 import * as Tabs from '@radix-ui/react-tabs';
 import { useParams } from 'next/navigation';
@@ -11,41 +15,53 @@ import styles from './styles.module.css';
 import { getPlaceholderImageUrl } from '@/utils/imageUtils';
 import {
     LineupDisplay,
+    LiveMatches,
     MatchStatistics,
     PositionTable,
     ScoreDisplay,
     TeamDisplay,
 } from '@/components/match';
+import { ScoreBatApi } from '@/lib/server/api/scoreHighlight';
 
 export default function MatchDetailPage() {
     const params = useParams();
     const [match, setMatch] = useState<MatchResponse>();
+    const [highlights, setHighlights] = useState<MatchHighlight | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const loadMatchDetails = async () => {
+        const loadData = async () => {
             try {
                 setLoading(true);
                 const api = new FootballDataApi();
-                const result: ApiResponse<MatchResponse> = await api.getMatch(
-                    params.matchId as string
-                );
+                const scoreBatApi = new ScoreBatApi();
 
-                if (!result.success) {
-                    setError(result.error);
-                    return;
+                const [matchResult, highlightsResult] = await Promise.all([
+                    api.getMatch(params.match.id),
+                    match &&
+                        scoreBatApi.getMatchHighlights(
+                            match.homeTeam.name,
+                            match.awayTeam.name,
+                            match.utcDate
+                        ),
+                ]);
+
+                if (matchResult.success) {
+                    setMatch(matchResult.data);
+                    if (highlightsResult?.success) {
+                        setHighlights(highlightsResult.data);
+                    }
                 }
-                setMatch(result.data);
             } catch (error) {
-                setError(`Failed to load match details: ${error}`);
+                setError(`Failed to load: ${error}`);
             } finally {
                 setLoading(false);
             }
         };
 
-        loadMatchDetails();
-    }, [params]);
+        loadData();
+    }, [params.matchId]);
 
     if (loading) return <Loading />;
     if (error) return <Error message={error} />;
@@ -53,6 +69,8 @@ export default function MatchDetailPage() {
 
     return (
         <div className={styles.container}>
+            {/* 라이브 매치 캐러셀 */}
+            <LiveMatches currentMatchId={match.id} />
             {/* 리그 정보 헤더 */}
             <div className={styles.header}>
                 <Image

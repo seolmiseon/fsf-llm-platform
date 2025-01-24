@@ -11,11 +11,24 @@ import { Loader2 } from 'lucide-react';
 import { useModalStore } from '@/store/useModalStore';
 import { Input } from '../input/Input';
 import { Button } from '../button/Button';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { useEffect } from 'react';
 
 export function SearchModal() {
     const { results, loading, error, hasMore, loadMore, handleSearch } =
         useServerSearch();
-    const { isOpen, type, close } = useModalStore();
+    const { close } = useModalStore();
+    const auth = getAuth();
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                close();
+            }
+        });
+
+        return () => unsubscribe();
+    }, [auth, close]);
 
     return (
         <Dialog>
