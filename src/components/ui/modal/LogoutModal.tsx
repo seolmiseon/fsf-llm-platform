@@ -10,6 +10,8 @@ const handleLogout = async () => {
         await signOut(auth);
         useAuthStore.getState().setUser(null);
 
+        useModalStore.getState().close();
+
         window.location.href = '/signin';
     } catch (error) {
         console.error('Logout error:', error);
@@ -19,7 +21,7 @@ const handleLogout = async () => {
 };
 
 export function LogoutModal() {
-    const { isOpen = false, type = null, close } = useModalStore();
+    const { isOpen = false, type = null } = useModalStore();
 
     console.log('LogoutModal render:', { isOpen, type });
 
@@ -31,7 +33,10 @@ export function LogoutModal() {
                 <h2>로그아웃을 하시겠습니까?</h2>
                 <div className="flex gap-4">
                     <Button onClick={() => handleLogout()}>확인</Button>
-                    <Button variant="outline" onClick={close}>
+                    <Button
+                        variant="outline"
+                        onClick={useModalStore.getState().close}
+                    >
                         취소
                     </Button>
                 </div>
