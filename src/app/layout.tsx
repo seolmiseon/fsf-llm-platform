@@ -4,6 +4,8 @@ import { ErrorBoundary } from '@/components/providers/ErrorBoundary';
 import { ModalRoot } from '@/components/ui/modal/ModalRoot';
 import Navigation from '@/components/navigation/Navigation';
 import type { Metadata } from 'next';
+import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import { AuthProvider } from '@/components/providers/AuthProvider';
 
 const pretendard = localFont({
     src: '../fonts/PretendardVariable.woff2',
@@ -34,9 +36,13 @@ export default function RootLayout({
                     strategy="beforeInteractive"
                 /> */}
                 <ErrorBoundary>
-                    <Navigation />
-                    <main className="pt-16">{children}</main>
-                    <ModalRoot />
+                    <ThemeProvider>
+                        <AuthProvider>
+                            <Navigation />
+                            <main className="pt-16">{children}</main>
+                            <ModalRoot />
+                        </AuthProvider>
+                    </ThemeProvider>
                 </ErrorBoundary>
             </body>
         </html>

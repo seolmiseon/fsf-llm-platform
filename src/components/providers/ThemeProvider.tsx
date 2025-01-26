@@ -1,7 +1,13 @@
-import { useThemeStore } from '@/store/useThemeStore';
-import { useEffect } from 'react';
+'use client';
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+import { useThemeStore } from '@/store/useThemeStore';
+import React, { useEffect } from 'react';
+
+interface ProviderProps {
+    children: React.ReactNode;
+}
+
+export function ThemeProvider({ children }: ProviderProps) {
     const theme = useThemeStore((state) => state.theme);
     const setTheme = useThemeStore((state) => state.setTheme);
 
@@ -18,5 +24,5 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         document.documentElement.classList.add(theme);
     }, [theme, setTheme]);
 
-    return children;
+    return <>{children}</>;
 }

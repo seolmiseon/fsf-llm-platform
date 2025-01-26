@@ -46,9 +46,10 @@ export default function PostForm() {
             setAuthChecked(true);
         });
 
-        return () => unsubscribe();
-        console.log('PostForm 언마운트');
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        return () => {
+            console.log('PostForm 언마운트');
+            unsubscribe();
+        };
     }, []);
 
     if (!authChecked) {

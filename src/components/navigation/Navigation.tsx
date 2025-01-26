@@ -119,9 +119,21 @@ export default function Navigation() {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             className="text-red-600"
-                            onClick={() =>
-                                open('logout', { kind: 'auth', mode: 'logout' })
-                            }
+                            onClick={() => {
+                                console.log('로그아웃 버튼 클릭');
+                                console.log(
+                                    '모달 상태:',
+                                    useModalStore.getState()
+                                );
+                                open('logout', {
+                                    kind: 'auth',
+                                    mode: 'logout',
+                                });
+                                console.log(
+                                    '클릭 후 모달 상태:',
+                                    useModalStore.getState()
+                                );
+                            }}
                         >
                             <LogOut className="mr-2 h-4 w-4" />
                             로그아웃

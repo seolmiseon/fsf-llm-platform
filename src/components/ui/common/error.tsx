@@ -3,7 +3,7 @@ export const Error = ({
     retry,
     className = '',
 }: {
-    message: string;
+    message?: string;
     retry?: () => void;
     className?: string;
 }) => (

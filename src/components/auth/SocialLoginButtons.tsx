@@ -12,10 +12,12 @@ import {
 import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import { Error } from '../ui/common';
+import { useState } from 'react';
 
 export default function SocialLoginButtons() {
     const router = useRouter();
     const setUser = useAuthStore((state) => state.setUser);
+    const [errorMessage, setErrorMessage] = useState<string | undefined>('');
 
     const handleSocialLogin = async (provider: string) => {
         try {
@@ -31,7 +33,8 @@ export default function SocialLoginButtons() {
                     authProvider = new OAuthProvider('naver.com');
                     break;
                 default:
-                    return <Error message="지원하지 않는 로그인 방식입니다." />;
+                    setErrorMessage('지원하지 않는 로그인 방식입니다');
+                    return;
             }
 
             const result = await signInWithPopup(auth, authProvider);
@@ -39,15 +42,16 @@ export default function SocialLoginButtons() {
             router.push('/');
         } catch (error) {
             console.error(`${provider} login error:`, error);
-            if (error instanceof Error) {
+            setErrorMessage('로그인에 실패했습니다. 다시 시도해주세요.');
+
+            if (error) {
                 return (
                     <Error
-                        message="로그인에 실패했습니다. 다시 시도해주세요."
-                        retry={() => handleSocialLogin(provider)}
+                        message={errorMessage}
+                        retry={() => setErrorMessage('')}
                     />
                 );
             }
-            console.error(`${provider} login error:`, error);
         }
     };
 

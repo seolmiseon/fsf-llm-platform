@@ -10,6 +10,7 @@ import { AuthModal } from './AuthModal';
 
 export function ModalRoot() {
     const { type, data, close } = useModalStore();
+    console.log('ModalRoot render:', { type });
 
     const isTeamModalData = (data: ModalData | null): data is TeamModalData => {
         return data?.kind === 'team';
@@ -24,7 +25,7 @@ export function ModalRoot() {
     return (
         <>
             {type === 'search' && <SearchModal />}
-            {type === 'logout' && <LogoutModal />}
+            <LogoutModal />
             {(type === 'signin' || type === 'signup') && <AuthModal />}
             {type === 'teamDetail' && isTeamModalData(data) && (
                 <TeamDetailModal
