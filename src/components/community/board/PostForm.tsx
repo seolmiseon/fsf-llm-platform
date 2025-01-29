@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase/config';
+import { db } from '@/lib/firebase/config';
 import { Post } from '@/types/community/community';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button/Button';
 import { Input } from '@/components/ui/input/Input';
 import { Textarea } from '@/components/ui/textArea/TextArea';
-import { onAuthStateChanged } from 'firebase/auth';
 import { AlertDialog } from '@/components/ui/alert/Alert';
 import { Error } from '@/components/ui/common';
+import { useAuthStore } from '@/store/useAuthStore';
 
 // 에러 메시지 타입 정의
 type ErrorType = string | null;
@@ -24,12 +24,11 @@ type AlertDialogState = {
 };
 
 export default function PostForm() {
+    const { user, loading: authLoading } = useAuthStore();
     const [error, setError] = useState<ErrorType>(null);
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [authChecked, setAuthChecked] = useState(false);
-    const [user, setUser] = useState(auth.currentUser);
     const [alertDialog, setAlertDialog] = useState<AlertDialogState>({
         isOpen: false,
         message: '',
@@ -38,25 +37,11 @@ export default function PostForm() {
     });
     const router = useRouter();
 
-    useEffect(() => {
-        console.log('PostForm 마운트 시 Auth 상태:', auth.currentUser);
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            console.log('Auth 상태 변경됨:', user?.email);
-            setUser(user);
-            setAuthChecked(true);
-        });
-
-        return () => {
-            console.log('PostForm 언마운트');
-            unsubscribe();
-        };
-    }, []);
-
-    if (!authChecked) {
+    if (authLoading) {
         return <div className="text-center py-4">인증 상태 확인중...</div>;
     }
 
-    if (authChecked && !user) {
+    if (!user) {
         return (
             <Error
                 message="로그인이 필요합니다. 로그인 후 게시글을 작성할 수 있습니다."
@@ -64,6 +49,10 @@ export default function PostForm() {
             />
         );
     }
+
+    const sanitizeInput = (input: string) => {
+        return input.trim().replace(/<[^>]*>/g, '');
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -74,9 +63,9 @@ export default function PostForm() {
                 isOpen: true,
                 message: '제목은 2자 이상 입력해주세요.',
                 variant: 'destructive',
-                onClose: () => {},
+                onClose: () => setIsSubmitting(false),
             });
-            setIsSubmitting(false);
+
             return;
         }
 
@@ -85,21 +74,19 @@ export default function PostForm() {
                 isOpen: true,
                 message: '내용은 10자 이상 입력해주세요.',
                 variant: 'destructive',
-                onClose: () => {},
+                onClose: () => setIsSubmitting(false),
             });
-            setIsSubmitting(false);
+
             return;
         }
 
         try {
-            if (!user) {
-                setError('로그인이 필요합니다');
-                return;
-            }
+            const sanitizedTitle = sanitizeInput(title);
+            const sanitizedContent = sanitizeInput(content);
 
             const postData: Post = {
-                title,
-                content,
+                title: sanitizedTitle,
+                content: sanitizedContent,
                 authorId: user.uid,
                 authorName: user.displayName || '익명',
                 createdAt: Timestamp.now(),
@@ -108,8 +95,12 @@ export default function PostForm() {
                 views: 0,
                 commentCount: 0,
             };
-
-            console.log('저장 시도:', { title, content, user: user?.uid });
+            console.log('Post Data:', postData);
+            console.log('저장 시도:', {
+                title: sanitizedTitle,
+                content: sanitizedContent,
+                user: user.uid,
+            });
 
             const docRef = await addDoc(collection(db, 'community'), postData);
             console.log('저장 성공:', docRef.id);
@@ -118,10 +109,16 @@ export default function PostForm() {
                 isOpen: true,
                 message: '게시글이 작성되었습니다',
                 variant: 'success',
-                onClose: () => router.push(`/community/${docRef.id}`),
+                onClose: () => {
+                    router.push('/community');
+                },
             });
         } catch (error: any) {
-            console.error('저장 실패', error);
+            console.error('Error details:', {
+                code: error.code,
+                message: error.message,
+                details: error,
+            });
             if (error.code === 'permission-denied') {
                 setError('권한이 없습니다. 로그인을 확인해주세요.');
             } else if (error.code === 'unavailable') {

@@ -25,7 +25,7 @@ export function ModalRoot() {
     return (
         <>
             {type === 'search' && <SearchModal />}
-            <LogoutModal />
+            {type === 'logout' && <LogoutModal />}
             {(type === 'signin' || type === 'signup') && <AuthModal />}
             {type === 'teamDetail' && isTeamModalData(data) && (
                 <TeamDetailModal

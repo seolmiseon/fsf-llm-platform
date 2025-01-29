@@ -5,7 +5,7 @@ import FSFLogo from '@/components/ui/logo/FSFLogo';
 import { Search, Menu, X, User, LogOut, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useModalStore } from '@/store/useModalStore';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import {
     DropdownMenu,
@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/dropDown/DropDownMenu';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase/config';
 
 export default function Navigation() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -61,6 +63,23 @@ export default function Navigation() {
             },
         },
     ];
+
+    const handleLogout = useCallback(async () => {
+        try {
+            console.log('로그아웃 시작');
+            await signOut(auth);
+            console.log('로그아웃');
+            useAuthStore.getState().setUser(null);
+            console.log('로그아웃 업데이트');
+            useModalStore.getState().close();
+            console.log('Modal closed.');
+            window.location.href = '/signin';
+        } catch (error) {
+            console.error('Logout error:', error);
+
+            alert('로그아웃에 실패했습니다. 다시 시도해 주세요.');
+        }
+    }, []);
 
     const renderAuthButtons = () => {
         if (loading) return null;
@@ -119,21 +138,7 @@ export default function Navigation() {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             className="text-red-600"
-                            onClick={() => {
-                                console.log('로그아웃 버튼 클릭');
-                                console.log(
-                                    '모달 상태:',
-                                    useModalStore.getState()
-                                );
-                                open('logout', {
-                                    kind: 'auth',
-                                    mode: 'logout',
-                                });
-                                console.log(
-                                    '클릭 후 모달 상태:',
-                                    useModalStore.getState()
-                                );
-                            }}
+                            onClick={handleLogout}
                         >
                             <LogOut className="mr-2 h-4 w-4" />
                             로그아웃

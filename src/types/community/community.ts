@@ -6,7 +6,7 @@ export interface Post {
     title: string;
     content: string;
     authorId: string;
-    authorName: string;
+    authorName: string | null;
     createdAt: Timestamp;
     updatedAt: Timestamp;
     likes: number;
@@ -20,7 +20,7 @@ export interface Comment {
     postId: string;
     content: string;
     authorId: string;
-    authorName: string;
+    authorName: string | null;
     createdAt: Timestamp;
     updatedAt: Timestamp;
     likes: number;

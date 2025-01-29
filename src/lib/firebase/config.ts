@@ -22,3 +22,5 @@ export const realtimeDb = getDatabase(app);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
+
+console.log('Firestore 초기화:', db);

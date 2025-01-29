@@ -10,6 +10,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Post } from '@/types/community/community';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export type SortOption = 'latest' | 'popular';
 
@@ -18,8 +19,11 @@ export function usePosts() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<SortOption>('latest');
+    const { user, loading: authLoading } = useAuthStore();
 
     const fetchPosts = useCallback(async () => {
+        if (authLoading) return;
+
         try {
             setLoading(true);
             const postsQuery = query(
@@ -40,55 +44,55 @@ export function usePosts() {
         } finally {
             setLoading(false);
         }
-    }, [sortBy]);
+    }, [sortBy, authLoading]);
 
-    const incrementViews = useCallback(async (id: string) => {
-        try {
-            const postRef = doc(db, 'community', id);
-            await updateDoc(postRef, {
-                views: increment(1),
-            });
-
-            // 로컬 상태 업데이트
-            setPosts((prev) =>
-                prev.map((post) =>
-                    post.id === id ? { ...post, views: post.views + 1 } : post
-                )
-            );
-        } catch (error) {
-            console.error('Error incrementing views:', error);
-        }
-    }, []);
-
-    // 좋아요 토글 함수 추가
-    const toggleLike = useCallback(
+    const incrementViews = useCallback(
         async (id: string) => {
+            if (authLoading) return;
+            if (!user) {
+                console.error('로그인이 필요합니다');
+                return;
+            }
+
             try {
                 const postRef = doc(db, 'community', id);
-
-                // 현재 게시글 찾기
-                const currentPost = posts.find((post) => post.id === id);
-                if (!currentPost) return;
-
-                // 좋아요 수 업데이트
                 await updateDoc(postRef, {
-                    likes: increment(1),
+                    views: increment(1),
                 });
 
                 // 로컬 상태 업데이트
                 setPosts((prev) =>
                     prev.map((post) =>
                         post.id === id
-                            ? { ...post, likes: post.likes + 1 }
+                            ? { ...post, views: post.views + 1 }
                             : post
                     )
                 );
             } catch (error) {
-                console.error('Error toggling like:', error);
+                console.error('Error incrementing views:', error);
             }
         },
-        [posts]
+        [authLoading, user]
     );
+
+    // 좋아요 토글 함수 추가
+    const toggleLike = useCallback(async (id: string) => {
+        try {
+            const postRef = doc(db, 'community', id);
+            // 좋아요 수 업데이트
+            await updateDoc(postRef, {
+                likes: increment(1),
+            });
+
+            setPosts((prev) =>
+                prev.map((post) =>
+                    post.id === id ? { ...post, likes: post.likes + 1 } : post
+                )
+            );
+        } catch (error) {
+            console.error('Error toggling like:', error);
+        }
+    }, []);
 
     useEffect(() => {
         fetchPosts();
@@ -100,7 +104,6 @@ export function usePosts() {
         error,
         sortBy,
         setSortBy,
-        refetch: fetchPosts,
         incrementViews,
         toggleLike,
     };
