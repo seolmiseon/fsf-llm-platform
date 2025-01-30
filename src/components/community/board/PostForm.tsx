@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { addDoc, collection, Timestamp } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Post } from '@/types/community/community';
 import { useRouter } from 'next/navigation';
@@ -89,21 +89,23 @@ export default function PostForm() {
                 content: sanitizedContent,
                 authorId: user.uid,
                 authorName: user.displayName || '익명',
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
                 likes: 0,
                 views: 0,
                 commentCount: 0,
             };
-            console.log('Post Data:', postData);
-            console.log('저장 시도:', {
-                title: sanitizedTitle,
-                content: sanitizedContent,
-                user: user.uid,
-            });
 
-            const docRef = await addDoc(collection(db, 'community'), postData);
-            console.log('저장 성공:', docRef.id);
+            console.log('DB 연결 상태:', !!db);
+            console.log('Collection 경로:', 'community');
+
+            console.log('=== addDoc 호출 시작 ===');
+
+            const communityRef = collection(db, 'community');
+
+            console.log('Collection 참조 생성됨');
+            const docRef = await addDoc(communityRef, postData);
+            console.log('=== addDoc 호출 완료 ===', docRef.id);
 
             setAlertDialog({
                 isOpen: true,
@@ -114,11 +116,15 @@ export default function PostForm() {
                 },
             });
         } catch (error: any) {
-            console.error('Error details:', {
+            console.log('=== 에러 발생 ===');
+            console.error('상세 에러 정보:', {
+                name: error.name,
                 code: error.code,
                 message: error.message,
-                details: error,
+                stack: error.stack,
+                fullError: error,
             });
+
             if (error.code === 'permission-denied') {
                 setError('권한이 없습니다. 로그인을 확인해주세요.');
             } else if (error.code === 'unavailable') {
@@ -128,6 +134,8 @@ export default function PostForm() {
             } else {
                 setError('게시글 작성에 실패했습니다.');
             }
+
+            throw error;
         } finally {
             setIsSubmitting(false);
         }

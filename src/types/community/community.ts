@@ -1,4 +1,4 @@
-import { Timestamp } from 'firebase/firestore';
+import { FieldValue, Timestamp } from 'firebase/firestore';
 
 // 게시글 타입
 export interface Post {
@@ -7,8 +7,8 @@ export interface Post {
     content: string;
     authorId: string;
     authorName: string | null;
-    createdAt: Timestamp;
-    updatedAt: Timestamp;
+    createdAt: Timestamp | FieldValue;
+    updatedAt: Timestamp | FieldValue;
     likes: number;
     views: number;
     commentCount: number;
@@ -21,8 +21,8 @@ export interface Comment {
     content: string;
     authorId: string;
     authorName: string | null;
-    createdAt: Timestamp;
-    updatedAt: Timestamp;
+    createdAt: Timestamp | FieldValue;
+    updatedAt: Timestamp | FieldValue;
     likes: number;
 }
 
