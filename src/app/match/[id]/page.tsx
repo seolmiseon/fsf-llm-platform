@@ -2,11 +2,7 @@
 
 import { Error, Loading } from '@/components/ui/common';
 import { FootballDataApi } from '@/lib/server/api/football-data';
-import {
-    ApiResponse,
-    MatchHighlight,
-    MatchResponse,
-} from '@/types/api/responses';
+import { MatchHighlight, MatchResponse } from '@/types/api/responses';
 import Image from 'next/image';
 import * as Tabs from '@radix-ui/react-tabs';
 import { useParams } from 'next/navigation';
@@ -24,9 +20,9 @@ import {
 import { ScoreBatApi } from '@/lib/server/api/scoreHighlight';
 
 export default function MatchDetailPage() {
-    const params = useParams();
-    const [match, setMatch] = useState<MatchResponse>();
-    const [highlights, setHighlights] = useState<MatchHighlight | null>(null);
+    const params = useParams<{ id: string }>();
+    const [match, setMatch] = useState<MatchResponse | undefined>();
+    const [highlights, setHighlights] = useState<MatchHighlight[] | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -37,20 +33,23 @@ export default function MatchDetailPage() {
                 const api = new FootballDataApi();
                 const scoreBatApi = new ScoreBatApi();
 
-                const [matchResult, highlightsResult] = await Promise.all([
-                    api.getMatch(params.match.id),
-                    match &&
-                        scoreBatApi.getMatchHighlights(
-                            match.homeTeam.name,
-                            match.awayTeam.name,
-                            match.utcDate
-                        ),
-                ]);
+                const matchResult = await api.getMatch(params.id);
 
                 if (matchResult.success) {
                     setMatch(matchResult.data);
-                    if (highlightsResult?.success) {
-                        setHighlights(highlightsResult.data);
+
+                    // match가 있을 때만 하이라이트 요청
+                    if (matchResult.data) {
+                        const highlightsResult =
+                            await scoreBatApi.getMatchHighlights(
+                                matchResult.data.homeTeam.name,
+                                matchResult.data.awayTeam.name,
+                                matchResult.data.utcDate
+                            );
+
+                        if (highlightsResult?.success) {
+                            setHighlights(highlightsResult.data);
+                        }
                     }
                 }
             } catch (error) {
@@ -61,7 +60,7 @@ export default function MatchDetailPage() {
         };
 
         loadData();
-    }, [params.matchId]);
+    }, [params.id]);
 
     if (loading) return <Loading />;
     if (error) return <Error message={error} />;

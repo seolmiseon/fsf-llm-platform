@@ -2,11 +2,18 @@
 
 import { AlertDialog } from '@/components/ui/alert/Alert';
 import { Button } from '@/components/ui/button/Button';
-import { auth, db } from '@/lib/firebase/config';
+import { db } from '@/lib/firebase/config';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Post } from '@/types/community/community';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { deleteDoc, doc, getDoc } from 'firebase/firestore';
+import {
+    deleteDoc,
+    doc,
+    getDoc,
+    Timestamp,
+    FieldValue,
+} from 'firebase/firestore';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -17,13 +24,16 @@ type AlertDialogState = {
     variant: 'default' | 'destructive' | 'success';
 };
 
+function isTimestamp(value: Timestamp | FieldValue): value is Timestamp {
+    return value && typeof value === 'object' && 'toDate' in value;
+}
 export default function PostDetailPage() {
+    const { user, loading: authLoading } = useAuthStore();
     const params = useParams();
     const router = useRouter();
     const [post, setPost] = useState<Post | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [isAuthor, setIsAuthor] = useState(false);
     const [alertDialog, setAlertDialog] = useState<AlertDialogState>({
         isOpen: false,
         message: '',
@@ -44,8 +54,6 @@ export default function PostDetailPage() {
                         ...docSnap.data(),
                     } as Post;
                     setPost(postData);
-
-                    setIsAuthor(auth.currentUser?.uid === postData.authorId);
                 } else {
                     setError('게시글을 찾을수가 없습니다');
                 }
@@ -61,11 +69,7 @@ export default function PostDetailPage() {
     }, [params.id]);
 
     const handleDelete = async () => {
-        if (
-            !post ||
-            !auth.currentUser ||
-            auth.currentUser.uid !== post.authorId
-        ) {
+        if (!post || !user || user.uid !== post.authorId) {
             setAlertDialog({
                 isOpen: true,
                 message: '삭제 권한이 없습니다.',
@@ -97,6 +101,10 @@ export default function PostDetailPage() {
             });
         }
     };
+
+    if (authLoading) {
+        return <div className="text-center py-4">인증 상태 확인중...</div>;
+    }
 
     if (loading) {
         return <div className="text-center py-10">로딩 중...</div>;
@@ -130,10 +138,12 @@ export default function PostDetailPage() {
                     <div className="flex justify-between items-center mb-4">
                         <h1 className="text-3xl font-bold">{post.title}</h1>
                         <div className="text-sm text-gray-500">
-                            {formatDistanceToNow(post.createdAt.toDate(), {
-                                addSuffix: true,
-                                locale: ko,
-                            })}
+                            {isTimestamp(post.createdAt)
+                                ? formatDistanceToNow(post.createdAt.toDate(), {
+                                      addSuffix: true,
+                                      locale: ko,
+                                  })
+                                : '날짜 정보 없음'}
                         </div>
                     </div>
                     <div className="flex items-center text-sm text-gray-500 space-x-4 mb-6">
@@ -148,7 +158,7 @@ export default function PostDetailPage() {
                     <Link href="/community">
                         <Button variant="outline">목록으로</Button>
                     </Link>
-                    {isAuthor && (
+                    {user?.uid === post.authorId && (
                         <div className="space-x-2">
                             <Link href={`/community/${post.id}/edit`}>
                                 <Button>수정</Button>

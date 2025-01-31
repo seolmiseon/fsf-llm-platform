@@ -15,6 +15,22 @@ export function useServerSearch() {
     const [currentPage, setCurrentPage] = useState(1);
     const [hasMore, setHasMore] = useState(false);
 
+    const performSearch = useCallback(
+        async (query: string, page: number): Promise<SearchResponse> => {
+            const token = await auth.currentUser?.getIdToken();
+            const response = await fetch(
+                `/api/search?q=${query}&page=${page}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            return response.json();
+        },
+        [auth]
+    );
+
     const handleSearchWithCache = useCallback(
         async (query: string, page: number) => {
             const cacheKey = `${query}_page${page}`;
@@ -46,7 +62,7 @@ export function useServerSearch() {
                 setLoading(false);
             }
         },
-        []
+        [performSearch]
     );
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -88,19 +104,6 @@ export function useServerSearch() {
             timestamp: Date.now(),
         };
         localStorage.setItem('searchCache', JSON.stringify(cache));
-    };
-
-    const performSearch = async (
-        query: string,
-        page: number
-    ): Promise<SearchResponse> => {
-        const token = await auth.currentUser?.getIdToken();
-        const response = await fetch(`/api/search?q=${query}&page=${page}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-        return response.json();
     };
 
     const handleSearch = useCallback(

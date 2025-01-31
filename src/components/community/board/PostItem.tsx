@@ -2,11 +2,15 @@ import { Post } from '@/types/community/community';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import Link from 'next/link';
-
+import { Timestamp, FieldValue } from 'firebase/firestore';
 interface PostItemProps {
     post: Post;
     onIncrementView: (id: string) => Promise<void>;
     onToggleLike: (id: string) => Promise<void>;
+}
+
+function isTimestamp(value: Timestamp | FieldValue): value is Timestamp {
+    return value && typeof value === 'object' && 'toDate' in value;
 }
 
 export function PostItem({
@@ -34,10 +38,12 @@ export function PostItem({
                 <div className="flex justify-between items-start">
                     <h2 className="text-xl font-semibold">{post.title}</h2>
                     <span className="text-sm text-gray-500">
-                        {formatDistanceToNow(post.createdAt.toDate(), {
-                            addSuffix: true,
-                            locale: ko,
-                        })}
+                        {isTimestamp(post.createdAt)
+                            ? formatDistanceToNow(post.createdAt.toDate(), {
+                                  addSuffix: true,
+                                  locale: ko,
+                              })
+                            : '날짜 정보 없음'}
                     </span>
                 </div>
                 <div className="mt-2 text-gray-600 line-clamp-2">

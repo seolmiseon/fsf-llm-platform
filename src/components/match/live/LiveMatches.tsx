@@ -1,12 +1,15 @@
 'use client';
 
-import { Loading } from '@/components/ui/common/loading';
 import { Error } from '@/components/ui/common/error';
 import { Empty } from '@/components/ui/common/empty';
 import { useLiveMatches } from '@/hooks/useLiveMatches';
 import { MatchCarousel } from '../carousel/MatchCarousel';
 
-export function LiveMatches() {
+interface LiveMatchesProps {
+    currentMatchId?: number;
+}
+
+export function LiveMatches({ currentMatchId }: LiveMatchesProps) {
     const { matches, loading, error, refetch } = useLiveMatches();
     console.log('LiveMatches component - data:', { matches, loading, error });
 
