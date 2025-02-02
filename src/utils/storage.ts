@@ -11,6 +11,8 @@ export async function uploadImageToStorage(imageUrl: string, path: string) {
         // 2. 이미지 fetch 시 에러 처리 개선
         const response = await fetch(imageUrl, {
             headers: {
+                'X-Auth-Token': process.env
+                    .NEXT_PUBLIC_FOOTBALL_API_KEY as string,
                 Accept: 'image/*',
             },
         });

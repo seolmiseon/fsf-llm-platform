@@ -76,12 +76,6 @@ export const PersonDetailModal = ({ person }: PersonDetailModalProps) => {
                                 </span>
                             </div>
                         </div>
-                        <button
-                            onClick={modalState.close}
-                            className={styles.closeButton}
-                        >
-                            X
-                        </button>
                     </header>
 
                     <div className={styles.content}>

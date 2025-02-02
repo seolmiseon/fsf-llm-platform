@@ -37,3 +37,14 @@
 .navigationButton.next {
     right: 0;
 }
+
+.carousel :global(.swiper-button-next),
+.carousel :global(.swiper-button-prev) {
+    width: 30px;
+    height: 30px;
+}
+
+.carousel :global(.swiper-button-next:after),
+.carousel :global(.swiper-button-prev:after) {
+    font-size: 20px;
+}

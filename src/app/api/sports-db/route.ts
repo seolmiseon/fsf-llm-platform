@@ -8,8 +8,8 @@ export async function GET(request: Request) {
 
         if (playerId) {
             const response = await fetch(
-                `${
-                    process.env.NEXT_PUBLIC_FOOTBALL_BASE_URL
+                `${process.env.NEXT_PUBLIC_SPORTS_DB_BASE_URL}/${
+                    process.env.NEXT_PUBLIC_SPORTS_DB_API_KEY
                 }/lookupplayer.php?id=${encodeURIComponent(playerId)}`,
                 {
                     next: { revalidate: 3600 },
@@ -27,8 +27,8 @@ export async function GET(request: Request) {
         }
 
         const response = await fetch(
-            `${
-                process.env.NEXT_PUBLIC_FOOTBALL_BASE_URL
+            `${process.env.NEXT_PUBLIC_SPORTS_DB_BASE_URL}/${
+                process.env.NEXT_PUBLIC_SPORTS_DB_API_KEY
             }/searchteams.php?t=${encodeURIComponent(teamName)}`,
             {
                 next: { revalidate: 3600 },

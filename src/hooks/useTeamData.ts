@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { TeamData } from '@/lib/server/api/TeamData';
 
 import { TeamResponse } from '@/types/api/responses';
+import { SportsDBApi } from '@/lib/server/api/sportsDB';
 
 export function useTeamData(teamId: string, competitionId: string) {
     const [teamData, setTeamData] = useState<TeamResponse | null>(null);
@@ -18,7 +19,41 @@ export function useTeamData(teamId: string, competitionId: string) {
                     competitionId,
                     teamId
                 );
-                setTeamData(data);
+
+                const sportsDBApi = new SportsDBApi();
+
+                const enrichedSquad = await Promise.all(
+                    data.squad.map(async (player) => {
+                        const imageResult = await sportsDBApi.getPlayerImage(
+                            player.name
+                        );
+                        return {
+                            ...player,
+                            image: imageResult.success
+                                ? imageResult.data
+                                : player.image || '',
+                        };
+                    })
+                );
+
+                let enrichedCoach = data.coach;
+                if (enrichedCoach) {
+                    const coachImageResult = await sportsDBApi.getManagerImage(
+                        enrichedCoach.name
+                    );
+                    enrichedCoach = {
+                        ...enrichedCoach,
+                        image: coachImageResult.success
+                            ? coachImageResult.data
+                            : undefined,
+                    };
+                }
+
+                setTeamData({
+                    ...data,
+                    squad: enrichedSquad,
+                    coach: enrichedCoach,
+                });
             } catch (err) {
                 setError(
                     err instanceof Error

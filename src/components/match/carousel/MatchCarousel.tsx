@@ -5,7 +5,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { MatchResponse } from '@/types/api/responses';
 import { MatchCard } from '../card/MatchCard'; // 기존 MatchCard 사용
-
+import styles from './MatchCarousel.module.css';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -66,14 +66,13 @@ export function MatchCarousel({
     }
 
     return (
-        <div className="my-8">
-            <h2 className="text-2xl font-bold mb-4">Live Matches</h2>
+        <div className={`my-8 ${styles.carousel}`}>
             <Swiper
                 modules={[Navigation, Pagination, Autoplay]}
                 spaceBetween={30}
-                slidesPerView={1}
+                slidesPerView={3}
                 navigation
-                pagination={{ clickable: true }}
+                pagination={false}
                 autoplay={{ delay: 3000, disableOnInteraction: false }}
                 breakpoints={{
                     640: { slidesPerView: Math.min(2, visibleMatches) },
@@ -83,7 +82,9 @@ export function MatchCarousel({
             >
                 {matches.map((match) => (
                     <SwiperSlide key={match.id}>
-                        <MatchCard match={match} />
+                        <div className="flex justify-center">
+                            <MatchCard match={match} />
+                        </div>
                     </SwiperSlide>
                 ))}
             </Swiper>

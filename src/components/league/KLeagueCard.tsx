@@ -20,7 +20,7 @@ export function KLeagueCards() {
                     className="p-4 cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                     onClick={handleKLeagueClick}
                 >
-                    <div className="relative aspect-square w-full">
+                    <div className="relative w-[80%] mx-auto aspect-square">
                         <Image
                             src="/images/KLeague.png"
                             alt={`K League ${division}`}
