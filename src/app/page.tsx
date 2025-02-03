@@ -1,6 +1,6 @@
 import { HomeBanner } from '@/components/banner/HomeBanner';
 import { LeagueGrid } from '@/components/league/LeagueGrid';
-import { LiveMatches } from '@/components/match/live/LiveMatches';
+import { LiveMatches } from '@/components/match/detail/LiveMatches';
 
 export default function HomePage() {
     return (

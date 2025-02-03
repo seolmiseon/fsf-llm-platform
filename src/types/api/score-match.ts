@@ -1,13 +1,12 @@
 export interface MatchHighlight {
     title: string;
-    competition: string;
-    matchviewUrl: string;
-    competitionUrl: string;
+    embed: string;
+    url: string;
     thumbnail: string;
     date: string;
-    videos: Array<{
-        id: string;
-        title: string;
-        embed: string;
-    }>;
+    competition: string;
+}
+
+export interface ScoreBatResponse {
+    response: MatchHighlight[];
 }

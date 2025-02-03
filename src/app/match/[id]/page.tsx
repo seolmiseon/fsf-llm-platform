@@ -18,6 +18,7 @@ import {
     TeamDisplay,
 } from '@/components/match';
 import { ScoreBatApi } from '@/lib/server/api/scoreHighlight';
+import { MatchVideo } from '@/components/match/detail/MatchVideo';
 
 export default function MatchDetailPage() {
     const params = useParams<{ id: string }>();
@@ -110,6 +111,15 @@ export default function MatchDetailPage() {
                             <p>{match.venue}</p>
                             {match.referee && <p>{match.referee}</p>}
                         </div>
+                    </div>
+
+                    <div className={styles.videoSection}>
+                        <MatchVideo
+                            matchId={match.id}
+                            homeTeam={match.homeTeam.name}
+                            awayTeam={match.awayTeam.name}
+                            utcDate={match.utcDate}
+                        />
                     </div>
                 </div>
 

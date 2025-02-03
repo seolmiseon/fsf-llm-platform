@@ -1,54 +1,61 @@
 'use client';
 
+import { ScoreBatApi } from '@/lib/server/api/scoreHighlight';
+import { MatchHighlight } from '@/types/api/score-match';
 import { useEffect, useState } from 'react';
 
-interface VideoData {
-    title: string;
-    embed: string; // ScoreBat에서 제공하는 embed 코드
-    thumbnail?: string;
-    competition: string;
-    matchviewUrl?: string;
-}
-
 interface MatchVideoProps {
-    matchId: string;
+    matchId: number;
     homeTeam: string;
     awayTeam: string;
+    utcDate: string;
 }
 
-export function MatchVideo({ matchId, homeTeam, awayTeam }: MatchVideoProps) {
-    const [videoData, setVideoData] = useState<VideoData | null>(null);
+export function MatchVideo({
+    matchId,
+    homeTeam,
+    awayTeam,
+    utcDate,
+}: MatchVideoProps) {
+    const [videoData, setVideoData] = useState<MatchHighlight | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchVideo = async () => {
             try {
-                const response = await fetch('/api/scorebat');
-                const data = await response.json();
-
-                // ScoreBat의 피드에서 해당 매치의 영상 찾기
-                const matchVideo = data.response.find(
-                    (video: any) =>
-                        video.title.includes(homeTeam) &&
-                        video.title.includes(awayTeam)
+                const api = new ScoreBatApi();
+                const result = await api.getMatchHighlights(
+                    homeTeam,
+                    awayTeam,
+                    utcDate
                 );
 
-                if (matchVideo) {
-                    setVideoData(matchVideo);
+                if (result.success && result.data.length > 0) {
+                    setVideoData(result.data[0]);
                 }
             } catch (error) {
                 console.error('Failed to fetch video:', error);
+                setError('Failed to load video');
             } finally {
                 setLoading(false);
             }
         };
 
         fetchVideo();
-    }, [homeTeam, awayTeam]);
+    }, [homeTeam, awayTeam, utcDate]);
 
     if (loading) {
         return (
             <div className="w-full aspect-video bg-gray-200 animate-pulse rounded-lg" />
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                <p className="text-gray-500">{error}</p>
+            </div>
         );
     }
 

@@ -10,7 +10,7 @@
     @apply font-semibold text-sm truncate;
 }
 .card {
-    @apply w-[300px] p-4 mx-2 cursor-pointer;
+    @apply w-[300px] p-4 mx-2 cursor-pointer bg-[#FFF] rounded-lg shadow-sm;
     transition: all 0.3s ease;
 }
 

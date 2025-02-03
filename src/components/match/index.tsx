@@ -1,10 +1,10 @@
-export { default as TeamDisplay } from './display/TeamDisplay';
-export { default as ScoreDisplay } from './display/ScoreDisplay';
-export { default as MatchStatistics } from './statistics/MatchStatistics';
+export { default as TeamDisplay } from './detail/display/TeamDisplay';
+export { default as ScoreDisplay } from './detail/display/ScoreDisplay';
+export { default as MatchStatistics } from './detail/statistics/MatchStatistics';
 export { default as LineupDisplay } from './lineup/LineupDisplay';
-export { default as PositionTable } from './table/PositionTable';
+export { default as PositionTable } from './detail/table/PositionTable';
 export { MatchCarousel } from './carousel/MatchCarousel';
-export { MatchVideo } from './video/MatchVideo';
+export { MatchVideo } from './detail/MatchVideo';
 export { MatchGrid } from './gird/MatchGrid';
-export { LiveMatches } from './live/LiveMatches';
+export { LiveMatches } from './detail/LiveMatches';
 export { MatchCard } from './card/MatchCard';
