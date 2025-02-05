@@ -14,6 +14,7 @@ import {
     Timestamp,
     FieldValue,
 } from 'firebase/firestore';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -153,6 +154,17 @@ export default function PostDetailPage() {
                         <span>댓글 {post.commentCount}</span>
                     </div>
                     <div className="border-t border-b py-8">{post.content}</div>
+                    {post.imageUrl && (
+                        <div className="mt-4">
+                            <Image
+                                src={post.imageUrl}
+                                alt="게시글 이미지"
+                                width={800}
+                                height={600}
+                                className="rounded-lg w-auto h-auto"
+                            />
+                        </div>
+                    )}
                 </div>
                 <div className="flex justify-between items-center mt-6">
                     <Link href="/community">

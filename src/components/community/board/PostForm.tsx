@@ -1,16 +1,25 @@
 'use client';
 
-import { useState } from 'react';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import {
+    addDoc,
+    collection,
+    doc,
+    getDoc,
+    serverTimestamp,
+    updateDoc,
+} from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Post } from '@/types/community/community';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button/Button';
 import { Input } from '@/components/ui/input/Input';
 import { Textarea } from '@/components/ui/textArea/TextArea';
 import { AlertDialog } from '@/components/ui/alert/Alert';
-import { Error } from '@/components/ui/common';
+import { Error, Loading } from '@/components/ui/common';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useImageUpload } from '@/hooks/useImageUpload';
+import Image from 'next/image';
 
 // 에러 메시지 타입 정의
 type ErrorType = string | null;
@@ -23,8 +32,16 @@ type AlertDialogState = {
     onClose: () => void;
 };
 
-export default function PostForm() {
+interface PostFormProps {
+    isEdit?: boolean;
+}
+
+const MAX_FILE_SIZE = 3 * 1024 * 1024;
+
+export default function PostForm({ isEdit }: PostFormProps) {
     const { user, loading: authLoading } = useAuthStore();
+    const { uploadImage, loading: imageLoading } = useImageUpload();
+    const [imageUrl, setImageUrl] = useState('');
     const [error, setError] = useState<ErrorType>(null);
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
@@ -36,6 +53,24 @@ export default function PostForm() {
         onClose: () => {},
     });
     const router = useRouter();
+    const params = useParams();
+
+    useEffect(() => {
+        // 수정 모드일 때 기존 데이터 불러오기
+        if (isEdit) {
+            const fetchPost = async () => {
+                const docRef = doc(db, 'community', params.id as string);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const post = docSnap.data();
+                    setTitle(post.title);
+                    setContent(post.content);
+                    setImageUrl(post.imageUrl || '');
+                }
+            };
+            fetchPost();
+        }
+    }, [isEdit, params.id]);
 
     if (authLoading) {
         return <div className="text-center py-4">인증 상태 확인중...</div>;
@@ -49,6 +84,35 @@ export default function PostForm() {
             />
         );
     }
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > MAX_FILE_SIZE) {
+            setError('파일 크기는 3MB 이하여야 합니다.');
+            return;
+        }
+        try {
+            const url = await uploadImage(file);
+            setImageUrl(url);
+        } catch (error) {
+            console.error('이미지 업로드 실패', error);
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+
+        if (file && file.type.startsWith('image/')) {
+            if (file.size > MAX_FILE_SIZE) {
+                setError('파일 크기는 3MB 이하여야 합니다.');
+                return;
+            }
+            handleFileUpload({ target: { files: [file] } } as any);
+        }
+    };
 
     const sanitizeInput = (input: string) => {
         return input.trim().replace(/<[^>]*>/g, '');
@@ -84,60 +148,53 @@ export default function PostForm() {
             const sanitizedTitle = sanitizeInput(title);
             const sanitizedContent = sanitizeInput(content);
 
-            const postData: Post = {
-                title: sanitizedTitle,
-                content: sanitizedContent,
-                authorId: user.uid,
-                authorName: user.displayName || '익명',
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-                likes: 0,
-                views: 0,
-                commentCount: 0,
-            };
+            if (isEdit) {
+                const docRef = doc(db, 'community', params.id as string);
+                await updateDoc(docRef, {
+                    title: sanitizedTitle,
+                    content: sanitizedContent,
+                    imageUrl: imageUrl || null,
+                    updatedAt: serverTimestamp(),
+                });
 
-            console.log('DB 연결 상태:', !!db);
-            console.log('Collection 경로:', 'community');
+                setAlertDialog({
+                    isOpen: true,
+                    message: '게시글이 수정되었습니다',
+                    variant: 'success',
+                    onClose: () => router.push(`/community/${params.id}`),
+                });
 
-            console.log('=== addDoc 호출 시작 ===');
+                setTimeout(() => {
+                    router.push(`/community/${params.id}`);
+                }, 1500);
+            } else {
+                const postData: Post = {
+                    title: sanitizedTitle,
+                    content: sanitizedContent,
+                    authorId: user.uid,
+                    authorName: user.displayName || '익명',
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                    likes: 0,
+                    views: 0,
+                    commentCount: 0,
+                    imageUrl: imageUrl || null,
+                };
 
-            const communityRef = collection(db, 'community');
+                const communityRef = collection(db, 'community');
+                const docRef = await addDoc(communityRef, postData);
 
-            console.log('Collection 참조 생성됨');
-            const docRef = await addDoc(communityRef, postData);
-
-            console.log('=== addDoc 호출 완료 ===', docRef.id);
-
-            setAlertDialog({
-                isOpen: true,
-                message: '게시글이 작성되었습니다',
-                variant: 'success',
-                onClose: () => {
-                    router.push('/community');
-                },
-            });
-            setTimeout(() => {
-                router.push('/community');
-            }, 1500);
+                setAlertDialog({
+                    isOpen: true,
+                    message: '게시글이 작성되었습니다',
+                    variant: 'success',
+                    onClose: () => {
+                        router.push('/community');
+                    },
+                });
+            }
         } catch (error: any) {
             console.log('=== 에러 발생 ===');
-            console.error('상세 에러 정보:', {
-                name: error.name,
-                code: error.code,
-                message: error.message,
-                stack: error.stack,
-                fullError: error,
-            });
-
-            if (error.code === 'permission-denied') {
-                setError('권한이 없습니다. 로그인을 확인해주세요.');
-            } else if (error.code === 'unavailable') {
-                setError(
-                    '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.'
-                );
-            } else {
-                setError('게시글 작성에 실패했습니다.');
-            }
 
             throw error;
         } finally {
@@ -200,6 +257,47 @@ export default function PostForm() {
                             />
                         </div>
 
+                        <div>
+                            <label
+                                htmlFor="image"
+                                className="block text-sm font-medium text-gray-700"
+                            >
+                                이미지
+                            </label>
+                            <Input
+                                id="image"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileUpload}
+                            />
+                            {imageUrl && (
+                                <div
+                                    className="relative mt-2"
+                                    onDrop={handleDrop}
+                                    onDragOver={(e) => {
+                                        e.preventDefault;
+                                    }}
+                                >
+                                    <Image
+                                        src={imageUrl}
+                                        alt="Preview"
+                                        width={200}
+                                        height={200}
+                                        className="max-h-[200px] w-auto rounded-lg"
+                                    />
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setImageUrl('')}
+                                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            )}
+                            {imageLoading && <Loading />}
+                        </div>
+
                         <div className="flex justify-end gap-4">
                             <Button
                                 type="button"
@@ -213,7 +311,13 @@ export default function PostForm() {
                                 variant="primary"
                                 disabled={isSubmitting}
                             >
-                                {isSubmitting ? '작성 중...' : '작성하기'}
+                                {isSubmitting
+                                    ? isEdit
+                                        ? '수정 중...'
+                                        : '작성 중...'
+                                    : isEdit
+                                    ? '수정하기'
+                                    : '작성하기'}
                             </Button>
                         </div>
                     </div>

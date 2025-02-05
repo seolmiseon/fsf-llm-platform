@@ -12,6 +12,7 @@ export interface Post {
     likes: number;
     views: number;
     commentCount: number;
+    imageUrl?: string | null;
 }
 
 // 댓글 타입
