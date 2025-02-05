@@ -105,6 +105,7 @@ export default function PostForm() {
 
             console.log('Collection 참조 생성됨');
             const docRef = await addDoc(communityRef, postData);
+
             console.log('=== addDoc 호출 완료 ===', docRef.id);
 
             setAlertDialog({
@@ -115,6 +116,9 @@ export default function PostForm() {
                     router.push('/community');
                 },
             });
+            setTimeout(() => {
+                router.push('/community');
+            }, 1500);
         } catch (error: any) {
             console.log('=== 에러 발생 ===');
             console.error('상세 에러 정보:', {

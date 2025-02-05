@@ -20,34 +20,29 @@ export const ScoreDisplay = ({
     };
 
     const isLive = status === 'IN_PLAY' || status === 'PAUSED';
-    const isPending = status === 'SCHEDULED' || status === 'TIMED';
 
     return (
-        <div className="flex flex-col items-center justify-center">
-            <div className={`font-bold ${sizeClasses[size]} text-center`}>
-                {isPending ? (
-                    <span></span>
-                ) : (
-                    <>
-                        {' '}
-                        {score.fullTime.home ?? 0} - {score.fullTime.away ?? 0}
-                    </>
-                )}
+        <div className="flex flex-col items-center justify-center min-w-[100px]">
+            <div
+                className={`font-bold ${sizeClasses[size]} text-center flex items-center gap-8`}
+            >
+                <span className="min-w-[40px] text-right">
+                    {score.fullTime.home ?? 0}
+                </span>
+                <span className="text-gray-500">:</span>
+                <span className="min-w-[40px] text-left">
+                    {' '}
+                    {score.fullTime.away ?? 0}
+                </span>
             </div>
 
             {isLive && (
-                <div>
-                    <span className="animate-pulse bg-red-500 w-2 h-2 rounded-full mr-2" />
+                <div className="flex items-center justify-center gap-1 mt-1">
+                    <span className="animate-pulse bg-red-500 w-2 h-2 rounded-full " />
                     <span className="text-sm font-medium">
                         {' '}
                         {minute ? `${minute}` : 'LIVE'}{' '}
                     </span>
-                </div>
-            )}
-
-            {!isPending && score.halfTime && (
-                <div className="text-xs text-gray-500 mt-1">
-                    HT: {score.halfTime.home ?? 0} - {score.halfTime.away ?? 0}
                 </div>
             )}
         </div>

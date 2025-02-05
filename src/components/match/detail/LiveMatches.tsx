@@ -6,10 +6,10 @@ import { useLiveMatches } from '@/hooks/useLiveMatches';
 import { MatchCarousel } from '../carousel/MatchCarousel';
 
 interface LiveMatchesProps {
-    currentMatchId?: number;
+    id?: number;
 }
 
-export function LiveMatches({ currentMatchId }: LiveMatchesProps) {
+export function LiveMatches({ id }: LiveMatchesProps) {
     const { matches, loading, error, refetch } = useLiveMatches();
     console.log('LiveMatches component - data:', { matches, loading, error });
 

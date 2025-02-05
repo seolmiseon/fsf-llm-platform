@@ -42,7 +42,7 @@ export default function Navigation() {
 
     const navLinks = [
         {
-            href: getHref('match'),
+            href: getHref('/match'),
             label: 'Match',
         },
         {

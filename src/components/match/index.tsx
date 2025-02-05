@@ -1,7 +1,7 @@
 export { default as TeamDisplay } from './detail/display/TeamDisplay';
 export { default as ScoreDisplay } from './detail/display/ScoreDisplay';
 export { default as MatchStatistics } from './detail/statistics/MatchStatistics';
-export { default as LineupDisplay } from './lineup/LineupDisplay';
+export { default as LineupDisplay } from './detail/lineup/LineupDisplay';
 export { default as PositionTable } from './detail/table/PositionTable';
 export { MatchCarousel } from './carousel/MatchCarousel';
 export { MatchVideo } from './detail/MatchVideo';

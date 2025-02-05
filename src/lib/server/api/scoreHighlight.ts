@@ -1,4 +1,3 @@
-import { getDate } from '@/utils/date';
 import { MatchHighlight } from '@/types/api/score-match';
 import { ApiResponse } from '@/types/api/responses';
 
@@ -12,44 +11,42 @@ export class ScoreBatApi {
     async getMatchHighlights(
         homeTeam: string,
         awayTeam: string,
-        date: string
+        matchDate: string
     ): Promise<ApiResponse<MatchHighlight[]>> {
-        const response = await fetch(this.baseUrl);
+        try {
+            const response = await fetch(this.baseUrl);
 
-        if (!response.ok) {
+            if (!response.ok) {
+                return {
+                    success: false,
+                    error: `Failed to fetch highlights: ${response.statusText}`,
+                };
+            }
+
+            const data = await response.json();
+            const matchDay = matchDate.split('T')[0];
+            const matchData = data.find(
+                (match: MatchHighlight) =>
+                    match.title
+                        .toLowerCase()
+                        .includes(homeTeam.toLowerCase()) &&
+                    match.title
+                        .toLowerCase()
+                        .includes(awayTeam.toLowerCase()) &&
+                    match.date.split('T')[0] === matchDay
+            );
+            return {
+                success: true,
+                data: matchData ? [matchData] : [],
+            };
+        } catch (error) {
             return {
                 success: false,
-                error: `Failed to fetch highlights: ${response.statusText}`,
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : 'Failed to fetch highlights',
             };
         }
-
-        const data = await response.json();
-        const matchDateStr = getDate(date);
-
-        const filteredHighlights = data.response.filter(
-            (highlight: MatchHighlight) => {
-                const highlightDateStr = getDate(highlight.date);
-                const title = highlight.title.toLowerCase();
-                return (
-                    matchDateStr === highlightDateStr &&
-                    title.includes(homeTeam.toLowerCase()) &&
-                    title.includes(awayTeam.toLowerCase())
-                );
-            }
-        );
-
-        return {
-            success: true,
-            data: filteredHighlights,
-        };
-    }
-    catch(error: unknown) {
-        return {
-            success: false,
-            error:
-                error instanceof Error
-                    ? error.message
-                    : 'Failed to fetch highlights',
-        };
     }
 }

@@ -3,46 +3,49 @@
 }
 
 .mainContent {
-    @apply flex gap-8;
+    @apply flex gap-8 items-start;
 }
 
 .scoreboardSection {
-    @apply flex-1;
+    @apply flex-1 flex flex-col gap-4;
 }
 
 .scoreboardCard {
-    @apply bg-white rounded-lg shadow-md p-4 h-48;
+    @apply bg-white rounded-lg shadow-md p-6;
+    @apply flex flex-col justify-between min-h-[200px];
 }
 
 .matchInfo {
-    @apply mt-4 text-center text-gray-600;
+    @apply flex justify-between items-center px-4;
 }
 
 .statsSection {
-    @apply w-[400px];
-    @apply min-h-full;
+    @apply w-96 bg-white rounded-lg shadow-md;
+    @apply sticky top-4;
 }
 
 .videoSection {
-    @apply mt-4 w-full h-[calc(100%-13rem)] aspect-video;
+    @apply mt-4 w-full aspect-video;
 }
 
 .tabsRoot {
-    @apply flex flex-col w-full border-l border-blue-400;
-}
-
-.tabsList {
     @apply flex flex-col w-full;
 }
 
+.tabsList {
+    @apply flex border-b;
+}
+
 .tabsTrigger {
-    @apply w-full px-6 py-4 text-left text-gray-600 hover:text-gray-900 border-l-2 border-transparent;
+    @apply px-6 py-3 text-gray-600 hover:text-gray-900;
+    @apply border-b-2 border-transparent;
 }
 
 .tabsTrigger[data-state='active'] {
-    @apply text-blue-600 bg-blue-50 border-l-2 border-blue-600;
+    @apply text-blue-600 border-blue-600;
 }
 
-.statsRow {
-    @apply flex justify-between items-center py-2;
+.tabsContent {
+    @apply p-4;
+    @apply min-h-[400px];
 }

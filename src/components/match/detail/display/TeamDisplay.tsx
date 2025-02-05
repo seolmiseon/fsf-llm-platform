@@ -8,42 +8,70 @@ interface TeamDisplayProps {
     size?: 'sm' | 'md' | 'lg';
 }
 
-export const TeamDisplay = ({ team, align, size = 'md' }: TeamDisplayProps) => {
-    const sizeClass = {
-        sm: 'w-8 h-8',
-        md: 'w-12 h-12',
-        lg: 'w-16 h-16',
-    };
+// export const TeamDisplay = ({ team, align, size = 'md' }: TeamDisplayProps) => {
+//     const sizeClass = {
+//         sm: 'w-8 h-8',
+//         md: 'w-12 h-12',
+//         lg: 'w-16 h-16',
+//     };
 
+//     return (
+//         <div
+//             className={`flex items-center gap-4 ${
+//                 align === 'right' ? 'flex-row-reverse' : 'flex-row'
+//             }`}
+//         >
+//             <div className="flex flex-col items-center">
+//                 <Image
+//                     src={team.crest || getPlaceholderImageUrl('team')}
+//                     alt={`${team.name} crest`}
+//                     width={64}
+//                     height={64}
+//                     className={`${sizeClass[size]} object-contain`}
+//                     sizes={
+//                         size === 'sm' ? '32px' : size === 'md' ? '48px' : '64px'
+//                     }
+//                     onError={(e) => {
+//                         e.currentTarget.src = getPlaceholderImageUrl('team');
+//                     }}
+//                 />
+//                 <span className="text-xs text-gray-500 mt-1">{team.tla}</span>
+//             </div>
+//             <h2
+//                 className={`text-lg font-semibold ${
+//                     align === 'right' ? 'text-right' : 'text-left'
+//                 }`}
+//             >
+//                 {team.name}
+//             </h2>
+//         </div>
+//     );
+// };
+
+export const TeamDisplay = ({ team, align, size = 'lg' }: TeamDisplayProps) => {
+    const sizeClass = {
+        sm: 'w-12 h-12', // 48px
+        md: 'w-16 h-16', // 64px
+        lg: 'w-20 h-20', // 80px
+    };
     return (
-        <div
-            className={`flex items-center gap-4 ${
-                align === 'right' ? 'flex-row-reverse' : 'flex-row'
-            }`}
-        >
-            <div className="flex flex-col items-center">
-                <Image
-                    src={team.crest || getPlaceholderImageUrl('team')}
-                    alt={`${team.name} crest`}
-                    width={64}
-                    height={64}
-                    className={`${sizeClass[size]} object-contain`}
-                    sizes={
-                        size === 'sm' ? '32px' : size === 'md' ? '48px' : '64px'
-                    }
-                    onError={(e) => {
-                        e.currentTarget.src = getPlaceholderImageUrl('team');
-                    }}
-                />
-                <span className="text-xs text-gray-500 mt-1">{team.tla}</span>
-            </div>
-            <h2
-                className={`text-lg font-semibold ${
-                    align === 'right' ? 'text-right' : 'text-left'
+        <div className="flex items-center">
+            <div
+                className={`flex items-center ${
+                    align === 'right' ? 'flex-row-reverse' : 'flex-row'
                 }`}
             >
-                {team.name}
-            </h2>
+                <div className="flex flex-col items-center">
+                    <Image
+                        src={team.crest || getPlaceholderImageUrl('team')}
+                        alt={`${team.name} crest`}
+                        className={sizeClass[size]}
+                        width={80}
+                        height={80}
+                    />
+                    <span className="text-sm mt-1">{team.name}</span>
+                </div>
+            </div>
         </div>
     );
 };

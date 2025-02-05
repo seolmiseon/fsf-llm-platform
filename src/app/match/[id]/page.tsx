@@ -70,7 +70,7 @@ export default function MatchDetailPage() {
     return (
         <div className={styles.container}>
             {/* 라이브 매치 캐러셀 */}
-            <LiveMatches currentMatchId={match.id} />
+            <LiveMatches id={match.id} />
             {/* 리그 정보 헤더 */}
             <div className={styles.header}>
                 <Image
@@ -105,12 +105,6 @@ export default function MatchDetailPage() {
                             {/* 원정팀 */}
                             <TeamDisplay team={match.awayTeam} align="left" />
                         </div>
-
-                        {/* 경기장 & 심판 정보 */}
-                        <div className={styles.matchInfo}>
-                            <p>{match.venue}</p>
-                            {match.referee && <p>{match.referee}</p>}
-                        </div>
                     </div>
 
                     <div className={styles.videoSection}>
@@ -137,10 +131,10 @@ export default function MatchDetailPage() {
                                 Match Detail
                             </Tabs.TabsTrigger>
                             <Tabs.TabsTrigger
-                                value="liveup"
+                                value="lineup"
                                 className={styles.tabsTrigger}
                             >
-                                Live up
+                                Line up
                             </Tabs.TabsTrigger>
                             <Tabs.TabsTrigger
                                 value="stats"
@@ -157,20 +151,7 @@ export default function MatchDetailPage() {
                         </Tabs.List>
 
                         <Tabs.Content
-                            value="details"
-                            className={styles.tabsContent}
-                        >
-                            {match.statistics && (
-                                <MatchStatistics
-                                    statistics={match.statistics}
-                                    homeTeamName={match.homeTeam.name}
-                                    awayTeamName={match.awayTeam.name}
-                                />
-                            )}
-                        </Tabs.Content>
-
-                        <Tabs.Content
-                            value="liveup"
+                            value="lineup"
                             className={styles.tabsContent}
                         >
                             {match.lineup && (
@@ -188,7 +169,13 @@ export default function MatchDetailPage() {
                             value="stats"
                             className={styles.tabsContent}
                         >
-                            {/* 통계 내용 */}
+                            {match.statistics && (
+                                <MatchStatistics
+                                    statistics={match.statistics}
+                                    homeTeamName={match.homeTeam.name}
+                                    awayTeamName={match.awayTeam.name}
+                                />
+                            )}
                         </Tabs.Content>
 
                         <Tabs.Content
