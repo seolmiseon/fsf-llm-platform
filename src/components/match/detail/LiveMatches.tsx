@@ -5,11 +5,7 @@ import { Empty } from '@/components/ui/common/empty';
 import { useLiveMatches } from '@/hooks/useLiveMatches';
 import { MatchCarousel } from '../carousel/MatchCarousel';
 
-interface LiveMatchesProps {
-    id?: number;
-}
-
-export function LiveMatches({ id }: LiveMatchesProps) {
+export function LiveMatches() {
     const { matches, loading, error, refetch } = useLiveMatches();
     console.log('LiveMatches component - data:', { matches, loading, error });
 

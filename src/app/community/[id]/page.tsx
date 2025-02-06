@@ -1,5 +1,7 @@
 'use client';
 
+import { CommentForm } from '@/components/community/board/CommentForm';
+import { CommentList } from '@/components/community/board/CommentList';
 import { AlertDialog } from '@/components/ui/alert/Alert';
 import { Button } from '@/components/ui/button/Button';
 import { db } from '@/lib/firebase/config';
@@ -159,13 +161,16 @@ export default function PostDetailPage() {
                             <Image
                                 src={post.imageUrl}
                                 alt="게시글 이미지"
-                                width={800}
-                                height={600}
+                                width={400}
+                                height={400}
                                 className="rounded-lg w-auto h-auto"
                             />
                         </div>
                     )}
                 </div>
+                <CommentList postId={post.id!} />
+                <CommentForm postId={post.id!} />
+
                 <div className="flex justify-between items-center mt-6">
                     <Link href="/community">
                         <Button variant="outline">목록으로</Button>

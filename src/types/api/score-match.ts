@@ -1,3 +1,8 @@
+export interface MatchVideo {
+    title: string;
+    embed: string;
+}
+
 export interface MatchHighlight {
     title: string;
     competition: string;
@@ -5,7 +10,7 @@ export interface MatchHighlight {
     matchviewUrl: string;
     thumbnail: string;
     date: string;
-    embed: string;
+    videos: MatchVideo[];
 }
 
 export interface ScoreBatResponse {

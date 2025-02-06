@@ -70,7 +70,7 @@ export default function MatchDetailPage() {
     return (
         <div className={styles.container}>
             {/* 라이브 매치 캐러셀 */}
-            <LiveMatches id={match.id} />
+            <LiveMatches />
             {/* 리그 정보 헤더 */}
             <div className={styles.header}>
                 <Image
@@ -109,7 +109,6 @@ export default function MatchDetailPage() {
 
                     <div className={styles.videoSection}>
                         <MatchVideo
-                            matchId={match.id}
                             homeTeam={match.homeTeam.name}
                             awayTeam={match.awayTeam.name}
                             utcDate={match.utcDate}

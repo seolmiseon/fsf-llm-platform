@@ -5,18 +5,12 @@ import { MatchHighlight } from '@/types/api/score-match';
 import { useEffect, useState } from 'react';
 
 interface MatchVideoProps {
-    matchId: number;
     homeTeam: string;
     awayTeam: string;
     utcDate: string;
 }
 
-export function MatchVideo({
-    matchId,
-    homeTeam,
-    awayTeam,
-    utcDate,
-}: MatchVideoProps) {
+export function MatchVideo({ homeTeam, awayTeam, utcDate }: MatchVideoProps) {
     const [videoData, setVideoData] = useState<MatchHighlight | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -59,7 +53,7 @@ export function MatchVideo({
         );
     }
 
-    if (!videoData) {
+    if (!videoData || !videoData.videos?.[0]) {
         return (
             <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
                 <p className="text-gray-500">Match video not available yet</p>
@@ -70,7 +64,7 @@ export function MatchVideo({
     return (
         <div className="w-full aspect-video rounded-lg overflow-hidden">
             <div
-                dangerouslySetInnerHTML={{ __html: videoData.embed }}
+                dangerouslySetInnerHTML={{ __html: videoData.videos[0].embed }}
                 className="w-full h-full"
             />
         </div>
