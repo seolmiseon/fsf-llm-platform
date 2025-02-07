@@ -6,6 +6,7 @@ import Navigation from '@/components/navigation/Navigation';
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
+import { Toaster } from '@/components/ui/toast/Toaster';
 
 const pretendard = localFont({
     src: '../fonts/PretendardVariable.woff2',
@@ -41,6 +42,7 @@ export default function RootLayout({
                             <Navigation />
                             <main>{children}</main>
                             <ModalRoot />
+                            <Toaster />
                         </AuthProvider>
                     </ThemeProvider>
                 </ErrorBoundary>

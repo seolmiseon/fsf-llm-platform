@@ -25,6 +25,7 @@ export async function GET(request: Request) {
         };
 
         const baseUrl = `https://api.football-data.org/v4/${path}`;
+
         const apiUrl = path.includes('matches')
             ? `${baseUrl}?dateFrom=${getDateRange().from}&dateTo=${
                   getDateRange().to

@@ -1,5 +1,5 @@
 .container {
-    @apply flex flex-col items-center;
+    @apply flex flex-col items-center w-full;
 }
 
 .placeholderLogo {
@@ -7,7 +7,10 @@
 }
 
 .teamName {
-    @apply font-semibold text-sm truncate;
+    @apply font-semibold text-sm truncate max-w-[80px];
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .card {
     @apply w-[300px] p-4 mx-2 cursor-pointer bg-[#FFF] rounded-lg shadow-sm;
@@ -28,28 +31,46 @@
 }
 
 .teamContainer {
-    @apply flex items-center justify-between w-full mb-4;
+    @apply flex items-center justify-between w-full space-x-4 mb-4;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
 }
 
 .teamInfo {
-    @apply flex-1;
+    @apply flex flex-col items-center flex-1;
 }
 
-.teamInfo.right {
-    @apply text-right;
+.teamInfo:first-child {
+    @apply text-right items-end;
 }
 
-.teamInfo.left {
-    @apply text-left;
+.teamInfo:last-child {
+    @apply text-left items-start;
 }
 
 .logoContainer {
-    @apply relative w-8 h-8 mx-auto mb-2;
+    @apply relative w-10 h-10  mb-2;
 }
-.teamName {
-    @apply font-semibold text-sm truncate;
+
+.scoreSection {
+    @apply flex flex-col items-center justify-center text-center;
+    grid-column: 2;
+}
+
+.score {
+    @apply text-lg font-bold mb-1;
+}
+
+.matchTime {
+    @apply text-sm text-gray-500;
 }
 
 .venueInfo {
-    @apply text-xs text-gray-500;
+    @apply text-xs text-gray-500 mt-2;
+}
+
+@media (max-width: 400px) {
+    .teamName {
+        @apply text-xs max-w-[70px];
+    }
 }
