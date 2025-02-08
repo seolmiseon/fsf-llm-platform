@@ -13,10 +13,9 @@ export const firebaseConfig = {
     storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
     messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    // vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+    vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
 };
 
-// Firebase 초기화
 const app = initializeApp(firebaseConfig);
 
 // Realtime Database 초기화
@@ -24,6 +23,6 @@ export const realtimeDB = getDatabase(app);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
-// export const messaging = getMessaging(app);
+export const messaging = getMessaging(app);
 
 console.log('Firestore 초기화:', db);

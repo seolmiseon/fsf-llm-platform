@@ -20,7 +20,6 @@ const nextConfig = {
         unoptimized: true,
     },
 
-    // 프로덕션 빌드 최적화를 위한 추가 설정
     poweredByHeader: false,
     compiler: {
         removeConsole: process.env.NODE_ENV === 'production',

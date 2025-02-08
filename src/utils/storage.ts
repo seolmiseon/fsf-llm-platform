@@ -1,5 +1,4 @@
-import { storage } from '@/lib/firebase/config';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getStorage } from 'firebase-admin/storage';
 
 export async function uploadImageToStorage(imageUrl: string, path: string) {
     try {
@@ -20,21 +19,30 @@ export async function uploadImageToStorage(imageUrl: string, path: string) {
         if (!response.ok) {
             throw new Error(`Failed to fetch image: ${response.statusText}`);
         }
-        const blob = await response.blob();
 
-        // 3. Content-Type 확인 및 설정
+        const buffer = Buffer.from(await response.arrayBuffer());
+
+        const adminStorage = getStorage();
+        const bucket = adminStorage.bucket();
+        const file = bucket.file(path);
+
         const metadata = {
-            contentType: blob.type || 'image/png',
+            contentType: response.headers.get('content-type') || 'image/png',
         };
 
-        const storageRef = ref(storage, path);
+        await file.save(buffer, {
+            metadata: metadata,
+        });
 
-        // 4. 메타데이터와 함께 업로드
-        const snapshot = await uploadBytes(storageRef, blob, metadata);
-        return await getDownloadURL(snapshot.ref);
+        // 다운로드 URL 생성
+        const [url] = await file.getSignedUrl({
+            action: 'read',
+            expires: '03-01-2500',
+        });
+
+        return url;
     } catch (error) {
         console.error('Image upload error:', error);
-
         return null;
     }
 }

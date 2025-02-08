@@ -79,11 +79,13 @@ export default function MatchCalendar({ onDateSelect }: MatchCalendarProps) {
                 selectable={true}
                 select={handleDateSelect}
                 events={calendarEvents}
-                headerToolbar={{
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth',
-                }}
+                eventColor="bg-blue-100"
+                eventTextColor="text-blue-800"
+                eventContent={(eventInfo) => (
+                    <div className="bg-blue-100 text-blue-800 p-1 rounded">
+                        {eventInfo.event.title}
+                    </div>
+                )}
                 locale="ko"
             />
         </Card>

@@ -17,6 +17,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
+import NotificationBell from '../notification/NotificationBell';
 
 export default function Navigation() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -87,64 +88,75 @@ export default function Navigation() {
         //로그인 상태
         if (user) {
             return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="relative rounded-full"
-                            aria-label="사용자 메뉴"
-                        >
-                            {user.image && !imageError ? (
-                                <Image
-                                    src={user.image}
-                                    alt={`${user.name || 'User'}'s profile`}
-                                    fill
-                                    className="rounded-full object-cover"
-                                    sizes="32px"
-                                    loading="eager"
-                                    onError={() => setImageError(true)}
-                                />
-                            ) : (
-                                <User className="w-5 h-5" aria-hidden="true" />
-                            )}
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuItem asChild>
-                            <Link
-                                href="/auth/profile"
-                                className="flex items-center"
-                            >
-                                <User className="mr-2 h-4 w-4" />
-                                프로필
-                            </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link
-                                href="/my-teams"
-                                className="flex items-center"
-                            >
-                                내 팀
-                            </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link
-                                href="/settings"
-                                className="flex items-center"
-                            >
-                                설정
-                            </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={handleLogout}
-                        >
-                            <LogOut className="mr-2 h-4 w-4" />
-                            로그아웃
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <>
+                    <div className="flex items-center gap-2">
+                        <NotificationBell />
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="relative rounded-full"
+                                    aria-label="사용자 메뉴"
+                                >
+                                    {user.image && !imageError ? (
+                                        <Image
+                                            src={user.image}
+                                            alt={`${
+                                                user.name || 'User'
+                                            }'s profile`}
+                                            fill
+                                            className="rounded-full object-cover"
+                                            sizes="32px"
+                                            loading="eager"
+                                            onError={() => setImageError(true)}
+                                        />
+                                    ) : (
+                                        <User
+                                            className="w-5 h-5"
+                                            aria-hidden="true"
+                                        />
+                                    )}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuItem asChild>
+                                    <Link
+                                        href="/auth/profile"
+                                        className="flex items-center"
+                                    >
+                                        <User className="mr-2 h-4 w-4" />
+                                        프로필
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link
+                                        href="/my-teams"
+                                        className="flex items-center"
+                                    >
+                                        내 팀
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link
+                                        href="/settings"
+                                        className="flex items-center"
+                                    >
+                                        설정
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    className="text-red-600"
+                                    onClick={handleLogout}
+                                >
+                                    <LogOut className="mr-2 h-4 w-4" />
+                                    로그아웃
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                </>
             );
         }
 
