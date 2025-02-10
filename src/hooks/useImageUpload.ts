@@ -80,6 +80,9 @@ export function useImageUpload(): UseImageUploadReturn {
             if (typeof file === 'string') {
                 return file;
             }
+            if (!storage) {
+                throw new Error('Storage is not initialized');
+            }
 
             // 이미지 리사이징
             const resizedBlob = await resizeImage(file, maxWidth, maxHeight);

@@ -20,7 +20,7 @@ export function useRealtimeNotification(userId: string) {
     const [notifications, setNotifications] = useState<Notification[]>([]);
 
     useEffect(() => {
-        if (!userId) return;
+        if (!userId || !db) return;
         const notificationsRef = collection(db, 'notifications');
 
         const q = query(

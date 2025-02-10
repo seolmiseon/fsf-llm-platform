@@ -30,6 +30,8 @@ export function CommentList({ postId }: CommentListProps) {
 
     useEffect(() => {
         const fetchComments = async () => {
+            if (!db) return;
+
             try {
                 const commentRef = collection(
                     db,

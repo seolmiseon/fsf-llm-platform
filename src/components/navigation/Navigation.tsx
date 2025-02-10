@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button/Button';
 import FSFLogo from '@/components/ui/logo/FSFLogo';
-import { Search, Menu, X, User, LogOut, ChevronDown } from 'lucide-react';
+import { Search, Menu, X, User, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useModalStore } from '@/store/useModalStore';
 import { useCallback, useState } from 'react';
@@ -14,7 +14,6 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropDown/DropDownMenu';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import NotificationBell from '../notification/NotificationBell';
@@ -24,22 +23,6 @@ export default function Navigation() {
     const [imageError, setImageError] = useState(false);
     const { open } = useModalStore();
     const { user, loading } = useAuthStore();
-    const pathname = usePathname();
-
-    const getHref = (basePath: string) => {
-        if (pathname?.startsWith(`/${basePath}/`)) {
-            return pathname;
-        }
-        return `/${basePath}`;
-    };
-
-    const leagues = [
-        { id: 'PL', name: 'Premier League' },
-        { id: 'PD', name: 'La Liga' },
-        { id: 'SA', name: 'Serie A' },
-        { id: 'BL1', name: 'Bundesliga' },
-        { id: 'FL1', name: 'Ligue 1' },
-    ];
 
     const navLinks = [
         {
@@ -63,9 +46,23 @@ export default function Navigation() {
                 }
             },
         },
+        {
+            href: '/fanpicker',
+            label: 'FanPicker',
+            onClick: (e: React.MouseEvent) => {
+                if (!user) {
+                    e.preventDefault();
+                    open('signin', {
+                        kind: 'auth',
+                        mode: 'signin',
+                    });
+                }
+            },
+        },
     ];
 
     const handleLogout = useCallback(async () => {
+        if (!auth) return;
         try {
             console.log('로그아웃 시작');
             await signOut(auth);
@@ -201,61 +198,37 @@ export default function Navigation() {
 
                     <div className="hidden sm:flex sm:items-center sm:space-x-8">
                         <div className="flex items-center">
-                            <Link
-                                href={`/league/${leagues[0].id}`}
-                                className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                            >
-                                League
-                            </Link>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger>
-                                    <ChevronDown className="h-4 w-4" />
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                    {leagues.map((league) => (
-                                        <DropdownMenuItem
-                                            key={league.id}
-                                            asChild
-                                        >
-                                            <Link href={`/league/${league.id}`}>
-                                                {league.name}
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    ))}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                            {navLinks.map(({ href, label, onClick }) => (
+                                <Link
+                                    key={href}
+                                    href={href}
+                                    onClick={onClick}
+                                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                >
+                                    {label}
+                                </Link>
+                            ))}
                         </div>
 
-                        {navLinks.map(({ href, label, onClick }) => (
-                            <Link
-                                key={href}
-                                href={href}
-                                onClick={onClick}
-                                className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                            >
-                                {label}
-                            </Link>
-                        ))}
-                    </div>
-
-                    <div className="hidden sm:flex items-center gap-4">
-                        <div className="relative">
-                            <input
-                                type="text"
-                                placeholder="Search leagues..."
-                                className="pl-10 pr-4 py-2 border rounded-lg"
-                                onFocus={() =>
-                                    open('search', {
-                                        kind: 'search',
-                                        query: '',
-                                        page: 1,
-                                    })
-                                }
-                            />
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                        </div>
-                        <div className="flex items-center">
-                            {renderAuthButtons()}
+                        <div className="hidden sm:flex items-center gap-4">
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Search leagues..."
+                                    className="pl-10 pr-4 py-2 border rounded-lg"
+                                    onFocus={() =>
+                                        open('search', {
+                                            kind: 'search',
+                                            query: '',
+                                            page: 1,
+                                        })
+                                    }
+                                />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            </div>
+                            <div className="flex items-center">
+                                {renderAuthButtons()}
+                            </div>
                         </div>
                     </div>
 
@@ -287,38 +260,6 @@ export default function Navigation() {
                 {isMenuOpen && (
                     <div className="sm:hidden" id="mobile-menu">
                         <div className="px-2 pt-2 pb-3 space-y-1">
-                            <div className="flex items-center">
-                                <Link
-                                    href={`/league/${leagues[0].id}`}
-                                    className="flex-1 px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    League
-                                </Link>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger>
-                                        <ChevronDown className="h-4 w-4" />
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
-                                        {leagues.map((league) => (
-                                            <DropdownMenuItem
-                                                key={league.id}
-                                                asChild
-                                            >
-                                                <Link
-                                                    href={`/league/${league.id}`}
-                                                    onClick={() =>
-                                                        setIsMenuOpen(false)
-                                                    }
-                                                >
-                                                    {league.name}
-                                                </Link>
-                                            </DropdownMenuItem>
-                                        ))}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-
                             {navLinks.map(({ href, label, onClick }) => (
                                 <Link
                                     key={href}

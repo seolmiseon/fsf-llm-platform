@@ -27,6 +27,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     useEffect(() => {
         const loadTeamCrest = async () => {
             if (team.crest) {
+                if (!storage) return;
                 try {
                     // Firebase Storage의 팀 크레스트 이미지 경로
                     const crestRef = ref(storage, `teams/${team.id}/crest.png`);

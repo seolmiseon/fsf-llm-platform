@@ -20,6 +20,8 @@ export default function SocialLoginButtons() {
     const [errorMessage, setErrorMessage] = useState<string | undefined>('');
 
     const handleSocialLogin = async (provider: string) => {
+        if (!auth) return;
+
         try {
             let authProvider;
             switch (provider) {

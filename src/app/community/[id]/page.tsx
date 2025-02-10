@@ -46,7 +46,8 @@ export default function PostDetailPage() {
 
     useEffect(() => {
         const fetchPost = async () => {
-            if (!params.id) return;
+            if (!params.id || !db) return;
+
             try {
                 const docRef = doc(db, 'community', params.id as string);
                 const docSnap = await getDoc(docRef);
@@ -72,7 +73,7 @@ export default function PostDetailPage() {
     }, [params.id]);
 
     const handleDelete = async () => {
-        if (!post || !user || user.uid !== post.authorId) {
+        if (!post || !user || user.uid !== post.authorId || !db) {
             setAlertDialog({
                 isOpen: true,
                 message: '삭제 권한이 없습니다.',

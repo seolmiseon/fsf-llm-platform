@@ -9,6 +9,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { setUser, setLoading } = useAuthStore();
 
     useEffect(() => {
+        if (!auth) return;
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             console.log('Auth 상태 변경:', user);
             setUser(user);

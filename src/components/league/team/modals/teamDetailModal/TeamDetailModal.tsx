@@ -35,6 +35,8 @@ export const TeamDetailModal = ({
 
     // 감독 클릭 핸들러
     const handleCoachClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+
         if (!coach) return;
 
         openPersonDetail(
@@ -56,6 +58,8 @@ export const TeamDetailModal = ({
 
     // 선수 클릭 핸들러
     const handlePlayerClick = (player: PlayerInfo, e: React.MouseEvent) => {
+        e.stopPropagation();
+
         openPersonDetail(
             player,
             {

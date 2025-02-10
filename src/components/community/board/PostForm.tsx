@@ -59,6 +59,7 @@ export default function PostForm({ isEdit }: PostFormProps) {
         // 수정 모드일 때 기존 데이터 불러오기
         if (isEdit) {
             const fetchPost = async () => {
+                if (!db) return;
                 const docRef = doc(db, 'community', params.id as string);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
@@ -145,10 +146,32 @@ export default function PostForm({ isEdit }: PostFormProps) {
         }
 
         try {
+            // Firestore 초기화 체크
+            if (!db) {
+                setAlertDialog({
+                    isOpen: true,
+                    message:
+                        '서버 연결에 문제가 있습니다. 잠시 후 다시 시도해주세요.',
+                    variant: 'destructive',
+                    onClose: () => setIsSubmitting(false),
+                });
+                return;
+            }
+
             const sanitizedTitle = sanitizeInput(title);
             const sanitizedContent = sanitizeInput(content);
 
             if (isEdit) {
+                if (!params.id) {
+                    setAlertDialog({
+                        isOpen: true,
+                        message: '게시글 정보를 찾을 수 없습니다.',
+                        variant: 'destructive',
+                        onClose: () => router.push('/community'),
+                    });
+                    return;
+                }
+
                 const docRef = doc(db, 'community', params.id as string);
                 await updateDoc(docRef, {
                     title: sanitizedTitle,
@@ -164,10 +187,26 @@ export default function PostForm({ isEdit }: PostFormProps) {
                     onClose: () => router.push(`/community/${params.id}`),
                 });
 
-                setTimeout(() => {
+                // 딜레이 타이머 설정
+                const timer = setTimeout(() => {
                     router.push(`/community/${params.id}`);
                 }, 1500);
+
+                // 컴포넌트 언마운트 시 타이머 정리
+                return () => clearTimeout(timer);
             } else {
+                // 새 글 작성
+                if (!user?.uid) {
+                    setAlertDialog({
+                        isOpen: true,
+                        message:
+                            '로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.',
+                        variant: 'destructive',
+                        onClose: () => router.push('/signin'),
+                    });
+                    return;
+                }
+
                 const postData: Post = {
                     title: sanitizedTitle,
                     content: sanitizedContent,
@@ -182,21 +221,39 @@ export default function PostForm({ isEdit }: PostFormProps) {
                 };
 
                 const communityRef = collection(db, 'community');
-                const docRef = await addDoc(communityRef, postData);
+                await addDoc(communityRef, postData);
 
                 setAlertDialog({
                     isOpen: true,
                     message: '게시글이 작성되었습니다',
                     variant: 'success',
-                    onClose: () => {
-                        router.push('/community');
-                    },
+                    onClose: () => router.push('/community'),
                 });
             }
         } catch (error: any) {
-            console.log('=== 에러 발생 ===');
+            console.error('게시글 처리 중 오류 발생:', error);
 
-            throw error;
+            // 사용자에게 보여줄 에러 메시지 구성
+            let errorMessage = '게시글 처리 중 문제가 발생했습니다.';
+            if (error.code) {
+                switch (error.code) {
+                    case 'permission-denied':
+                        errorMessage = '권한이 없습니다.';
+                        break;
+                    case 'not-found':
+                        errorMessage = '게시글을 찾을 수 없습니다.';
+                        break;
+                    default:
+                        errorMessage = '알 수 없는 오류가 발생했습니다.';
+                }
+            }
+
+            setAlertDialog({
+                isOpen: true,
+                message: errorMessage,
+                variant: 'destructive',
+                onClose: () => setIsSubmitting(false),
+            });
         } finally {
             setIsSubmitting(false);
         }

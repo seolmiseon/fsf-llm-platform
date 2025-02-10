@@ -23,6 +23,7 @@ export function usePosts() {
 
     const fetchPosts = useCallback(async () => {
         if (authLoading) return;
+        if (!db) return;
 
         try {
             setLoading(true);
@@ -49,7 +50,7 @@ export function usePosts() {
     const incrementViews = useCallback(
         async (id: string) => {
             if (authLoading) return;
-            if (!user) {
+            if (!user || !db) {
                 console.error('로그인이 필요합니다');
                 return;
             }
@@ -77,6 +78,7 @@ export function usePosts() {
 
     // 좋아요 토글 함수 추가
     const toggleLike = useCallback(async (id: string) => {
+        if (!db) return;
         try {
             const postRef = doc(db, 'community', id);
             // 좋아요 수 업데이트

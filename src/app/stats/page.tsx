@@ -1,5 +1,3 @@
-'use client';
-
 import { Card } from '@/components/ui/common/card';
 import { ChartBar } from 'lucide-react';
 

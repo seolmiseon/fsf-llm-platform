@@ -47,6 +47,12 @@ export default function SigninForm() {
         e.preventDefault();
         setLoading(true);
 
+        if (!auth) {
+            console.error('Auth is not initialized');
+            setLoading(false);
+            return;
+        }
+
         const errors = validateForm(formData, ['email', 'password']);
         if (Object.keys(errors).length > 0) {
             setValidationErrors(errors);

@@ -22,7 +22,7 @@ export default function SignupForm() {
         setLoading(true);
 
         const formData = new FormData(e.currentTarget);
-
+        if (!formData || !auth) return;
         try {
             const userCredential = await createUserWithEmailAndPassword(
                 auth,

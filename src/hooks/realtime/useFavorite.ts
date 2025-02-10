@@ -24,7 +24,7 @@ export function useFavorite(userId: string) {
 
     // 즐겨찾기 목록 실시간 감지
     useEffect(() => {
-        if (!userId) return;
+        if (!userId || !db) return;
 
         const favoritesRef = collection(db, 'favorites');
 
@@ -52,6 +52,7 @@ export function useFavorite(userId: string) {
     // 즐겨찾기 추가
     const addFavorite = async (data: Omit<Favorite, 'id' | 'createdAt'>) => {
         try {
+            if (!db) return;
             const favoritesRef = collection(db, 'favorites');
             await addDoc(favoritesRef, {
                 ...data,
@@ -67,6 +68,7 @@ export function useFavorite(userId: string) {
     // 즐겨찾기 제거
     const removeFavorite = async (favoriteId: string) => {
         try {
+            if (!db) return;
             const favoriteRef = doc(db, 'favorites', favoriteId);
             await deleteDoc(favoriteRef);
             return true;

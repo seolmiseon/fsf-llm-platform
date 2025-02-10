@@ -1,9 +1,9 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase } from 'firebase/database';
-import { getAuth } from 'firebase/auth';
-import { getStorage } from 'firebase/storage';
-import { getFirestore } from 'firebase/firestore';
-import { getMessaging } from 'firebase/messaging';
+import { Database, getDatabase } from 'firebase/database';
+import { getAuth, Auth } from 'firebase/auth';
+import { FirebaseStorage, getStorage } from 'firebase/storage';
+import { Firestore, getFirestore } from 'firebase/firestore';
+import { getMessaging, Messaging } from 'firebase/messaging';
 
 export const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -16,13 +16,29 @@ export const firebaseConfig = {
     vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
 };
 
-const app = initializeApp(firebaseConfig);
+let app;
+let realtimeDB: Database | undefined;
+let db: Firestore | undefined;
+let auth: Auth | undefined;
+let storage: FirebaseStorage | undefined;
+let messaging: Messaging | undefined;
 
-// Realtime Database 초기화
-export const realtimeDB = getDatabase(app);
-export const db = getFirestore(app);
-export const auth = getAuth(app);
-export const storage = getStorage(app);
-export const messaging = getMessaging(app);
+if (typeof window !== 'undefined') {
+    // 클라이언트 사이드인 경우에만
+    app = initializeApp(firebaseConfig);
+    realtimeDB = getDatabase(app);
+    db = getFirestore(app);
+    auth = getAuth(app);
+    storage = getStorage(app);
 
-console.log('Firestore 초기화:', db);
+    // messaging은 serviceWorker 지원 여부도 확인
+    if ('serviceWorker' in navigator) {
+        try {
+            messaging = getMessaging(app);
+        } catch (error) {
+            console.error('Messaging initialization failed:', error);
+        }
+    }
+}
+
+export { realtimeDB, db, auth, storage, messaging };

@@ -5,6 +5,9 @@ import { messaging } from './config';
 
 export async function requestNotificationPermission(): Promise<string | null> {
     try {
+        if (!messaging) {
+            throw new Error('Messaging is not initialized');
+        }
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
             throw new Error('Notification permission denied');

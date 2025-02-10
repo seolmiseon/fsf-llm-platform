@@ -1,5 +1,3 @@
-'use client';
-
 import PostList from '@/components/community/board/PostList';
 
 export default function CommunityPage() {

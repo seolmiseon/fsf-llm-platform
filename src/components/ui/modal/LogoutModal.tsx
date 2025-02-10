@@ -13,6 +13,8 @@ export function LogoutModal() {
     if (!isOpen || type !== 'logout') return null;
 
     const handleLogout = async () => {
+        if (!auth) return;
+
         try {
             console.log('로그아웃 시작');
             await signOut(auth);

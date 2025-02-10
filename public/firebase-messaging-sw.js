@@ -18,7 +18,7 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(function (payload) {
     const options = {
         body: payload.notification.body,
-        icon: '/images/Icon.png', // 수정: public 제거
+        icon: '/images/Icon.png',
     };
 
     self.registration.showNotification(payload.notification.title, options);

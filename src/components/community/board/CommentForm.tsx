@@ -18,7 +18,7 @@ export function CommentForm({ postId }: CommentFormProps) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!content.trim() || !user || loading) return;
+        if (!content.trim() || !user || loading || !db) return;
 
         setLoading(true);
         setError(null);
