@@ -6,11 +6,11 @@ importScripts(
 );
 
 firebase.initializeApp({
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    apiKey: 'AIzaSyCc2QmrzyraRAACo-HKEV72ehkb8BGAPfY',
+    authDomain: 'fsfproject-fd2e6.firebaseapp.com',
+    projectId: 'fsfproject-fd2e6',
+    messagingSenderId: '95748375795',
+    appId: '1:95748375795:web:62d08430f49070023d2386',
 });
 
 const messaging = firebase.messaging();

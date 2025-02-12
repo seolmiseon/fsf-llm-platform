@@ -43,6 +43,6 @@
 }
 
 /* 호버 효과는 맵이 보이지 않을 때만 적용 */
-.bannerContainer:hover .bannerImage:not(.fadeOut) {
+/* .bannerContainer:hover .bannerImage:not(.fadeOut) {
     transform: scale(1.05);
-}
+} */

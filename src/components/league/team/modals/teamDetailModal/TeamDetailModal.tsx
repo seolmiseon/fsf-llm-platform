@@ -72,7 +72,7 @@ export const TeamDetailModal = ({
 
     return (
         <Dialog open={true} onOpenChange={onClose}>
-            <DialogContent>
+            <DialogContent onPointerDownOutside={(e) => e.preventDefault()}>
                 <DialogHeader>
                     <DialogTitle>Team Details</DialogTitle>
                     <DialogDescription>

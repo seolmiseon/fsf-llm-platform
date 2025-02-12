@@ -31,6 +31,7 @@ export default function LeagueDetailPage({
         setSelectedTeam(team.id.toString());
         setOpen(true);
     };
+    ('');
 
     if (loading) {
         return <Loading type="cards" count={6} />;

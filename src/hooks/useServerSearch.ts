@@ -88,7 +88,7 @@ export function useServerSearch() {
 
         // 캐시가 30분 이내인 경우에만 사용
         if (cachedData && Date.now() - cachedData.timestamp < 30 * 60 * 1000) {
-            return cachedData.results;
+            return cachedData;
         }
         return null;
     };
@@ -97,13 +97,19 @@ export function useServerSearch() {
         query: string,
         data: { results: SearchResult[]; hasMore: boolean }
     ) => {
-        const cache = JSON.parse(localStorage.getItem('searchCache') || '{}');
-        cache[query] = {
-            results: data.results,
-            hasMore: data.hasMore,
-            timestamp: Date.now(),
-        };
-        localStorage.setItem('searchCache', JSON.stringify(cache));
+        try {
+            const cache = JSON.parse(
+                localStorage.getItem('searchCache') || '{}'
+            );
+            cache[query] = {
+                results: data.results,
+                hasMore: data.hasMore,
+                timestamp: Date.now(),
+            };
+            localStorage.setItem('searchCache', JSON.stringify(cache));
+        } catch (error) {
+            console.error('Cache error:', error);
+        }
     };
 
     const handleSearch = useCallback(

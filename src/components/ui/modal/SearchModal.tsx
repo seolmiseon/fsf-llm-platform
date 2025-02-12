@@ -15,9 +15,9 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useEffect } from 'react';
 
 export function SearchModal() {
-    const { results, loading, error, hasMore, loadMore, handleSearch } =
+    const { search, results, loading, error, hasMore, loadMore, handleSearch } =
         useServerSearch();
-    const { close } = useModalStore();
+    const { close, type } = useModalStore();
     const auth = getAuth();
 
     useEffect(() => {
@@ -31,13 +31,14 @@ export function SearchModal() {
     }, [auth, close]);
 
     return (
-        <Dialog>
-            <DialogContent className="sm:max-w-[600px]">
+        <Dialog open={type === 'search'} onOpenChange={() => close()}>
+            <DialogContent className="sm:max-w-[425px] bg-white">
                 <DialogHeader>
-                    <DialogTitle>검색 결과</DialogTitle>
+                    <DialogTitle>검색</DialogTitle>
                 </DialogHeader>
 
                 <Input
+                    value={search}
                     placeholder="Search leagues..."
                     onChange={(e) => handleSearch(e.target.value)}
                     autoFocus
@@ -46,9 +47,9 @@ export function SearchModal() {
                     error={error}
                 />
 
-                <div className="max-h[400px] overflow-auto px-4">
+                <div className="max-h[400px] overflow-auto">
                     {loading && (
-                        <div className="flex flex-col items-center justify-center py-8">
+                        <div className="flex items-center justify-center py-4">
                             <Loader2 className="h-8 w-8 animate-spin text-green-400" />
                             <p className="mt-2 text-sm text-gray-500">
                                 검색중 ...
@@ -59,11 +60,11 @@ export function SearchModal() {
                     {results.map((result) => (
                         <div
                             key={result.id}
-                            className="p-4 hover:bg-gray-100 rounded-lg transition-colors border-b last:border-b-0"
+                            className="p-3 hover:bg-gray-50 rounded cursor-pointer"
                         >
                             <h3 className="font-medium">{result.title}</h3>
                             {result.description && (
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-sm text-gray-500 mt-1">
                                     {result.description}
                                 </p>
                             )}
@@ -76,7 +77,7 @@ export function SearchModal() {
                         variant="ghost"
                         fullWidth
                         onClick={loadMore}
-                        className="mt-4"
+                        className="mt-4 w-full"
                     >
                         더 보기
                     </Button>

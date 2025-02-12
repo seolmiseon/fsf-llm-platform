@@ -1,4 +1,4 @@
-import { getStorage } from 'firebase-admin/storage';
+import { adminStorage } from '@/lib/firebase/admin';
 
 export async function uploadImageToStorage(imageUrl: string, path: string) {
     try {
@@ -22,7 +22,6 @@ export async function uploadImageToStorage(imageUrl: string, path: string) {
 
         const buffer = Buffer.from(await response.arrayBuffer());
 
-        const adminStorage = getStorage();
         const bucket = adminStorage.bucket();
         const file = bucket.file(path);
 

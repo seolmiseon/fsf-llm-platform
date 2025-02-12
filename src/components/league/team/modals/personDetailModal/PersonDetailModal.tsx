@@ -23,10 +23,6 @@ export const PersonDetailModal = ({ person }: PersonDetailModalProps) => {
     const personData = modalState.data as PersonModalData;
     const isManager = person.position === 'Manager';
 
-    const handleDialogClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-    };
-
     return (
         <Dialog
             open={modalState.type === 'personDetail'}
@@ -34,7 +30,7 @@ export const PersonDetailModal = ({ person }: PersonDetailModalProps) => {
         >
             <DialogContent
                 className="z-50"
-                onClick={handleDialogClick}
+                onPointerDownOutside={(e) => e.preventDefault()}
                 aria-describedby="person-modal-description"
             >
                 <DialogHeader>

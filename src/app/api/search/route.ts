@@ -34,8 +34,8 @@ export async function GET(request: Request) {
         const searchQuery = db
             .collection('posts')
             .orderBy('title')
-            .where('title', '>=', query)
-            .where('title', '<=', query + '\uf8ff')
+            .where('title', '>=', query.toLowerCase())
+            .where('title', '<=', query.toLowerCase() + '\uf8ff')
             .limit(limit + 1);
 
         // 쿼리 실행

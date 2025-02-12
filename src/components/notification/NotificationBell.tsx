@@ -2,12 +2,12 @@
 
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button/Button';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { requestNotificationPermission } from '@/lib/firebase/messaging';
 import { toast } from '@/store/useToastStore';
 
-export default function NotificationBell() {
+export default function NotificationBell({ matchId }: { matchId: number }) {
     const { user } = useAuthStore();
 
     const handleNotificationSetup = useCallback(async () => {
@@ -19,7 +19,7 @@ export default function NotificationBell() {
                 const response = await fetch('/api/notification', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: user.uid, token }),
+                    body: JSON.stringify({ userId: user.uid, token, matchId }),
                 });
 
                 if (response.ok) {
@@ -36,13 +36,7 @@ export default function NotificationBell() {
                 description: '알림 권한을 확인해주세요.',
             });
         }
-    }, [user]);
-
-    useEffect(() => {
-        if (user) {
-            handleNotificationSetup();
-        }
-    }, [user, handleNotificationSetup]);
+    }, [user, matchId]);
 
     return (
         <Button
