@@ -2,11 +2,24 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Card } from '../ui/common/card';
+import styles from './LeagueCard.module.css';
 import { getPlaceholderImageUrl } from '@/utils/imageUtils';
 
 export function KLeagueCards() {
     const router = useRouter();
+
+    const kLeagues = [
+        {
+            name: 'K LEAGUE',
+            division: '1부리그',
+            country: '대한민국',
+        },
+        {
+            name: 'K LEAGUE',
+            division: '2부리그',
+            country: '대한민국',
+        },
+    ];
 
     const handleKLeagueClick = () => {
         router.push('/stats');
@@ -14,18 +27,20 @@ export function KLeagueCards() {
 
     return (
         <>
-            {['1부리그', '2부리그'].map((division) => (
-                <Card
-                    key={division}
-                    className="p-4 cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+            {kLeagues.map((league) => (
+                <div
+                    key={league.division}
+                    className={styles.card}
                     onClick={handleKLeagueClick}
+                    style={{ cursor: 'pointer', height: '100%' }}
                 >
-                    <div className="relative w-[80%] mx-auto aspect-square">
+                    <div className={styles.logoContainer}>
                         <Image
                             src="/images/KLeague.png"
-                            alt={`K League ${division}`}
-                            fill
-                            className="object-contain p-2"
+                            alt={`K League ${league.division}`}
+                            width={96}
+                            height={96}
+                            className={styles.logo}
                             priority
                             onError={(e) => {
                                 e.currentTarget.src =
@@ -33,11 +48,9 @@ export function KLeagueCards() {
                             }}
                         />
                     </div>
-                    <div className="text-center mt-2">
-                        <p className="font-medium">K LEAGUE</p>
-                        <p className="text-sm text-gray-600">{division}</p>
-                    </div>
-                </Card>
+                    <h3 className={styles.leagueName}>{league.name}</h3>
+                    <p className={styles.countryName}>{league.division}</p>
+                </div>
             ))}
         </>
     );

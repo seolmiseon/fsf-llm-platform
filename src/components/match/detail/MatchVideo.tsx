@@ -8,6 +8,7 @@ interface MatchVideoProps {
     homeTeam: string;
     awayTeam: string;
     utcDate: string;
+    matchingUrl: string;
 }
 
 export function MatchVideo({ homeTeam, awayTeam, utcDate }: MatchVideoProps) {
@@ -63,10 +64,24 @@ export function MatchVideo({ homeTeam, awayTeam, utcDate }: MatchVideoProps) {
 
     return (
         <div className="w-full aspect-video rounded-lg overflow-hidden">
-            <div
-                dangerouslySetInnerHTML={{ __html: videoData.videos[0].embed }}
-                className="w-full h-full"
-            />
+            <div className="relative w-full h-0 pb-[56.25%] bg-black">
+                <iframe
+                    src={videoData.videos[0].matchingUrl}
+                    className="absolute top-0 left-0 w-full h-full"
+                    frameBorder="0"
+                    allowFullScreen
+                    allow="autoplay; fullscreen"
+                />
+            </div>
         </div>
     );
+}
+
+{
+    /* <div className="w-full aspect-video rounded-lg overflow-hidden">
+<div
+    dangerouslySetInnerHTML={{ __html: videoData.videos[0].embed }}
+    className="w-full h-full"
+/>
+</div> */
 }

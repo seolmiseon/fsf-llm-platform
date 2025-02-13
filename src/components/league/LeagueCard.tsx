@@ -18,8 +18,8 @@ export function LeagueCard({ competition }: LeagueCardProps) {
                     <Image
                         src={competition.emblem}
                         alt={`${competition.name} emblem`}
-                        width={112}
-                        height={112}
+                        width={96}
+                        height={96}
                         className={styles.logo}
                         onError={(e) => {
                             e.currentTarget.src =
