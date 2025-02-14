@@ -7,12 +7,39 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { requestNotificationPermission } from '@/lib/firebase/messaging';
 import { toast } from '@/store/useToastStore';
 
-export default function NotificationBell({ matchId }: { matchId: number }) {
+export default function NotificationBell({
+    matchId,
+    matchDate,
+}: {
+    matchId: number;
+    matchDate: string;
+}) {
     const { user } = useAuthStore();
 
     const handleNotificationSetup = useCallback(async () => {
-        if (!user) return;
+        if (!user) {
+            toast.error({
+                title: '로그인 필요',
+                description: '알림을 설정하려면 로그인이 필요합니다.',
+            });
+            return;
+        }
+        const isMatchAvailable = () => {
+            const now = new Date();
+            const matchTime = new Date(matchDate);
+            return matchTime > now; // 미래 경기만 true 반환
+        };
+
+        if (!isMatchAvailable()) {
+            toast.error({
+                title: '알림 설정 불가',
+                description: '지난 경기는 알림을 설정할 수 없습니다.',
+            });
+            return;
+        }
+
         try {
+            console.log('Setting up notification for matchId:', matchId);
             const token = await requestNotificationPermission();
             if (token) {
                 // API 라우트로 토큰 저장 요청
@@ -36,14 +63,22 @@ export default function NotificationBell({ matchId }: { matchId: number }) {
                 description: '알림 권한을 확인해주세요.',
             });
         }
-    }, [user, matchId]);
+    }, [user, matchId, matchDate]);
+
+    const isMatchAvailable = () => {
+        const now = new Date();
+        const matchTime = new Date(matchDate);
+        return matchTime > now; // 미래 경기만 true 반환
+    };
 
     return (
         <Button
             variant="ghost"
             size="sm"
-            className="relative"
+            className={`relative ${!isMatchAvailable() ? 'opacity-50' : ''}`}
             onClick={handleNotificationSetup}
+            disabled={!isMatchAvailable()}
+            title={isMatchAvailable() ? '경기 알림 설정' : '지난 경기'}
         >
             <Bell className="w-5 h-5" />
         </Button>

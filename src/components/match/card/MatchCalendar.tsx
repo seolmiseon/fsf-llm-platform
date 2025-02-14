@@ -12,6 +12,7 @@ import {
     DialogTitle,
 } from '@/components/ui/common/dialog';
 import NotificationBell from '@/components/notification/NotificationBell';
+import { EventClickArg } from '@fullcalendar/core/index.js';
 
 interface Match {
     id: number;
@@ -57,6 +58,11 @@ export default function MatchCalendar() {
                 const filtered = matches.filter(
                     (match) => match.utcDate.split('T')[0] === dateStr
                 );
+                console.log('Filtered matches:', filtered);
+                console.log(
+                    'Match IDs:',
+                    filtered.map((match) => match.id)
+                );
                 setFilteredMatches(filtered);
             } catch (error) {
                 console.error('Invalid date:', error);
@@ -74,10 +80,11 @@ export default function MatchCalendar() {
         textColor: '#1e3a8a',
     }));
 
-    const handleEventClick = (info: any) => {
+    const handleEventClick = (info: EventClickArg) => {
         console.log('Event click info:', info);
-        if (info.date) {
-            setSelectedDate(new Date(info.date));
+        const eventDate = info.event.start;
+        if (eventDate) {
+            setSelectedDate(new Date(eventDate));
         } else {
             console.error('Invalid date from event:', info);
         }
@@ -104,7 +111,6 @@ export default function MatchCalendar() {
                 <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>
-                            {' '}
                             {selectedDate?.toLocaleDateString()} 경기 일정
                         </DialogTitle>
                     </DialogHeader>
@@ -133,7 +139,10 @@ export default function MatchCalendar() {
                                             })}
                                         </div>
                                     </div>
-                                    <NotificationBell matchId={match.id} />
+                                    <NotificationBell
+                                        matchId={match.id}
+                                        matchDate={match.utcDate}
+                                    />
                                 </div>
                             ))
                         )}

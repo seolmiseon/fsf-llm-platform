@@ -111,7 +111,7 @@
 
 ## 📱 Responsive Design
 
--   [ ] Mobile Layout
+-   [x] Mobile Layout
 -   [ ] Tablet Layout
 -   [x] Desktop Layout
 
@@ -148,7 +148,7 @@
 
 ## 📋 Next Steps
 
-1. Community 기능 구현
+1. Community 기능 구현-ok
 2. 실시간 매치 업데이트 시스템 구축 ok
 3. 반응형 디자인 완성
 4. 성능 최적화

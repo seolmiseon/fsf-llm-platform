@@ -16,11 +16,14 @@ export async function GET(request: Request) {
         const getDateRange = () => {
             const today = new Date();
             const oneWeekAgo = new Date(today);
-            oneWeekAgo.setDate(today.getDate() - 7);
+            const futureDate = new Date(today);
+
+            oneWeekAgo.setDate(today.getDate() - 3);
+            futureDate.setDate(today.getDate() + 7);
 
             return {
                 from: oneWeekAgo.toISOString().split('T')[0],
-                to: today.toISOString().split('T')[0],
+                to: futureDate.toISOString().split('T')[0],
             };
         };
 

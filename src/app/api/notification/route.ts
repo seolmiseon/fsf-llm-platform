@@ -8,6 +8,22 @@ export async function POST(request: Request) {
 
         const adminMessaging = getMessaging();
 
+        const userRef = adminDB.collection('users').doc(userId);
+
+        const userDoc = await userRef.get();
+
+        if (!userDoc.exists) {
+            await userRef.set({
+                fcmTokens: [token],
+                lastTokenUpdate: FieldValue.serverTimestamp(),
+            });
+        } else {
+            await userRef.set({
+                fcmTokens: [token],
+                lastTokenUpdate: FieldValue.serverTimestamp(),
+            });
+        }
+
         // 매치 알림 저장
         await adminDB.collection('matchNotifications').add({
             matchId,
@@ -15,15 +31,6 @@ export async function POST(request: Request) {
             token,
             createdAt: FieldValue.serverTimestamp(),
         });
-
-        // FCM 토큰 업데이트
-        await adminDB
-            .collection('users')
-            .doc(userId)
-            .update({
-                fcmTokens: FieldValue.arrayUnion(token),
-                lastTokenUpdate: FieldValue.serverTimestamp(),
-            });
 
         await adminMessaging.send({
             notification: {

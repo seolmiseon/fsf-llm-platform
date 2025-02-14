@@ -27,21 +27,27 @@ export async function GET(request: Request) {
         const limit = 10;
 
         if (!query) {
-            return NextResponse.json({ results: [] });
+            return NextResponse.json({
+                results: [],
+                pagination: {
+                    currentPage: page,
+                    hasMore: false,
+                },
+            });
         }
 
         const db = admin.firestore();
+
         const searchQuery = db
             .collection('posts')
-            .orderBy('title')
-            .where('title', '>=', query.toLowerCase())
-            .where('title', '<=', query.toLowerCase() + '\uf8ff')
+            .where('searchKeywords', 'array-contains', query.toLowerCase())
+            .orderBy('createdAt', 'desc')
             .limit(limit + 1);
 
         // 쿼리 실행
         const snapshot = await searchQuery.get();
 
-        const results = snapshot.docs.map((doc) => ({
+        const results = snapshot.docs.slice(0, limit).map((doc) => ({
             id: doc.id,
             ...doc.data(),
             createdAt: doc.data().createdAt?.toDate().toISOString(),
@@ -51,7 +57,7 @@ export async function GET(request: Request) {
             results,
             pagination: {
                 currentPage: page,
-                hasMore: results.length === limit,
+                hasMore: snapshot.docs.length > limit,
             },
         });
     } catch (error) {
