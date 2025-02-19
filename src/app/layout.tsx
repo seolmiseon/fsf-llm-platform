@@ -7,7 +7,6 @@ import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { Toaster } from '@/components/ui/toast/Toaster';
-import Script from 'next/script';
 
 const pretendard = localFont({
     src: '../fonts/PretendardVariable.woff2',
@@ -31,12 +30,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <head>
-                <Script
-                    strategy="beforeInteractive"
-                    src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY}`}
-                ></Script>
-            </head>
+            <head></head>
             <body className={`${pretendard.variable} vsc-initialized`}>
                 <ErrorBoundary>
                     <ThemeProvider>

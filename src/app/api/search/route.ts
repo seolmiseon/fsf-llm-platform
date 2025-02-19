@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from 'firebase-admin';
 import { adminDB } from '@/lib/firebase/admin';
+import { SearchResponse } from '@/types/ui/search';
 
 export async function GET(request: Request) {
     try {
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
         }
 
         const decodedQuery = decodeURIComponent(query).toLowerCase();
-
+        console.log('Search query:', decodedQuery);
         const searchQuery = adminDB
             .collection('posts')
             .where('searchKeywords', 'array-contains', decodedQuery)
@@ -50,6 +51,7 @@ export async function GET(request: Request) {
                 .where('searchKeywords', 'array-contains', decodedQuery)
                 .orderBy('createdAt', 'desc')
                 .limit((page - 1) * limit);
+
             const prevPageDocs = await prevPageQuery.get();
             const lastDoc = prevPageDocs.docs[prevPageDocs.docs.length - 1];
 
@@ -62,20 +64,29 @@ export async function GET(request: Request) {
         const snapshot = await searchQuery.get();
         const hasMore = snapshot.docs.length > limit;
 
-        const results = snapshot.docs.slice(0, limit).map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt?.toDate().toISOString(),
-        }));
-
-        return NextResponse.json({
-            results,
+        const response: SearchResponse = {
+            results: snapshot.docs.slice(0, limit).map((doc) => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    title: data.title,
+                    content: data.content,
+                    authorId: data.authorId,
+                    authorName: data.authorName,
+                    commentCount: data.commentCount,
+                    createdAt: data.createdAt?.toDate().toISOString(),
+                    like: data.like,
+                    views: data.views,
+                    updateAt: data.updateAt?.toDate().toISOString(),
+                };
+            }),
             pagination: {
                 currentPage: page,
                 hasMore,
-                totalItems: results.length,
             },
-        });
+        };
+
+        return NextResponse.json(response);
     } catch (error) {
         console.error('Search error:', error);
         if (error instanceof Error) {

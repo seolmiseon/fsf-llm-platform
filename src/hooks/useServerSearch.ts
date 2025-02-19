@@ -54,6 +54,7 @@ export function useServerSearch() {
             try {
                 setLoading(true);
                 const response = await performSearch(query, page);
+                console.log('Search response:', response);
                 if (response?.results) {
                     setResults(response.results);
                     setHasMore(response.pagination.hasMore);

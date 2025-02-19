@@ -11,7 +11,7 @@ const nextConfig = {
                     },
                     {
                         key: 'Access-Control-Allow-Origin',
-                        // 실제 프로덕션 환경에서는 특정 도메인으로 제한하는 것을 권장
+
                         value:
                             process.env.NODE_ENV === 'development'
                                 ? 'http://localhost:3000'
@@ -83,7 +83,11 @@ const nextConfig = {
                 pathname: '/**',
             },
         ],
-        domains: ['firebasestorage.googleapis.com'],
+        domains: [
+            'firebasestorage.googleapis.com',
+            'dapi.kakao.com',
+            'map.daumcdn.net',
+        ],
         unoptimized: true,
     },
 

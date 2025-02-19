@@ -13,12 +13,22 @@ import { Input } from '../input/Input';
 import { Button } from '../button/Button';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { SearchResult } from '@/types/ui/search';
 
 export function SearchModal() {
+    const router = useRouter();
     const { search, results, loading, error, hasMore, loadMore, handleSearch } =
         useServerSearch();
     const { close, type } = useModalStore();
     const auth = getAuth();
+
+    const handleResultClick = (result: SearchResult) => {
+        if (result.id) {
+            router.push(`/leagues/${result.id}`); // 해당 리그 페이지로 이동
+            close(); // 모달 닫기
+        }
+    };
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -61,11 +71,12 @@ export function SearchModal() {
                         <div
                             key={result.id}
                             className="p-3 hover:bg-gray-50 rounded cursor-pointer"
+                            onClick={() => handleResultClick(result)}
                         >
                             <h3 className="font-medium">{result.title}</h3>
-                            {result.description && (
+                            {result.authorName && (
                                 <p className="text-sm text-gray-500 mt-1">
-                                    {result.description}
+                                    {result.authorName}
                                 </p>
                             )}
                         </div>

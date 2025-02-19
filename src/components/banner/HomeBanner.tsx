@@ -3,7 +3,15 @@
 import Image from 'next/image';
 import styles from './HomeBanner.module.css';
 import { useState } from 'react';
-import { KakaoMap } from '../kakaoMap/KakaoMap';
+import dynamic from 'next/dynamic';
+
+const DynamicKakaoMap = dynamic(
+    () => import('../kakaoMap/KakaoMap').then((mod) => mod.KakaoMap),
+    {
+        ssr: false,
+        loading: () => <div className="w-full h-full bg-gray-200" />,
+    }
+);
 
 export const HomeBanner = () => {
     const [showMap, setShowMap] = useState(false);
@@ -39,7 +47,7 @@ export const HomeBanner = () => {
                         showMap ? styles.fadeIn : styles.fadeOut
                     }`}
                 >
-                    <KakaoMap />
+                    <DynamicKakaoMap />
                 </div>
             )}
         </div>

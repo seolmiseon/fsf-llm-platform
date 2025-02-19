@@ -2,10 +2,13 @@ export interface SearchResult {
     id: string;
     title: string;
     content: string;
-    description: string;
+    authorId: string;
+    authorName: string;
+    commentCount: number;
     createdAt: string;
-    type: 'user' | 'team' | 'post';
-    photoURL?: string;
+    like: number;
+    views: number;
+    updateAt: string;
 }
 
 // 페이지네이션 정보의 구조

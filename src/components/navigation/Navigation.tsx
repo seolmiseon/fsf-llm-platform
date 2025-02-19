@@ -18,7 +18,14 @@ import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import NotificationBell from '../notification/NotificationBell';
 
-export default function Navigation() {
+interface NavigationProps {
+    match?: {
+        id: number;
+        date: string;
+    };
+}
+
+export default function Navigation({ match }: NavigationProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [imageError, setImageError] = useState(false);
     const { open } = useModalStore();
@@ -87,7 +94,12 @@ export default function Navigation() {
             return (
                 <>
                     <div className="flex items-center gap-2">
-                        <NotificationBell />
+                        {match && (
+                            <NotificationBell
+                                matchId={match.id}
+                                matchDate={match.date}
+                            />
+                        )}
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
