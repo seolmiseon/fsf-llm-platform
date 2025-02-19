@@ -2,7 +2,8 @@
 
 import { Error, Loading } from '@/components/ui/common';
 import { FootballDataApi } from '@/lib/server/api/football-data';
-import { MatchHighlight, MatchResponse } from '@/types/api/responses';
+import { MatchResponse } from '@/types/api/responses';
+import { MatchHighlight } from '@/types/api/score-match';
 import Image from 'next/image';
 import * as Tabs from '@radix-ui/react-tabs';
 import { useParams } from 'next/navigation';

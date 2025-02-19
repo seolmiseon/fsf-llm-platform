@@ -101,6 +101,7 @@ export const onPostUpdate = onDocumentUpdated(
             } catch (error) {
                 console.error(
                     `Error updating searchKeywords for post ${event.params.postId}:`,
+
                     error
                 );
             }

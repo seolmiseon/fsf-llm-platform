@@ -14,11 +14,10 @@ import { db } from '@/lib/firebase/config';
 interface Favorite {
     id: string;
     userId: string;
-    leagueId?: string;
-    teamId?: string;
+    playerId?: string;
+    type: 'favorite' | 'vote';
     createdAt: Date;
 }
-
 export function useFavorite(userId: string) {
     const [favorites, setFavorites] = useState<Favorite[]>([]);
 
@@ -79,12 +78,8 @@ export function useFavorite(userId: string) {
     };
 
     // 즐겨찾기 여부 확인
-    const isFavorite = (leagueId?: string, teamId?: string) => {
-        return favorites.some(
-            (fav) =>
-                (leagueId && fav.leagueId === leagueId) ||
-                (teamId && fav.teamId === teamId)
-        );
+    const isFavorite = (playerId?: string) => {
+        return favorites.some((fav) => playerId && fav.playerId === playerId);
     };
 
     return {

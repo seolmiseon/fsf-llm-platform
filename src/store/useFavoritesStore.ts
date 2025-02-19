@@ -3,42 +3,45 @@
 
 // interface FavoritesStore {
 //     favorites: {
-//         teamIds: string[];
 //         playerIds: string[];
 //     };
-//     addTeam: (teamId: string) => void;
-//     removeTeam: (teamId: string) => void;
+//     votedPlayers: string[];
 //     addPlayer: (playerId: string) => void;
 //     removePlayer: (playerId: string) => void;
+//     addVote: (playerId: string) => void;
 // }
 
 // export const useFavoritesStore = create<FavoritesStore>()(
 //     persist(
 //         (set) => ({
 //             favorites: {
-//                 teamIds: [],
 //                 playerIds: [],
 //             },
-//             addTeam: (teamId) =>
+//             votedPlayers: [],
+//             addPlayer: (playerId) =>
 //                 set((state) => ({
 //                     favorites: {
 //                         ...state.favorites,
-//                         teamIds: [...state.favorites.teamIds, teamId],
+//                         playerIds: [...state.favorites.playerIds, playerId],
 //                     },
 //                 })),
-//             removeTeam: (teamId) =>
+//             removePlayer: (playerId) =>
 //                 set((state) => ({
 //                     favorites: {
 //                         ...state.favorites,
-//                         teamIds: state.favorites.teamIds.filter(
-//                             (id) => id !== teamId
+//                         playerIds: state.favorites.playerIds.filter(
+//                             (id) => id !== playerId
 //                         ),
 //                     },
 //                 })),
-//             // 선수 관련 함수들도 비슷한 방식으로...
+//             addVote: (playerId) =>
+//                 set((state) => ({
+//                     ...state,
+//                     votedPlayers: [...state.votedPlayers, playerId],
+//                 })),
 //         }),
 //         {
-//             name: 'user-favorites', // localStorage에 저장될 키 이름
+//             name: 'user-favorites',
 //         }
 //     )
 // );

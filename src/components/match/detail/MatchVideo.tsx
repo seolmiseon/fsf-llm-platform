@@ -8,7 +8,6 @@ interface MatchVideoProps {
     homeTeam: string;
     awayTeam: string;
     utcDate: string;
-    matchingUrl: string;
 }
 
 export function MatchVideo({ homeTeam, awayTeam, utcDate }: MatchVideoProps) {

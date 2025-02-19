@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from 'firebase-admin';
-import admin from 'firebase-admin';
+import { adminDB } from '@/lib/firebase/admin';
 
 export async function GET(request: Request) {
     try {
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
         const page = parseInt(searchParams.get('page') || '1');
         const limit = 10;
 
-        if (!query) {
+        if (!query?.trim()) {
             return NextResponse.json({
                 results: [],
                 pagination: {
@@ -36,16 +36,31 @@ export async function GET(request: Request) {
             });
         }
 
-        const db = admin.firestore();
+        const decodedQuery = decodeURIComponent(query).toLowerCase();
 
-        const searchQuery = db
+        const searchQuery = adminDB
             .collection('posts')
-            .where('searchKeywords', 'array-contains', query.toLowerCase())
+            .where('searchKeywords', 'array-contains', decodedQuery)
             .orderBy('createdAt', 'desc')
             .limit(limit + 1);
 
+        if (page > 1) {
+            const prevPageQuery = adminDB
+                .collection('posts')
+                .where('searchKeywords', 'array-contains', decodedQuery)
+                .orderBy('createdAt', 'desc')
+                .limit((page - 1) * limit);
+            const prevPageDocs = await prevPageQuery.get();
+            const lastDoc = prevPageDocs.docs[prevPageDocs.docs.length - 1];
+
+            if (lastDoc) {
+                searchQuery.startAfter(lastDoc);
+            }
+        }
+
         // 쿼리 실행
         const snapshot = await searchQuery.get();
+        const hasMore = snapshot.docs.length > limit;
 
         const results = snapshot.docs.slice(0, limit).map((doc) => ({
             id: doc.id,
@@ -57,11 +72,15 @@ export async function GET(request: Request) {
             results,
             pagination: {
                 currentPage: page,
-                hasMore: snapshot.docs.length > limit,
+                hasMore,
+                totalItems: results.length,
             },
         });
     } catch (error) {
         console.error('Search error:', error);
+        if (error instanceof Error) {
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
         return NextResponse.json(
             { error: '검색 중 오류가 발생했습니다' },
             { status: 500 }

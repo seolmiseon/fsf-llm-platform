@@ -17,16 +17,25 @@ export function useServerSearch() {
 
     const performSearch = useCallback(
         async (query: string, page: number): Promise<SearchResponse> => {
-            const token = await auth.currentUser?.getIdToken();
-            const response = await fetch(
-                `/api/search?q=${query}&page=${page}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
+            try {
+                const token = await auth.currentUser?.getIdToken(true);
+                const response = await fetch(
+                    `/api/search?q=${encodeURIComponent(query)}&page=${page}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                );
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            );
-            return response.json();
+                return response.json();
+            } catch (error) {
+                console.error('Search error:', error);
+                throw error;
+            }
         },
         [auth]
     );
