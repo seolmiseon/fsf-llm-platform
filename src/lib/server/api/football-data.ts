@@ -16,10 +16,13 @@ export class FootballDataApi {
     private async fetchApi<T>(path: string): Promise<ApiResponse<T>> {
         try {
             const response = await fetch(`${this.baseUrl}?path=${path}`);
-            console.debug(
-                `API Response Status: ${response.status} for path: ${path}`
-            );
+            console.log('API Response Status:', response.status);
+
             const responseData = await response.json();
+            console.log(
+                'Raw API Response:',
+                JSON.stringify(responseData).slice(0, 200)
+            );
 
             if (!response.ok) {
                 return {
@@ -57,6 +60,12 @@ export class FootballDataApi {
                 data,
             };
         } catch (error) {
+            console.error('API Fetch Error:', {
+                name: error instanceof Error ? error.name : 'Unknown',
+                message:
+                    error instanceof Error ? error.message : 'Unknown error',
+            });
+
             return {
                 success: false,
                 error:

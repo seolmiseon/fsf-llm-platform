@@ -4,7 +4,6 @@ import { getAuth, Auth } from 'firebase/auth';
 import { FirebaseStorage, getStorage } from 'firebase/storage';
 import { Firestore, getFirestore } from 'firebase/firestore';
 import { getMessaging, Messaging } from 'firebase/messaging';
-import { getPerformance } from 'firebase/performance';
 
 export const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -23,7 +22,6 @@ let db: Firestore | undefined;
 let auth: Auth | undefined;
 let storage: FirebaseStorage | undefined;
 let messaging: Messaging | undefined;
-let performance: any | undefined;
 
 if (typeof window !== 'undefined') {
     // 클라이언트 사이드인 경우에만
@@ -32,12 +30,6 @@ if (typeof window !== 'undefined') {
     db = getFirestore(app);
     auth = getAuth(app);
     storage = getStorage(app);
-
-    try {
-        performance = getPerformance(app);
-    } catch (error) {
-        console.error('Performance monitoring initialization failed:', error);
-    }
 
     // messaging은 serviceWorker 지원 여부도 확인
     if ('serviceWorker' in navigator) {
@@ -49,4 +41,4 @@ if (typeof window !== 'undefined') {
     }
 }
 
-export { realtimeDB, db, auth, storage, messaging, performance };
+export { realtimeDB, db, auth, storage, messaging };

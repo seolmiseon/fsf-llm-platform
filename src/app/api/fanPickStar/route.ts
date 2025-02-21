@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
     try {
+        if (!adminDB) {
+            throw new Error('Firebase Admin이 초기화되지 않았습니다.');
+        }
         const eventRef = adminDB.collection('event_vote').doc('current_event');
         const eventDoc = await eventRef.get();
 
@@ -28,6 +31,10 @@ export async function POST(request: Request) {
                 { message: 'Unauthorized' },
                 { status: 401 }
             );
+        }
+
+        if (!adminDB) {
+            throw new Error('Firebase Admin이 초기화되지 않았습니다.');
         }
 
         await adminDB.collection('user_votes').doc(userId).set({

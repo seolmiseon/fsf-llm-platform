@@ -3,6 +3,9 @@ import { getMessaging } from 'firebase-admin/messaging';
 
 export async function POST(request: Request) {
     try {
+        if (!adminDB) {
+            throw new Error('Firebase Admin이 초기화되지 않았습니다.');
+        }
         const { matchId, userId, token } = await request.json();
         console.log('Received request:', { userId, token });
 

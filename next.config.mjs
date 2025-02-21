@@ -1,51 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    async headers() {
-        return [
-            {
-                source: '/api/:path*',
-                headers: [
-                    {
-                        key: 'Access-Control-Allow-Credentials',
-                        value: 'true',
-                    },
-                    {
-                        key: 'Access-Control-Allow-Origin',
-
-                        value:
-                            process.env.NODE_ENV === 'development'
-                                ? 'http://localhost:3000'
-                                : process.env.NEXT_PUBLIC_DOMAIN,
-                    },
-                    {
-                        key: 'Access-Control-Allow-Methods',
-                        value: 'GET,POST,PUT,DELETE,OPTIONS',
-                    },
-                    {
-                        key: 'Access-Control-Allow-Headers',
-                        value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization',
-                    },
-                    // 보안 헤더 추가
-                    {
-                        key: 'X-Content-Type-Options',
-                        value: 'nosniff',
-                    },
-                    {
-                        key: 'X-Frame-Options',
-                        value: 'DENY',
-                    },
-                    {
-                        key: 'X-XSS-Protection',
-                        value: '1; mode=block',
-                    },
-                    {
-                        key: 'Referrer-Policy',
-                        value: 'strict-origin-when-cross-origin',
-                    },
-                ],
-            },
-        ];
-    },
     transpilePackages: [
         '@fullcalendar/react',
         '@fullcalendar/daygrid',

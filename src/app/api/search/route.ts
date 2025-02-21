@@ -1,11 +1,19 @@
 import { NextResponse } from 'next/server';
 import { auth } from 'firebase-admin';
-import { adminDB } from '@/lib/firebase/admin';
 import { SearchResponse } from '@/types/ui/search';
+import { getFirestore } from 'firebase-admin/firestore';
+
+// Firebase Admin 초기화 (파일 최상단에 한 번만)
+// if (!admin.apps.length) {
+// admin.initializeApp({
+// credential: admin.credential.cert({
+// 여기에 서비스 계정 정보
+//         })
+//     });
+// }
 
 export async function GET(request: Request) {
     try {
-        // 인증 확인
         const token = request.headers.get('Authorization')?.split('Bearer ')[1];
         if (!token) {
             return NextResponse.json(
@@ -30,27 +38,29 @@ export async function GET(request: Request) {
         if (!query?.trim()) {
             return NextResponse.json({
                 results: [],
-                pagination: {
-                    currentPage: page,
-                    hasMore: false,
-                },
+                pagination: { currentPage: page, hasMore: false },
             });
         }
 
         const decodedQuery = decodeURIComponent(query).toLowerCase();
-        console.log('Search query:', decodedQuery);
-        const searchQuery = adminDB
+        const db = getFirestore();
+
+        // 페이지네이션 적용
+        const offset = (page - 1) * limit;
+
+        const searchQuery = db
             .collection('posts')
             .where('searchKeywords', 'array-contains', decodedQuery)
             .orderBy('createdAt', 'desc')
-            .limit(limit + 1);
+            .limit(limit + 1); // 다음 페이지 존재 여부 확인용
 
-        if (page > 1) {
-            const prevPageQuery = adminDB
+        if (offset > 0) {
+            // 이전 페이지의 마지막 문서 가져오기
+            const prevPageQuery = db
                 .collection('posts')
                 .where('searchKeywords', 'array-contains', decodedQuery)
                 .orderBy('createdAt', 'desc')
-                .limit((page - 1) * limit);
+                .limit(offset);
 
             const prevPageDocs = await prevPageQuery.get();
             const lastDoc = prevPageDocs.docs[prevPageDocs.docs.length - 1];
@@ -60,33 +70,32 @@ export async function GET(request: Request) {
             }
         }
 
-        // 쿼리 실행
         const snapshot = await searchQuery.get();
         const hasMore = snapshot.docs.length > limit;
 
-        const response: SearchResponse = {
-            results: snapshot.docs.slice(0, limit).map((doc) => {
-                const data = doc.data();
-                return {
-                    id: doc.id,
-                    title: data.title,
-                    content: data.content,
-                    authorId: data.authorId,
-                    authorName: data.authorName,
-                    commentCount: data.commentCount,
-                    createdAt: data.createdAt?.toDate().toISOString(),
-                    like: data.like,
-                    views: data.views,
-                    updateAt: data.updateAt?.toDate().toISOString(),
-                };
-            }),
+        const results = snapshot.docs.slice(0, limit).map((doc) => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                title: data.title,
+                content: data.content,
+                authorId: data.authorId,
+                authorName: data.authorName,
+                commentCount: data.commentCount,
+                createdAt: data.createdAt?.toDate().toISOString(),
+                like: data.like,
+                views: data.views,
+                updateAt: data.updateAt?.toDate().toISOString(),
+            };
+        });
+
+        return NextResponse.json({
+            results,
             pagination: {
                 currentPage: page,
                 hasMore,
             },
-        };
-
-        return NextResponse.json(response);
+        } as SearchResponse);
     } catch (error) {
         console.error('Search error:', error);
         if (error instanceof Error) {

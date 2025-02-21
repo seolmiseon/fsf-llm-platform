@@ -3,8 +3,15 @@ import { uploadImageToStorage } from '@/utils/storage';
 
 export async function GET(request: Request) {
     try {
+        console.log('Request URL:', request.url);
         const { searchParams } = new URL(request.url);
         const path = searchParams.get('path');
+
+        console.log('Path parameter:', path);
+        console.log(
+            'API Key exists:',
+            !!process.env.NEXT_PUBLIC_FOOTBALL_API_KEY
+        );
 
         if (!path) {
             return NextResponse.json(
@@ -35,6 +42,8 @@ export async function GET(request: Request) {
               }`
             : baseUrl;
 
+        console.log('Actual API URL:', apiUrl);
+
         const response = await fetch(apiUrl, {
             headers: {
                 'X-Auth-Token': process.env
@@ -42,6 +51,8 @@ export async function GET(request: Request) {
             },
             next: { revalidate: 60 }, //1분캐싱
         });
+
+        console.log('API Response Status:', response.status);
 
         const data = await response.json();
         console.log('Live matches API response:', data);
@@ -129,7 +140,12 @@ export async function GET(request: Request) {
 
         return NextResponse.json(data);
     } catch (error) {
-        console.log('요청실패', error);
+        console.error('Detailed error:', {
+            name: error instanceof Error ? error.name : 'Unknown',
+            message: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined,
+        });
+
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }

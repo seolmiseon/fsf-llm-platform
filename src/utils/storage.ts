@@ -2,6 +2,9 @@ import { adminStorage } from '@/lib/firebase/admin';
 
 export async function uploadImageToStorage(imageUrl: string, path: string) {
     try {
+        if (!adminStorage) {
+            throw new Error('Firebase Storage가 초기화되지 않았습니다.');
+        }
         // 1. 이미지 URL에서 이미지 데이터 가져오기
         if (!imageUrl) {
             throw new Error('Invalid image URL');
