@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MatchResponse } from '@/types/api/responses';
-import { FootballDataApi } from '@/lib/server/api/football-data';
+import { FootballDataApi } from '@/lib/client/api/football-data';
 
 export const useLiveMatches = () => {
     const [matches, setMatches] = useState<MatchResponse[]>([]);

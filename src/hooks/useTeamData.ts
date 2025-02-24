@@ -1,9 +1,9 @@
 // hooks/useTeamData.ts
 import { useState, useEffect } from 'react';
-import { TeamData } from '@/lib/server/api/TeamData';
+import { TeamData } from '@/lib/client/api/TeamData';
 
 import { TeamResponse } from '@/types/api/responses';
-import { SportsDBApi } from '@/lib/server/api/sportsDB';
+import { SportsDBApi } from '@/lib/client/api/sportsDB';
 
 export function useTeamData(teamId: string, competitionId: string) {
     const [teamData, setTeamData] = useState<TeamResponse | null>(null);

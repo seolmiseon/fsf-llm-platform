@@ -1,6 +1,6 @@
 'use client';
 
-import { ScoreBatApi } from '@/lib/server/api/scoreHighlight';
+import { ScoreBatApi } from '@/lib/client/api/scoreHighlight';
 import { MatchHighlight } from '@/types/api/score-match';
 import { useEffect, useState } from 'react';
 
@@ -24,9 +24,12 @@ export function MatchVideo({ homeTeam, awayTeam, utcDate }: MatchVideoProps) {
                     awayTeam,
                     utcDate
                 );
+                console.log('API Response:', result);
 
                 if (result.success && result.data.length > 0) {
                     setVideoData(result.data[0]);
+                } else {
+                    console.log('API Response:', result);
                 }
             } catch (error) {
                 console.error('Failed to fetch video:', error);
@@ -63,24 +66,24 @@ export function MatchVideo({ homeTeam, awayTeam, utcDate }: MatchVideoProps) {
 
     return (
         <div className="w-full aspect-video rounded-lg overflow-hidden">
-            <div className="relative w-full h-0 pb-[56.25%] bg-black">
-                <iframe
-                    src={videoData.videos[0].matchingUrl}
-                    className="absolute top-0 left-0 w-full h-full"
-                    frameBorder="0"
-                    allowFullScreen
-                    allow="autoplay; fullscreen"
-                />
-            </div>
+            <div
+                dangerouslySetInnerHTML={{ __html: videoData.videos[0].embed }}
+                className="w-full h-full"
+            />
         </div>
     );
 }
 
 {
     /* <div className="w-full aspect-video rounded-lg overflow-hidden">
-<div
-    dangerouslySetInnerHTML={{ __html: videoData.videos[0].embed }}
-    className="w-full h-full"
-/>
+<div className="relative w-full h-0 pb-[56.25%] bg-black">
+    <iframe
+        src={videoData.videos[0].matchingUrl}
+        className="absolute top-0 left-0 w-full h-full"
+        frameBorder="0"
+        allowFullScreen
+        allow="autoplay; fullscreen"
+    />
+</div>
 </div> */
 }

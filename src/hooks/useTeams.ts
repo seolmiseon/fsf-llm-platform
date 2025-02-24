@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FootballDataApi } from '@/lib/server/api/football-data';
+import { FootballDataApi } from '@/lib/client/api/football-data';
 import { TeamResponse } from '@/types/api/responses';
 
 export const useTeams = (competitionId: string) => {

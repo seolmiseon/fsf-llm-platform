@@ -8,15 +8,26 @@ export async function requestNotificationPermission(): Promise<string | null> {
         if (!messaging) {
             throw new Error('Messaging is not initialized');
         }
-        const permission = await Notification.requestPermission();
+        let permission = Notification.permission;
+
+        if (permission === 'default') {
+            permission = await Notification.requestPermission();
+        }
         if (permission !== 'granted') {
             throw new Error('Notification permission denied');
         }
-        const token = await getToken(messaging, {
+
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (!registration) {
+            throw new Error('Service Worker not registered');
+        }
+
+        const currentToken = await getToken(messaging, {
             vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+            serviceWorkerRegistration: registration,
         });
 
-        return token;
+        return currentToken;
     } catch (error) {
         console.error('알림 권한 요청 실패:', error);
         return null;

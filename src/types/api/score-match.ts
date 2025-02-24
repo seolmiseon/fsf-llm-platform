@@ -1,7 +1,6 @@
 export interface MatchVideo {
     title: string;
     embed: string;
-    matchingUrl: string;
 }
 
 export interface MatchHighlight {
@@ -9,7 +8,7 @@ export interface MatchHighlight {
     competition: string;
     competitionUrl: string;
     matchviewUrl: string;
-    thumbnail: string;
+    thumbnailUrl: string;
     date: string;
     videos: MatchVideo[];
 }

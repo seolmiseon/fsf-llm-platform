@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { getApps, initializeApp } from 'firebase/app';
 import { Database, getDatabase } from 'firebase/database';
 import { getAuth, Auth } from 'firebase/auth';
 import { FirebaseStorage, getStorage } from 'firebase/storage';
@@ -24,20 +24,41 @@ let storage: FirebaseStorage | undefined;
 let messaging: Messaging | undefined;
 
 if (typeof window !== 'undefined') {
-    // 클라이언트 사이드인 경우에만
-    app = initializeApp(firebaseConfig);
-    realtimeDB = getDatabase(app);
-    db = getFirestore(app);
-    auth = getAuth(app);
-    storage = getStorage(app);
-
-    // messaging은 serviceWorker 지원 여부도 확인
-    if ('serviceWorker' in navigator) {
-        try {
-            messaging = getMessaging(app);
-        } catch (error) {
-            console.error('Messaging initialization failed:', error);
+    try {
+        if (!getApps().length) {
+            app = initializeApp(firebaseConfig);
+        } else {
+            app = getApps()[0];
         }
+
+        realtimeDB = getDatabase(app);
+        db = getFirestore(app);
+        auth = getAuth(app);
+        storage = getStorage(app);
+
+        if ('Notification' in window && 'serviceWorker' in navigator) {
+            try {
+                messaging = getMessaging(app); // 여기서 messaging 초기화
+                navigator.serviceWorker
+                    .register('/firebase-messaging-sw.js')
+                    .then((registration) => {
+                        console.log(
+                            'Service Worker registered with scope:',
+                            registration.scope
+                        );
+                    })
+                    .catch((err) => {
+                        console.error(
+                            'Service Worker registration failed:',
+                            err
+                        );
+                    });
+            } catch (error) {
+                console.error('Messaging initialization failed:', error);
+            }
+        }
+    } catch (error) {
+        console.error('Firebase initialization error:', error);
     }
 }
 

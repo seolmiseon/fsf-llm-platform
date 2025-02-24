@@ -9,7 +9,7 @@ import styles from './MatchCarousel.module.css';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import { FootballDataApi } from '@/lib/server/api/football-data';
+import { FootballDataApi } from '@/lib/client/api/football-data';
 
 interface MatchCarouselProps {
     matches: MatchResponse[];

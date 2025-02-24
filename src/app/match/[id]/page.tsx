@@ -1,9 +1,8 @@
 'use client';
 
 import { Error, Loading } from '@/components/ui/common';
-import { FootballDataApi } from '@/lib/server/api/football-data';
+import { FootballDataApi } from '@/lib/client/api/football-data';
 import { MatchResponse } from '@/types/api/responses';
-import { MatchHighlight } from '@/types/api/score-match';
 import Image from 'next/image';
 import * as Tabs from '@radix-ui/react-tabs';
 import { useParams } from 'next/navigation';
@@ -18,13 +17,11 @@ import {
     ScoreDisplay,
     TeamDisplay,
 } from '@/components/match';
-import { ScoreBatApi } from '@/lib/server/api/scoreHighlight';
 import { MatchVideo } from '@/components/match/detail/MatchVideo';
 
 export default function MatchDetailPage() {
     const params = useParams<{ id: string }>();
     const [match, setMatch] = useState<MatchResponse | undefined>();
-    const [highlights, setHighlights] = useState<MatchHighlight[] | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -33,26 +30,10 @@ export default function MatchDetailPage() {
             try {
                 setLoading(true);
                 const api = new FootballDataApi();
-                const scoreBatApi = new ScoreBatApi();
-
                 const matchResult = await api.getMatch(params.id);
 
                 if (matchResult.success) {
                     setMatch(matchResult.data);
-
-                    // match가 있을 때만 하이라이트 요청
-                    if (matchResult.data) {
-                        const highlightsResult =
-                            await scoreBatApi.getMatchHighlights(
-                                matchResult.data.homeTeam.name,
-                                matchResult.data.awayTeam.name,
-                                matchResult.data.utcDate
-                            );
-
-                        if (highlightsResult?.success) {
-                            setHighlights(highlightsResult.data);
-                        }
-                    }
                 }
             } catch (error) {
                 setError(`Failed to load: ${error}`);

@@ -25,7 +25,7 @@ export class ScoreBatApi {
 
             const data = await response.json();
             const matchDay = matchDate.split('T')[0];
-            const matchData = data.find(
+            const matchData = data.response.find(
                 (match: MatchHighlight) =>
                     match.title
                         .toLowerCase()

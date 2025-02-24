@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { LeagueCard } from './LeagueCard';
-import { FootballDataApi } from '@/lib/server/api/football-data';
+import { FootballDataApi } from '@/lib/client/api/football-data';
 import type { Competition } from '@/types/api/responses';
 import { KLeagueCards } from './KLeagueCard';
 
