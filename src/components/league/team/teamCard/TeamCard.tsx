@@ -13,12 +13,16 @@ interface TeamCardProps {
     team: TeamResponse;
     onClick: () => void;
     competitionId: string;
+    onFavoriteClick?: () => void; // 추가된 부분
+    isFavorite?: boolean; // 추가된 부분
 }
 
 export const TeamCard: React.FC<TeamCardProps> = ({
     team,
     onClick,
     competitionId,
+    onFavoriteClick,
+    isFavorite,
 }) => {
     const { open } = useModalStore();
     const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -90,6 +94,23 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                     <h3 className="text-lg font-semibold">{team.name}</h3>
                     <p className="text-sm text-gray-600">{team.tla}</p>
                 </div>
+                {onFavoriteClick && isFavorite !== undefined && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onFavoriteClick();
+                        }}
+                        className={`mt-2 px-4 py-2 rounded-lg ${
+                            isFavorite
+                                ? 'bg-red-500 text-white'
+                                : 'bg-gray-200 text-gray-800'
+                        }`}
+                    >
+                        {isFavorite
+                            ? 'Remove from Favorites'
+                            : 'Add to Favorites'}
+                    </button>
+                )}
             </CardContent>
         </Card>
     );

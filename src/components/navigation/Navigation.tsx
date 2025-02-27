@@ -222,7 +222,7 @@ export default function Navigation({ match }: NavigationProps) {
                             ))}
                         </div>
 
-                        <div className="hidden items-center gap-4">
+                        <div className="hidden sm:flex items-center gap-4">
                             <div className="relative">
                                 <input
                                     type="text"

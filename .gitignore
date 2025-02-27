@@ -29,6 +29,7 @@ yarn-error.log*
 # local env files
 .env*.local
 serviceAccountKey.json
+.env*.production
 
 # vercel
 .vercel
@@ -41,3 +42,5 @@ next-env.d.ts
 /.firebase/
 .firebase/
 firebase-debug.log
+storage.rules
+firestore.rules
