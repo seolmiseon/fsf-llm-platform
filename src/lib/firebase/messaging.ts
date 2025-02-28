@@ -26,7 +26,7 @@ export async function requestNotificationPermission(): Promise<string | null> {
             vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
             serviceWorkerRegistration: registration,
         });
-
+        console.log('FCM Token:', currentToken);
         return currentToken;
     } catch (error) {
         console.error('알림 권한 요청 실패:', error);

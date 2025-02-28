@@ -19,11 +19,13 @@ export async function POST(request: Request) {
                 fcmTokens: [token],
                 lastTokenUpdate: FieldValue.serverTimestamp(),
             });
+            console.log(`New user document created with token: ${token}`);
         } else {
             await userRef.update({
                 fcmTokens: [token],
                 lastTokenUpdate: FieldValue.serverTimestamp(),
             });
+            console.log(`User document updated with new token: ${token}`);
         }
 
         // 매치 알림 저장
@@ -33,6 +35,9 @@ export async function POST(request: Request) {
             token,
             createdAt: FieldValue.serverTimestamp(),
         });
+        console.log(
+            `Match notification saved for matchId: ${matchId}, userId: ${userId}`
+        );
 
         try {
             const adminMessaging = getMessaging();
@@ -44,6 +49,7 @@ export async function POST(request: Request) {
                 },
                 token: token,
             });
+            console.log(`Notification sent successfully to token: ${token}`);
         } catch (messagingError) {
             console.error('FCM error:', messagingError);
             throw new Error('FCM 메시지 전송 실패: ' + messagingError);
