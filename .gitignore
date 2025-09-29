@@ -6,6 +6,9 @@
 .pnp.js
 .yarn/install-state.gz
 /functions/node_modules
+/frontend/node_modules
+/server/node_modules
+
 
 # testing
 /coverage
@@ -28,11 +31,13 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env*
 serviceAccountKey.json
-.env*.production
+.env.production
 
 # vercel
 .vercel
+
 
 # typescript
 *.tsbuildinfo
@@ -44,3 +49,55 @@ next-env.d.ts
 firebase-debug.log
 storage.rules
 firestore.rules
+*-debug.log
+firebase-debug.*.log
+
+# Python (server 디렉토리용)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Docker
+*.log
+.dockerignore
+
+# 임시 파일
+*.tmp
+*.temp
+.cache/
+
+# 빌드 아티팩트
+*.tgz
+
+# 보안/민감정보
+*.key
+*.pem
+*.crt
+secrets/
+credentials/

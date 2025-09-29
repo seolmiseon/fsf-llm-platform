@@ -1,0 +1,225 @@
+.
+├── README.md
+├── frontend
+│   ├── Dockerfile
+│   ├── components.json
+│   ├── next.config.mjs
+│   ├── postcss.config.mjs
+│   ├── public
+│   │   ├── firebase-messaging-sw.js
+│   │   └── images
+│   │       ├── Icon.png
+│   │       ├── KLeague.png
+│   │       ├── breakHeart.png
+│   │       ├── close.png
+│   │       ├── deleteIcon.png
+│   │       ├── edit.png
+│   │       ├── likeHeart.png
+│   │       ├── mapIcon.png
+│   │       ├── stadium.png
+│   │       ├── star.png
+│   │       └── userIcon.png
+│   ├── src
+│   │   ├── app
+│   │   │   ├── api
+│   │   │   │   ├── fanPickStar
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── football
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── notification
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── rag
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── scorebat
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── search
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── sports-db
+│   │   │   │       └── route.ts
+│   │   │   ├── auth
+│   │   │   │   ├── profile
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── signin
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── signup
+│   │   │   │       ├── page.tsx
+│   │   │   │       └── signUp.module.css
+│   │   │   ├── community
+│   │   │   │   ├── [id]
+│   │   │   │   │   ├── edit
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── write
+│   │   │   │       └── page.tsx
+│   │   │   ├── fanpicker
+│   │   │   │   ├── layout.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── favicon.ico
+│   │   │   ├── globals.css
+│   │   │   ├── layout.tsx
+│   │   │   ├── league
+│   │   │   │   ├── [id]
+│   │   │   │   │   ├── LeaguePage.module.css
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── layout.tsx
+│   │   │   ├── match
+│   │   │   │   ├── [id]
+│   │   │   │   │   ├── page.tsx
+│   │   │   │   │   └── styles.module.css
+│   │   │   │   ├── layout.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── not-found.tsx
+│   │   │   ├── page.tsx
+│   │   │   ├── rag-chat
+│   │   │   │   └── page.tsx
+│   │   │   └── stats
+│   │   │       ├── layout.tsx
+│   │   │       └── page.tsx
+│   │   ├── components
+│   │   │   ├── FanPickStar
+│   │   │   │   ├── CheerMessageBoard.tsx
+│   │   │   │   ├── CheerMessageForm.tsx
+│   │   │   │   ├── CheerMessageList.tsx
+│   │   │   │   ├── EventList.tsx
+│   │   │   │   ├── MessageItem.tsx
+│   │   │   │   └── PlayerVoteCard.tsx
+│   │   │   ├── RagChat.tsx
+│   │   │   ├── auth
+│   │   │   │   ├── ProfileContent.tsx
+│   │   │   │   ├── SigninForm.tsx
+│   │   │   │   ├── SignupForm.tsx
+│   │   │   │   └── SocialLoginButtons.tsx
+│   │   │   ├── banner
+│   │   │   │   ├── HomeBanner.module.css
+│   │   │   │   └── HomeBanner.tsx
+│   │   │   ├── community
+│   │   │   │   └── board
+│   │   │   │       ├── CommentForm.tsx
+│   │   │   │       ├── CommentList.tsx
+│   │   │   │       ├── PostForm.tsx
+│   │   │   │       ├── PostItem.tsx
+│   │   │   │       └── PostList.tsx
+│   │   │   ├── league
+│   │   │   │   ├── KLeagueCard.tsx
+│   │   │   │   ├── LeagueCard.module.css
+│   │   │   │   ├── LeagueCard.tsx
+│   │   │   │   ├── LeagueGrid.tsx
+│   │   │   │   └── team
+│   │   │   │       ├── modals
+│   │   │   │       └── teamCard
+│   │   │   ├── match
+│   │   │   │   ├── card
+│   │   │   │   │   ├── MatchCalendar.tsx
+│   │   │   │   │   ├── MatchCard.module.css
+│   │   │   │   │   └── MatchCard.tsx
+│   │   │   │   ├── carousel
+│   │   │   │   │   ├── MatchCarousel.module.css
+│   │   │   │   │   └── MatchCarousel.tsx
+│   │   │   │   ├── detail
+│   │   │   │   │   ├── LiveMatches.tsx
+│   │   │   │   │   ├── MatchVideo.tsx
+│   │   │   │   │   ├── display
+│   │   │   │   │   ├── lineup
+│   │   │   │   │   ├── statistics
+│   │   │   │   │   └── table
+│   │   │   │   ├── gird
+│   │   │   │   │   └── MatchGrid.tsx
+│   │   │   │   └── index.tsx
+│   │   │   ├── navigation
+│   │   │   │   └── Navigation.tsx
+│   │   │   ├── notification
+│   │   │   │   └── NotificationBell.tsx
+│   │   │   ├── providers
+│   │   │   │   ├── AuthProvider.tsx
+│   │   │   │   ├── ErrorBoundary.tsx
+│   │   │   │   └── ThemeProvider.tsx
+│   │   │   └── ui
+│   │   │       ├── alert
+│   │   │       │   └── Alert.tsx
+│   │   │       ├── button
+│   │   │       │   ├── Button.module.css
+│   │   │       │   ├── Button.tsx
+│   │   │       │   └── LikeButton.tsx
+│   │   │       ├── common
+│   │   │       │   ├── card.tsx
+│   │   │       │   ├── dialog.tsx
+│   │   │       │   ├── empty.tsx
+│   │   │       │   ├── error.tsx
+│   │   │       │   ├── index.tsx
+│   │   │       │   └── loading.tsx
+│   │   │       ├── dropDown
+│   │   │       │   └── DropDownMenu.tsx
+│   │   │       ├── input
+│   │   │       │   ├── Input.module.css
+│   │   │       │   ├── Input.tsx
+│   │   │       │   └── types.ts
+│   │   │       ├── logo
+│   │   │       │   └── FSFLogo.tsx
+│   │   │       ├── modal
+│   │   │       │   ├── AuthModal.tsx
+│   │   │       │   ├── LogoutModal.tsx
+│   │   │       │   ├── ModalRoot.tsx
+│   │   │       │   └── SearchModal.tsx
+│   │   │       ├── popover
+│   │   │       │   └── index.tsx
+│   │   │       ├── select
+│   │   │       │   └── index.tsx
+│   │   │       ├── textArea
+│   │   │       │   └── TextArea.tsx
+│   │   │       └── toast
+│   │   │           ├── Toast.tsx
+│   │   │           └── Toaster.tsx
+│   │   ├── store
+│   │   │   ├── useAuthStore.ts
+│   │   │   ├── useFavoritesStore.ts
+│   │   │   ├── useModalStore.ts
+│   │   │   ├── useSearchStore.ts
+│   │   │   ├── useSettingsStore.ts
+│   │   │   ├── useThemeStore.ts
+│   │   │   └── useToastStore.ts
+│   │   ├── styles
+│   │   │   ├── animations.module.css
+│   │   │   └── variables.ts
+│   │   ├── types
+│   │   │   ├── api
+│   │   │   │   ├── event.ts
+│   │   │   │   ├── football-data.ts
+│   │   │   │   ├── responses.ts
+│   │   │   │   ├── score-match.ts
+│   │   │   │   └── sports-db.ts
+│   │   │   ├── auth
+│   │   │   │   └── auth.ts
+│   │   │   ├── community
+│   │   │   │   └── community.ts
+│   │   │   ├── css.d.ts
+│   │   │   └── ui
+│   │   │       ├── modal.ts
+│   │   │       └── search.ts
+│   │   └── utils
+│   │       ├── Validation.ts
+│   │       ├── cn.ts
+│   │       ├── date.ts
+│   │       ├── dateFormat.ts
+│   │       ├── imageUtils.ts
+│   │       └── storage.ts
+│   ├── tailwind.config.ts
+│   └── tsconfig.json
+├── infra
+│   ├── README.md
+│   └── github
+│       └── workflows
+│           ├── firebase-hosting-merge.yml
+│           └── firebase-hosting-pull-request.yml
+├── server
+│   ├── Dockerfile
+│   ├── backend
+│   ├── firebase.json
+│   ├── firestore.indexes.json
+│   ├── llm_service
+│   │   └── external_apis
+│   │       └── mls_api.py
+│   └── serviceAccountKey.json
+└── tree.txt
+
+77 directories, 145 files
