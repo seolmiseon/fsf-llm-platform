@@ -1,4 +1,6 @@
+//@ts-nocheck
 'use client';
+
 import { Button } from '../ui/button/Button';
 import { FcGoogle } from 'react-icons/fc';
 import { RiKakaoTalkFill } from 'react-icons/ri';

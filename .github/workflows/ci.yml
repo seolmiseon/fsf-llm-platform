@@ -1,0 +1,109 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+      llm_service: ${{ steps.filter.outputs.llm_service }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+            backend:
+              - 'server/backend/**'
+            llm_service:
+              - 'server/llm_service/**'
+
+  frontend-lint:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Create .env file
+        working-directory: ./frontend
+        run: echo "${{ secrets.FRONTEND_ENV_FILE }}" > .env
+      
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+      
+      - name: Lint
+        working-directory: ./frontend
+        run: npm run lint
+      
+      - name: Build  
+        working-directory: ./frontend
+        run: npm run build
+
+  # backend-test:
+  #   needs: changes
+  #   if: needs.changes.outputs.backend == 'true'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+      
+  #     - name: Setup Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.11'
+  #         cache: 'pip'
+      
+  #     - name: Install dependencies
+  #       working-directory: ./server/backend
+  #       run: |
+  #         pip install -r requirements.txt
+      
+  #     - name: Lint
+  #       working-directory: ./server/backend
+  #       run: |
+  #         pip install flake8 black
+  #         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+  #         black --check .
+      
+  #     - name: Run tests
+  #       working-directory: ./server/backend
+  #       run: pytest
+
+  # llm-service-test:
+  #   needs: changes
+  #   if: needs.changes.outputs.llm_service == 'true'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+      
+  #     - name: Setup Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.11'
+  #         cache: 'pip'
+      
+  #     - name: Install dependencies
+  #       working-directory: ./server/llm_service
+  #       run: |
+  #         pip install -r requirements.txt
+      
+  #     - name: Run tests
+  #       working-directory: ./server/llm_service
+  #       run: pytest
