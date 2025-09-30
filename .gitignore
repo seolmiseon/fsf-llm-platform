@@ -8,6 +8,7 @@
 /functions/node_modules
 /frontend/node_modules
 /server/node_modules
+*.next
 
 
 # testing
@@ -79,6 +80,7 @@ htmlcov/
 .classpath
 .settings/
 
+
 # OS
 Thumbs.db
 .DS_Store
@@ -91,6 +93,7 @@ Thumbs.db
 *.tmp
 *.temp
 .cache/
+build-errors.txt
 
 # 빌드 아티팩트
 *.tgz
