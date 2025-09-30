@@ -11,7 +11,7 @@ interface LikeButtonProps {
 
 export function LikeButton({
     itemId,
-    itemType,
+    // itemType,
     initialLikes,
     isLiked = false,
     onToggle,

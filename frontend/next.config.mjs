@@ -1,26 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    transpilePackages: [
-        '@fullcalendar/react',
-        '@fullcalendar/daygrid',
-        '@fullcalendar/interaction',
-        '@fullcalendar/core',
-
-        'firebase',
-        'firebase/messaging',
-        'firebase/app',
-
-        'react-kakao-maps-sdk',
-        'react-youtube',
-        'swiper',
-
-        '@radix-ui/react-dialog',
-        '@radix-ui/react-dropdown-menu',
-        '@radix-ui/react-navigation-menu',
-        '@radix-ui/react-select',
-        '@radix-ui/react-tabs',
-        '@radix-ui/react-toast',
-    ],
+   
     webpack: (config) => {
         config.resolve.fallback = {
             ...config.resolve.fallback,
@@ -40,7 +20,7 @@ const nextConfig = {
         domains: [
             'firebasestorage.googleapis.com',
             'dapi.kakao.com',
-            'map.daumcdn.net',
+            'oapi.map.naver.com',
         ],
         unoptimized: true,
     },

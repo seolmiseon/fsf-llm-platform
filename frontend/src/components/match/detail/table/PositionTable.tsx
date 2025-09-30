@@ -7,9 +7,7 @@ interface PositionStandingProps {
     highlightTeamId?: number;
 }
 
-const parseStatValue = (value: string) => {
-    return parseInt(value.replace('%', ''));
-};
+
 
 export const PositionTable = ({
     standings,
