@@ -1,6 +1,6 @@
 import { getPlaceholderImageUrl } from '@/utils/imageUtils';
 import { FootballDataApi } from './football-data';
-import { ScoreBatApi } from './scoreHighlight';
+import { YouTubeHighlightApi } from './scoreHighlight';
 import { SportsDBApi } from './sportsDB';
 import {
     MatchResponse,
@@ -12,12 +12,12 @@ import { MatchHighlight } from '@/types/api/score-match';
 
 export class TeamData {
     private footballDataApi: FootballDataApi;
-    private scoreBatApi: ScoreBatApi;
+    private YouTubeHighlightApi: YouTubeHighlightApi;
     private sportsDBApi: SportsDBApi;
 
     constructor() {
         this.footballDataApi = new FootballDataApi();
-        this.scoreBatApi = new ScoreBatApi();
+        this.YouTubeHighlightApi = new YouTubeHighlightApi();
         this.sportsDBApi = new SportsDBApi();
     }
 
@@ -144,7 +144,7 @@ export class TeamData {
             let highlights: MatchHighlight[] = [];
             try {
                 const highlightsResponse =
-                    await this.scoreBatApi.getMatchHighlights(
+                    await this.YouTubeHighlightApi.getMatchHighlights(
                         match.homeTeam.name,
                         match.awayTeam.name,
                         match.utcDate

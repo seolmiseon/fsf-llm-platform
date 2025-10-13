@@ -1,20 +1,19 @@
-import { MatchHighlight } from '@/types/api/score-match';
+import { YouTubeHighlight, YouTubeHighlightResponse } from '@/types/api/score-match';
 import { ApiResponse } from '@/types/api/responses';
 
-export class ScoreBatApi {
-    private readonly baseUrl: string;
-
-    constructor() {
-        this.baseUrl = '/api/scorebat';
-    }
+export class YouTubeHighlightApi {
+    private readonly baseUrl = '/api/youtube-highlights';
 
     async getMatchHighlights(
         homeTeam: string,
         awayTeam: string,
         matchDate: string
-    ): Promise<ApiResponse<MatchHighlight[]>> {
+    ): Promise<ApiResponse<YouTubeHighlight[]>> {
         try {
-            const response = await fetch(this.baseUrl);
+            const query = `${homeTeam} vs ${awayTeam} highlights`;
+            const response = await fetch(
+                `${this.baseUrl}?q=${encodeURIComponent(query)}`
+            );
 
             if (!response.ok) {
                 return {
@@ -23,29 +22,23 @@ export class ScoreBatApi {
                 };
             }
 
-            const data = await response.json();
-            const matchDay = matchDate.split('T')[0];
-            const matchData = data.response.find(
-                (match: MatchHighlight) =>
-                    match.title
-                        .toLowerCase()
-                        .includes(homeTeam.toLowerCase()) &&
-                    match.title
-                        .toLowerCase()
-                        .includes(awayTeam.toLowerCase()) &&
-                    match.date.split('T')[0] === matchDay
-            );
+            const data: YouTubeHighlightResponse = await response.json();
+            
+            const highlights: YouTubeHighlight[] = data.items.map(item => ({
+                videoId: item.id.videoId,
+                title: item.snippet.title,
+                thumbnail: item.snippet.thumbnails.medium.url,
+                publishedAt: item.snippet.publishedAt,
+            }));
+
             return {
                 success: true,
-                data: matchData ? [matchData] : [],
+                data: highlights,
             };
         } catch (error) {
             return {
                 success: false,
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : 'Failed to fetch highlights',
+                error: error instanceof Error ? error.message : 'Failed to fetch highlights',
             };
         }
     }
