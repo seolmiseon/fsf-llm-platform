@@ -1,18 +1,19 @@
-export interface MatchVideo {
+export interface YouTubeHighlight {
+    videoId: string;
     title: string;
-    embed: string;
+    thumbnail: string;
+    publishedAt: string;
 }
 
-export interface MatchHighlight {
-    title: string;
-    competition: string;
-    competitionUrl: string;
-    matchviewUrl: string;
-    thumbnailUrl: string;
-    date: string;
-    videos: MatchVideo[];
-}
-
-export interface ScoreBatResponse {
-    response: MatchHighlight[];
+export interface YouTubeHighlightResponse {
+    items: Array<{
+        id: { videoId: string };
+        snippet: {
+            title: string;
+            thumbnails: { 
+                medium: { url: string };
+            };
+            publishedAt: string;
+        };
+    }>;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { ScoreBatApi } from '@/lib/client/api/scoreHighlight';
+import { YouTubeHighlightApi } from '@/lib/client/api/scoreHighlight';
 import { MatchHighlight } from '@/types/api/score-match';
 import { useEffect, useState } from 'react';
 
@@ -18,7 +18,7 @@ export function MatchVideo({ homeTeam, awayTeam, utcDate }: MatchVideoProps) {
     useEffect(() => {
         const fetchVideo = async () => {
             try {
-                const api = new ScoreBatApi();
+                const api = new YouTubeHighlightApi();
                 const result = await api.getMatchHighlights(
                     homeTeam,
                     awayTeam,
