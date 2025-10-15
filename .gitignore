@@ -1,3 +1,31 @@
+.DS_Store
+# Node / Next
+node_modules/
+.next/
+dist/
+npm-debug.log*
+yarn-error.log*
+
+# Env / secrets
+.env
+.env.*
+serviceAccountKey.json
+.firebase/
+.firebaserc
+
+# Python
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Build / editor
+.vscode/
+*.log
+tree.txt
+
+# OS
+Thumbs.db
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies

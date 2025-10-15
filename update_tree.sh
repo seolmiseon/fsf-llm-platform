@@ -1,0 +1,1 @@
+tree -I "venv*|*venv*|__pycache__|*.pyc|node_modules|.next|.git|chroma_db|fonts|*.woff2|pack*|objects|bin|lib*|include|docs|out*" -L 6 > tree.txt

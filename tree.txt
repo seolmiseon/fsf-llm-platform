@@ -1,8 +1,9 @@
 .
 ├── README.md
 ├── frontend
-│   ├── Dockerfile
+│   ├── build-errors.txt
 │   ├── components.json
+│   ├── next-env.d.ts
 │   ├── next.config.mjs
 │   ├── postcss.config.mjs
 │   ├── public
@@ -28,13 +29,11 @@
 │   │   │   │   │   └── route.ts
 │   │   │   │   ├── notification
 │   │   │   │   │   └── route.ts
-│   │   │   │   ├── rag
-│   │   │   │   │   └── route.ts
-│   │   │   │   ├── scorebat
-│   │   │   │   │   └── route.ts
 │   │   │   │   ├── search
 │   │   │   │   │   └── route.ts
-│   │   │   │   └── sports-db
+│   │   │   │   ├── sports-db
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── youtube-highlights
 │   │   │   │       └── route.ts
 │   │   │   ├── auth
 │   │   │   │   ├── profile
@@ -71,8 +70,6 @@
 │   │   │   │   └── page.tsx
 │   │   │   ├── not-found.tsx
 │   │   │   ├── page.tsx
-│   │   │   ├── rag-chat
-│   │   │   │   └── page.tsx
 │   │   │   └── stats
 │   │   │       ├── layout.tsx
 │   │   │       └── page.tsx
@@ -84,7 +81,6 @@
 │   │   │   │   ├── EventList.tsx
 │   │   │   │   ├── MessageItem.tsx
 │   │   │   │   └── PlayerVoteCard.tsx
-│   │   │   ├── RagChat.tsx
 │   │   │   ├── auth
 │   │   │   │   ├── ProfileContent.tsx
 │   │   │   │   ├── SigninForm.tsx
@@ -170,6 +166,18 @@
 │   │   │       └── toast
 │   │   │           ├── Toast.tsx
 │   │   │           └── Toaster.tsx
+│   │   ├── hooks
+│   │   │   ├── realtime
+│   │   │   │   └── useRealtimeNotification.ts
+│   │   │   ├── useFavorite.ts
+│   │   │   ├── useImageUpload.ts
+│   │   │   ├── useLiveMatches.ts
+│   │   │   ├── useModalPosition.ts
+│   │   │   ├── usePlayerDetail.ts
+│   │   │   ├── usePosts.ts
+│   │   │   ├── useServerSearch.ts
+│   │   │   ├── useTeamData.ts
+│   │   │   └── useTeams.ts
 │   │   ├── store
 │   │   │   ├── useAuthStore.ts
 │   │   │   ├── useFavoritesStore.ts
@@ -205,21 +213,24 @@
 │   │       └── storage.ts
 │   ├── tailwind.config.ts
 │   └── tsconfig.json
-├── infra
-│   ├── README.md
-│   └── github
-│       └── workflows
-│           ├── firebase-hosting-merge.yml
-│           └── firebase-hosting-pull-request.yml
 ├── server
 │   ├── Dockerfile
 │   ├── backend
+│   │   ├── firebase_config.py
+│   │   └── routers
 │   ├── firebase.json
 │   ├── firestore.indexes.json
 │   ├── llm_service
-│   │   └── external_apis
-│   │       └── mls_api.py
+│   │   ├── external_apis
+│   │   │   └── mls_api.py
+│   │   ├── prompts
+│   │   └── services
+│   │       ├── openai_service.py
+│   │       └── rag_service.py
+│   ├── main.py
+│   ├── requirements.txt
 │   └── serviceAccountKey.json
-└── tree.txt
+├── tree.txt
+└── update_tree.sh
 
-77 directories, 145 files
+77 directories, 156 files
