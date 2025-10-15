@@ -30,10 +30,12 @@ fsf-llm-platform/
 ### 🔐 Backend - 진행 중
 - [x] 프로젝트 구조 설계 (모듈러 모노리스)
 - [x] Football-Data API 연동 확인 ✅
-- [ ] FastAPI 통합 앱 구축
+- [x] Firebase Admin SDK 연동 ✅
+- [x] 로컬 테스트 성공 ✅
+- [ ] Cloud Run 배포
 - [ ] 인증 API (JWT + Firebase Admin)
 - [ ] 커뮤니티 API (게시글, 댓글 CRUD)
-- [ ] Firestore 연동
+- [ ] Firestore CRUD 구현
 
 ### 🤖 LLM Service - 진행 중
 - [x] OpenAI API 준비 (gpt-4o-mini)
@@ -133,11 +135,11 @@ server/
 ## 🎯 개발 로드맵
 
 ### Phase 1: Backend 기본 인프라 (1주)
-- [ ] `server/main.py` FastAPI 통합 앱 생성
-- [ ] Firebase Admin SDK 연동
-- [ ] CORS 설정
-- [ ] 기본 라우터 구조 (`/health`, `/`)
-- [ ] Football-Data API 클라이언트 구현
+- [x] `server/main.py` FastAPI 통합 앱 생성
+- [x] Firebase Admin SDK 연동
+- [x] CORS 설정
+- [x] 기본 라우터 구조 (`/health`, `/`)
+- [x] Football-Data API 클라이언트 구현
 
 ### Phase 2: RAG 시스템 구축 (1-2주)
 - [ ] ChromaDB 초기 설정
