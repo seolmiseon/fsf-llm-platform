@@ -1,5 +1,6 @@
 .
 ├── README.md
+├── SESSION_HANDOFF.md
 ├── frontend
 │   ├── build-errors.txt
 │   ├── components.json
@@ -29,11 +30,11 @@
 │   │   │   │   │   └── route.ts
 │   │   │   │   ├── notification
 │   │   │   │   │   └── route.ts
+│   │   │   │   ├── scorebat
+│   │   │   │   │   └── route.ts
 │   │   │   │   ├── search
 │   │   │   │   │   └── route.ts
-│   │   │   │   ├── sports-db
-│   │   │   │   │   └── route.ts
-│   │   │   │   └── youtube-highlights
+│   │   │   │   └── sports-db
 │   │   │   │       └── route.ts
 │   │   │   ├── auth
 │   │   │   │   ├── profile
@@ -216,15 +217,39 @@
 ├── server
 │   ├── Dockerfile
 │   ├── backend
+│   │   ├── __init__.py
+│   │   ├── dependencies.py
 │   │   ├── firebase_config.py
+│   │   ├── models.py
 │   │   └── routers
+│   │       ├── __init__.py
+│   │       ├── auth.py
+│   │       ├── football_data.py
+│   │       ├── posts.py
+│   │       └── users.py
 │   ├── firebase.json
 │   ├── firestore.indexes.json
 │   ├── llm_service
+│   │   ├── __init__.py
 │   │   ├── external_apis
-│   │   │   └── mls_api.py
+│   │   │   ├── __init__.py
+│   │   │   ├── football_data.py
+│   │   │   ├── mls_api.py
+│   │   │   └── youtube_api.py
+│   │   ├── models.py
 │   │   ├── prompts
+│   │   │   ├── __init__.py
+│   │   │   ├── chat_prompts.py
+│   │   │   ├── match_prompts.py
+│   │   │   └── player_prompts.py
+│   │   ├── routers
+│   │   │   ├── __init__.py
+│   │   │   ├── chat.py
+│   │   │   ├── match_analysis.py
+│   │   │   └── player_compare.py
 │   │   └── services
+│   │       ├── __init__.py
+│   │       ├── data_ingestion.py
 │   │       ├── openai_service.py
 │   │       └── rag_service.py
 │   ├── main.py
@@ -233,4 +258,4 @@
 ├── tree.txt
 └── update_tree.sh
 
-77 directories, 156 files
+78 directories, 180 files
