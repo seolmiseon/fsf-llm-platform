@@ -1,4 +1,3 @@
-# .github/workflows/deploy.yml
 name: Deploy
 
 on:
@@ -61,70 +60,73 @@ deploy-frontend:
         projectId: fsfproject-fd2e6
         entryPoint: ./frontend
 
-# deploy-backend:
-  #   needs: changes
-  #   if: needs.changes.outputs.backend == 'true'
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-      
-  #     - name: Authenticate to Google Cloud
-  #       uses: google-github-actions/auth@v2
-  #       with:
-  #         credentials_json: ${{ secrets.GCP_SA_KEY }}
-      
-  #     - name: Set up Cloud SDK
-  #       uses: google-github-actions/setup-gcloud@v2
-      
-  #     - name: Configure Docker for Artifact Registry
-  #       run: |
-  #         gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev
-      
-  #     - name: Build and Push Docker Image
-  #       working-directory: ./server
-  #       run: |
-  #         docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fsf/backend:${{ github.sha }} .
-  #         docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fsf/backend:${{ github.sha }}
-      
-  #     - name: Deploy to Cloud Run
-  #       run: |
-  #         gcloud run deploy fsf-backend \
-  #           --image ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fsf/backend:${{ github.sha }} \
-  #           --platform managed \
-  #           --region ${{ secrets.GCP_REGION }} \
-  #           --allow-unauthenticated
+deploy-backend:
+  needs: changes
+  if: needs.changes.outputs.backend == 'true'
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+    
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+    
+    - name: Configure Docker for Artifact Registry
+      run: |
+        gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev
+    
+    - name: Build and Push Docker Image
+      working-directory: ./server
+      run: |
+        docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fsf/fsf-server:latest .
+        docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fsf/fsf-server:latest
+    
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy fsf-server \
+          --image ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fsf/fsf-server:latest \
+          --platform managed \
+          --region ${{ secrets.GCP_REGION }} \
+          --allow-unauthenticated \
+          --set-env-vars="ENV=production" \
+          --memory=512Mi \
+          --timeout=300s
 
 # deploy-llm-service:
-  #   needs: changes
-  #   if: needs.changes.outputs.llm_service == 'true'
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-      
-  #     - name: Authenticate to Google Cloud
-  #       uses: google-github-actions/auth@v2
-  #       with:
-  #         credentials_json: ${{ secrets.GCP_SA_KEY }}
-      
-  #     - name: Set up Cloud SDK
-  #       uses: google-github-actions/setup-gcloud@v2
-      
-  #     - name: Configure Docker for Artifact Registry
-  #       run: |
-  #         gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev
-      
-  #     - name: Build and Push Docker Image
-  #       working-directory: ./server/llm_service
-  #       run: |
-  #         docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fsf/llm-service:${{ github.sha }} .
-  #         docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fsf/llm-service:${{ github.sha }}
-      
-  #     - name: Deploy to Cloud Run
-  #       run: |
-  #         gcloud run deploy fsf-llm-service \
-  #           --image ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fsf/llm-service:${{ github.sha }} \
-  #           --platform managed \
-  #           --region ${{ secrets.GCP_REGION }} \
-  #           --allow-unauthenticated \
-  #           --memory 2Gi \
-  #           --cpu 2
+#   needs: changes
+#   if: needs.changes.outputs.llm_service == 'true'
+#   runs-on: ubuntu-latest
+#   steps:
+#     - uses: actions/checkout@v4
+#     
+#     - name: Authenticate to Google Cloud
+#       uses: google-github-actions/auth@v2
+#       with:
+#         credentials_json: ${{ secrets.GCP_SA_KEY }}
+#     
+#     - name: Set up Cloud SDK
+#       uses: google-github-actions/setup-gcloud@v2
+#     
+#     - name: Configure Docker for Artifact Registry
+#       run: |
+#         gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev
+#     
+#     - name: Build and Push Docker Image
+#       working-directory: ./server/llm_service
+#       run: |
+#         docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fsf/llm-service:latest .
+#         docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fsf/llm-service:latest
+#     
+#     - name: Deploy to Cloud Run
+#       run: |
+#         gcloud run deploy fsf-llm-service \
+#           --image ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fsf/llm-service:latest \
+#           --platform managed \
+#           --region ${{ secrets.GCP_REGION }} \
+#           --allow-unauthenticated \
+#           --memory 2Gi \
+#           --cpu 2

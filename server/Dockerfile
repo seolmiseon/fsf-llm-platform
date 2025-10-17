@@ -1,5 +1,4 @@
-<<<<<<< Updated upstream
-=======
+
 # ==================================================
 # FSF Server - Production Dockerfile for Cloud Run
 # ==================================================
@@ -35,4 +34,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 # Production command
 # Cloud Run will inject PORT env var, but default to 8000
 CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 4
->>>>>>> Stashed changes
+

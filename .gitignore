@@ -133,3 +133,4 @@ build-errors.txt
 secrets/
 credentials/
 serviceAccountKey.json
+SESSION_HANDOFF.md
