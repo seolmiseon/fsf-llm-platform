@@ -1,4 +1,4 @@
-.DS_Store
+.ignore
 # Node / Next
 node_modules/
 .next/
@@ -26,6 +26,7 @@ tree.txt
 
 # OS
 Thumbs.db
+
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -37,7 +38,6 @@ Thumbs.db
 /frontend/node_modules
 /server/node_modules
 *.next
-
 
 # testing
 /coverage
@@ -66,7 +66,6 @@ serviceAccountKey.json
 
 # vercel
 .vercel
-
 
 # typescript
 *.tsbuildinfo
@@ -108,7 +107,6 @@ htmlcov/
 .classpath
 .settings/
 
-
 # OS
 Thumbs.db
 .DS_Store
@@ -134,3 +132,37 @@ secrets/
 credentials/
 serviceAccountKey.json
 SESSION_HANDOFF.md
+
+# ============================================
+# 🚫 ChromaDB 및 벡터 저장소
+# ============================================
+# ChromaDB 로컬 저장소 (완전히 재생성 가능)
+/server/data/
+/server/data/chroma_db/
+data/
+chroma_db/
+
+# ============================================
+# 📊 로컬 테스트 및 임시 데이터
+# ============================================
+# RAG 초기화 로그
+rag_initialization.log
+initialize_rag.log
+
+# 로컬 테스트 결과
+test_results/
+*.db
+*.sqlite
+*.sqlite3
+
+# 임시 CSV/JSON 테스트 파일
+test_data/
+sample_data/
+temp_data/
+
+# ============================================
+# 🔍 개발 로그
+# ============================================
+debug_env.log
+*.log
+*.log.*
