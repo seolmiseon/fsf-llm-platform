@@ -1,5 +1,3 @@
-
-
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
@@ -25,19 +23,38 @@ class ChatRequest(BaseModel):
 
 
 class ChatResponse(BaseModel):
-    """AI 챗봇 응답"""
+    """AI 챗봇 응답 (캐싱 최적화 버전)"""
     answer: str = Field(..., description="AI 답변")
     sources: List[str] = Field(default=[], description="참고한 문서들")
     tokens_used: int = Field(default=0, description="사용된 토큰 수")
     confidence: float = Field(default=0.0, description="답변 신뢰도 (0-1)", ge=0, le=1)
+    
+    # ← 🆕 캐싱 정보 추가!
+    cache_hit: bool = Field(
+        default=False, 
+        description="캐시 히트 여부 (True=캐시에서 가져옴, False=LLM으로 생성)"
+    )
+    cache_source: str = Field(
+        default="none",
+        description="캐시 출처",
+        pattern="^(chromadb|firestore|llm|none)$"
+    )
+    cost_saved: float = Field(
+        default=0.0,
+        description="절감된 비용 (USD)",
+        ge=0
+    )
 
     class Config:
         json_schema_extra = {
             "example": {
-                "answer": "손흥민은 최근 5경기에서 3골 2도움을 기록하며...",
+                "answer": "손흥민은 최근 5경기에서 3골 2도움을 기록하며 좋은 컨디션을 유지하고 있습니다.",
                 "sources": ["match_20250101", "player_stats_sonny"],
-                "tokens_used": 342,
-                "confidence": 0.95
+                "tokens_used": 0,
+                "confidence": 0.95,
+                "cache_hit": True,  # ← 🆕 캐시 히트!
+                "cache_source": "chromadb",  # ← 🆕 ChromaDB에서 가져옴
+                "cost_saved": 0.001  # ← 🆕 절감 비용
             }
         }
 
