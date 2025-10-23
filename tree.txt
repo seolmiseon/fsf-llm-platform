@@ -227,8 +227,10 @@
 │   │       ├── football_data.py
 │   │       ├── posts.py
 │   │       └── users.py
+│   ├── data
 │   ├── firebase.json
 │   ├── firestore.indexes.json
+│   ├── initialize_rag.py
 │   ├── llm_service
 │   │   ├── __init__.py
 │   │   ├── external_apis
@@ -249,13 +251,15 @@
 │   │   │   └── player_compare.py
 │   │   └── services
 │   │       ├── __init__.py
+│   │       ├── cache_service.py
 │   │       ├── data_ingestion.py
 │   │       ├── openai_service.py
 │   │       └── rag_service.py
 │   ├── main.py
+│   ├── rag_initialization.log
 │   ├── requirements.txt
 │   └── serviceAccountKey.json
 ├── tree.txt
 └── update_tree.sh
 
-78 directories, 180 files
+79 directories, 183 files
