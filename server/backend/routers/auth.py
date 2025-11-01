@@ -13,10 +13,10 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from firebase_admin import auth, firestore
 from datetime import datetime
 
-from .backend_models import (
+from ..models import (
     UserCreate, UserLogin, UserResponse, AuthResponse, MessageResponse, ErrorResponse
 )
-from .backend_dependencies import (
+from ..dependencies import (
     create_access_token, get_current_user, get_firestore_db, get_firebase_auth,
     handle_auth_error, handle_firestore_error
 )

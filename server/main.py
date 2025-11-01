@@ -105,16 +105,21 @@ try:
 except Exception as e:
     logger.error(f"⚠️ LLM Service 라우터 import 실패: {e}", exc_info=True)
 
-# Backend 라우터들 (아직 없음 - 나중에 추가)
-# try:
-#     from backend.routers.auth import router as auth_router
-#     from backend.routers.posts import router as posts_router
-#     from backend.routers.football_data import router as football_router
-#     print("✅ Backend 라우터들 import 성공")
-# except Exception as e:
-#     print(f"⚠️ Backend 라우터 import 실패 (아직 구현 안 됨): {e}")
+try:
+    from backend.routers.auth import router as auth_router
+    from backend.routers.posts import router as posts_router
+    from backend.routers.users import router as users_router
+    from backend.routers.football_data import router as football_router
 
-logger.info("🔗 라우터 등록 완료")
+    # 라우터 등록
+    app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
+    app.include_router(posts_router, prefix="/api/posts", tags=["Posts"])
+    app.include_router(users_router, prefix="/api/users", tags=["Users"])
+    app.include_router(football_router, prefix="/api/football", tags=["Football"])
+
+    logger.info("✅ Backend 라우터들 import 및 등록 성공")
+except Exception as e:
+    logger.error(f"⚠️ Backend 라우터 import 실패: {e}", exc_info=True)
 
 # ============================================
 # API 엔드포인트

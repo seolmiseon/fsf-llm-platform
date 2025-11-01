@@ -1,22 +1,12 @@
-"""
-Football-Data API 프록시 라우터 - 캐싱 포함
-
-Firestore를 사용한 결과 캐싱으로 API 호출 최소화
-- 무료 티어 제한: 10 requests/minute
-- 캐시: 1시간 유효
-- 성능: 캐시 히트 시 50ms 이내
-
-📖 Football-Data API: https://www.football-data.org/documentation/quickstart
-"""
 
 import logging
 from datetime import datetime, timedelta
 from typing import Optional
-from fastapi import APIRouter, HTTPException, status, Depends, Query
+from fastapi import APIRouter, HTTPException, status, Depends, Query, Path
 from firebase_admin import firestore
 
-from .llm_service.external_apis.football_data import FootballDataClient
-from .backend_dependencies import get_firestore_db
+from llm_service.external_apis.football_data import FootballDataClient
+from ..dependencies import get_firestore_db
 
 logger = logging.getLogger(__name__)
 
@@ -338,17 +328,9 @@ async def get_matches(
 # ============================================
 
 
-@router.get(
-    "/teams/{competition}",
-    status_code=status.HTTP_200_OK,
-    responses={
-        200: {"description": "팀 목록 조회 성공"},
-        400: {"description": "잘못된 리그 코드"},
-        503: {"description": "Football-Data API 오류"},
-    },
-)
+@router.get("/teams/{competition}")
 async def get_teams(
-    competition: str = Query(..., description="리그 코드 (PL, LA, BL 등)"),
+    competition: str = Path(..., description="리그 코드 (PL, LA, BL 등)"),
     force_refresh: bool = Query(False, description="캐시 무시"),
     db: firestore.client = Depends(get_firestore_db),
 ):

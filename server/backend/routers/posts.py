@@ -13,11 +13,11 @@ from fastapi import APIRouter, HTTPException, status, Depends, Query
 from firebase_admin import firestore
 import uuid
 
-from .backend_models import (
+from ..models import (
     PostCreate, PostUpdate, PostResponse, PostListResponse,
     CommentCreate, CommentResponse, UserResponse, MessageResponse
 )
-from .backend_dependencies import (
+from ..dependencies import (
     get_current_user, get_firestore_db, handle_firestore_error, get_optional_user
 )
 

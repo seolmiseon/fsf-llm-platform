@@ -1,11 +1,3 @@
-"""
-Backend Dependencies - 인증 및 DB 의존성
-
-JWT 토큰 검증, 현재 사용자 조회, Firestore 연결 등
-의존성 주입(Dependency Injection) 함수들
-
-📖 FastAPI Depends: https://fastapi.tiangolo.com/tutorial/dependencies/
-"""
 
 import os
 import logging
@@ -13,11 +5,11 @@ from typing import Optional
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthCredentials
+from fastapi.security import HTTPBearer
 import firebase_admin
 from firebase_admin import firestore, auth
 
-from .backend_models import UserResponse
+from .models import UserResponse
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +97,7 @@ def verify_token(token: str) -> dict:
 # ============================================
 
 async def get_current_user(
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials = Depends(security),
 ) -> UserResponse:
     """
     현재 인증된 사용자 조회
@@ -180,7 +172,7 @@ async def get_current_user(
 
 
 async def get_optional_user(
-    credentials: Optional[HTTPAuthCredentials] = Depends(security),
+    credentials = Depends(security),
 ) -> Optional[UserResponse]:
     """
     선택적 사용자 조회 (토큰 없어도 됨)

@@ -132,6 +132,13 @@ secrets/
 credentials/
 serviceAccountKey.json
 SESSION_HANDOFF.md
+PORTFOLIO_SUMMARY.md
+CLAUDE.md
+DEPLOYMENT_GUIDE.md
+NEXT_SESSION.md
+START_HERE_NEW_SESSION.md
+PROJECT_STATUS.md
+
 
 # ============================================
 # 🚫 ChromaDB 및 벡터 저장소
