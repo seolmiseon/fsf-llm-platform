@@ -1,0 +1,58 @@
+node_modules
+.next
+.git
+.env.production
+.env.local.backup
+serviceAccountKey.json
+README.md
+.vscode
+.github
+firebase.json
+firestore.indexes.json
+firestore.rules
+storage.rules 
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Tests
+tests/
+.pytest_cache/
+
+# ChromaDB (will be mounted as volume)
+data/chroma_db/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore

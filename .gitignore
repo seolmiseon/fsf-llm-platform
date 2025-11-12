@@ -113,7 +113,7 @@ Thumbs.db
 
 # Docker
 *.log
-.dockerignore
+
 
 # 임시 파일
 *.tmp
