@@ -25,13 +25,12 @@ RUN mkdir -p /app/data/chroma_db
 COPY . .
 
 # Expose port (Cloud Run uses PORT env var)
-EXPOSE 8000
+EXPOSE 8080
 
 # Health check for container orchestration
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
+    CMD curl -f http://localhost:8080/health || exit 1
 # Production command
 # Cloud Run will inject PORT env var, but default to 8000
-CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 4
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080} --workers 1
 
