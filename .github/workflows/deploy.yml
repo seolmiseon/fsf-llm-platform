@@ -88,6 +88,10 @@ jobs:
         run: |
           gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev
       
+      - name: Create .env file
+        working-directory: ./server
+        run: echo "${{ secrets.SERVER_ENV_FILE }}" > .env
+      
       - name: Build and Push Docker Image
         working-directory: ./server
         run: |
@@ -102,6 +106,6 @@ jobs:
             --region ${{ secrets.GCP_REGION }} \
             --allow-unauthenticated \
             --service-account=fsf-github-actions@ultra-strength-475300-r2.iam.gserviceaccount.com \
-            --set-env-vars="ENV=production" \
             --memory=512Mi \
             --timeout=300s
+    
