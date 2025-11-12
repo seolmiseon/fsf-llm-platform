@@ -1,4 +1,6 @@
 .
+├── NEXT_SESSION.md
+├── PROJECT_STATUS.md
 ├── README.md
 ├── SESSION_HANDOFF.md
 ├── frontend
@@ -259,7 +261,8 @@
 │   ├── rag_initialization.log
 │   ├── requirements.txt
 │   └── serviceAccountKey.json
+├── tree.md
 ├── tree.txt
 └── update_tree.sh
 
-79 directories, 183 files
+79 directories, 186 files
