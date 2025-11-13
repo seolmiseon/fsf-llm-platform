@@ -7,6 +7,7 @@ import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { Toaster } from '@/components/ui/toast/Toaster';
+import FloatingChatBot from '@/components/chat/FloatingChatBot';  // 추가
 
 const pretendard = localFont({
     src: '../fonts/PretendardVariable.woff2',
@@ -38,6 +39,7 @@ export default function RootLayout({
                             <main>{children}</main>
                             <ModalRoot />
                             <Toaster />
+                            <FloatingChatBot />  {/* 추가 */}
                         </AuthProvider>
                     </ThemeProvider>
                 </ErrorBoundary>

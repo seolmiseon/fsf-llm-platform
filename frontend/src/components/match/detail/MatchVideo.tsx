@@ -1,7 +1,7 @@
 'use client';
 
 import { YouTubeHighlightApi } from '@/lib/client/api/scoreHighlight';
-import { MatchHighlight } from '@/types/api/score-match';
+import { YouTubeHighlight } from '@/types/api/score-match';
 import { useEffect, useState } from 'react';
 
 interface MatchVideoProps {
@@ -11,7 +11,7 @@ interface MatchVideoProps {
 }
 
 export function MatchVideo({ homeTeam, awayTeam, utcDate }: MatchVideoProps) {
-    const [videoData, setVideoData] = useState<MatchHighlight | null>(null);
+    const [videoData, setVideoData] = useState<YouTubeHighlight | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -24,15 +24,12 @@ export function MatchVideo({ homeTeam, awayTeam, utcDate }: MatchVideoProps) {
                     awayTeam,
                     utcDate
                 );
-                console.log('API Response:', result);
 
                 if (result.success && result.data.length > 0) {
                     setVideoData(result.data[0]);
-                } else {
-                    console.log('API Response:', result);
                 }
-            } catch (error) {
-                console.error('Failed to fetch video:', error);
+            } catch (err) {
+                console.error('Failed to fetch video:', err);
                 setError('Failed to load video');
             } finally {
                 setLoading(false);
@@ -56,7 +53,7 @@ export function MatchVideo({ homeTeam, awayTeam, utcDate }: MatchVideoProps) {
         );
     }
 
-    if (!videoData || !videoData.videos?.[0]) {
+    if (!videoData) {
         return (
             <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
                 <p className="text-gray-500">Match video not available yet</p>
@@ -65,25 +62,15 @@ export function MatchVideo({ homeTeam, awayTeam, utcDate }: MatchVideoProps) {
     }
 
     return (
-        <div className="w-full aspect-video rounded-lg overflow-hidden">
-            <div
-                dangerouslySetInnerHTML={{ __html: videoData.videos[0].embed }}
+        <div className="w-full aspect-video rounded-lg overflow-hidden bg-black">
+            <iframe
+                src={`https://www.youtube.com/embed/${videoData.videoId}`}
                 className="w-full h-full"
+                frameBorder="0"
+                allowFullScreen
+                allow="autoplay; fullscreen"
+                title={videoData.title}
             />
         </div>
     );
-}
-
-{
-    /* <div className="w-full aspect-video rounded-lg overflow-hidden">
-<div className="relative w-full h-0 pb-[56.25%] bg-black">
-    <iframe
-        src={videoData.videos[0].matchingUrl}
-        className="absolute top-0 left-0 w-full h-full"
-        frameBorder="0"
-        allowFullScreen
-        allow="autoplay; fullscreen"
-    />
-</div>
-</div> */
 }

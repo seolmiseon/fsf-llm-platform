@@ -17,3 +17,10 @@ export interface YouTubeHighlightResponse {
         };
     }>;
 }
+
+export interface MatchHighlight {
+    videos?: Array<{
+        embed: string;
+        matchingUrl?: string;
+    }>;
+}

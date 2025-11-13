@@ -1,3 +1,5 @@
+// frontend/src/lib/client/api/TeamData.ts
+
 import { getPlaceholderImageUrl } from '@/utils/imageUtils';
 import { FootballDataApi } from './football-data';
 import { YouTubeHighlightApi } from './scoreHighlight';
@@ -8,7 +10,7 @@ import {
     TeamResponse,
     TeamImages,
 } from '@/types/api/responses';
-import { MatchHighlight } from '@/types/api/score-match';
+import { YouTubeHighlight } from '@/types/api/score-match';  // 변경
 
 export class TeamData {
     private footballDataApi: FootballDataApi;
@@ -121,7 +123,7 @@ export class TeamData {
 
     async getMatchDetails(
         matchId: string
-    ): Promise<MatchResponse & { highlights: MatchHighlight[] }> {
+    ): Promise<MatchResponse & { highlights: YouTubeHighlight[] }> {  // 변경
         if (!matchId || !/^\d+$/.test(matchId)) {
             throw new Error('Invalid match ID format');
         }
@@ -141,7 +143,7 @@ export class TeamData {
                 throw new Error('Failed to fetch match details');
             }
 
-            let highlights: MatchHighlight[] = [];
+            let highlights: YouTubeHighlight[] = [];  // 변경
             try {
                 const highlightsResponse =
                     await this.YouTubeHighlightApi.getMatchHighlights(
