@@ -257,13 +257,13 @@ cp .env.example .env
 # .env 파일 열어서 실제 API 키 입력
 
 # 서버 실행
-uvicorn main:app --reload --port 8000
+uvicorn main:app --reload --port 8080
 ```
 
 **서버 확인:**
-- Swagger UI: http://localhost:8000/docs
-- Health Check: http://localhost:8000/health
-- Debug Info: http://localhost:8000/debug
+- Swagger UI: http://localhost:8080/docs
+- Health Check: http://localhost:8080/health
+- Debug Info: http://localhost:8080/debug
 
 #### Docker 실행 (선택사항)
 ```bash
@@ -273,10 +273,10 @@ cd server
 docker build -t fsf-server:local .
 
 # 컨테이너 실행
-docker run -p 8000:8000 --env-file .env fsf-server:local
+docker run -p 8080:8080 --env-file .env fsf-server:local
 
 # ChromaDB 데이터 영속성 (볼륨 마운트)
-docker run -p 8000:8000 --env-file .env \
+docker run -p 8080:8080 --env-file .env \
   -v $(pwd)/data:/app/data \
   fsf-server:local
 ```
@@ -293,7 +293,7 @@ docker run -p 8000:8000 --env-file .env \
 # server/.env.example 파일 내용
 
 # General
-PORT=8000
+PORT=8080
 ENV=development
 
 # OpenAI

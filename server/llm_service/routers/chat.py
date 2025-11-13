@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, HTTPException
 from typing import Optional
 import logging
@@ -45,7 +44,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         ChatResponse: AI 답변 + 캐시 정보
 
     Example:
-        >>> curl -X POST http://localhost:8000/api/llm/chat \\
+        >>> curl -X POST http://localhost:8080/api/llm/chat \\
         ...   -H "Content-Type: application/json" \\
         ...   -d '{"query": "손흥민 최근 폼은?", "top_k": 5}'
 
@@ -77,7 +76,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
                 confidence=cached_answer["confidence"],
                 cache_hit=True,  # ← 🆕
                 cache_source="chromadb",  # ← 🆕
-                cost_saved=0.001  # ← 🆕 예상 절감 비용
+                cost_saved=0.001,  # ← 🆕 예상 절감 비용
             )
 
         logger.debug("⚠️ 캐시 미스 → 새로운 질문으로 처리")
@@ -88,9 +87,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         logger.debug("Step 2️⃣: RAG 검색 중...")
         search_query = request.query
         rag_results = rag_service.search(
-            collection_name="default",
-            query=search_query,
-            top_k=request.top_k
+            collection_name="default", query=search_query, top_k=request.top_k
         )
 
         # RAG 결과를 소스로 변환
@@ -154,8 +151,8 @@ async def chat(request: ChatRequest) -> ChatResponse:
                 "model": "gpt-4o-mini",
                 "tokens": total_tokens,
                 "input_tokens": input_tokens,
-                "output_tokens": output_tokens
-            }
+                "output_tokens": output_tokens,
+            },
         )
 
         if cache_saved:
@@ -175,15 +172,12 @@ async def chat(request: ChatRequest) -> ChatResponse:
             confidence=0.85,
             cache_hit=False,  # ← 🆕 캐시 미스
             cache_source="llm",  # ← 🆕 LLM에서 생성
-            cost_saved=0.0  # ← 🆕 캐시 미스이므로 비용 발생
+            cost_saved=0.0,  # ← 🆕 캐시 미스이므로 비용 발생
         )
 
     except Exception as e:
         logger.error(f"❌ 챗봇 오류: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"챗봇 처리 실패: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"챗봇 처리 실패: {str(e)}")
 
 
 @router.get("/health", response_model=dict, summary="챗봇 서비스 헬스 체크")
