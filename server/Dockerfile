@@ -12,7 +12,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 소스 코드 복사
+# .env 파일 명시적으로 복사 (이 줄 추가!)
+COPY .env /app/.env
+
+# 나머지 소스 코드 복사
 COPY . /app
 
 # 포트 노출
