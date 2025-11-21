@@ -518,3 +518,14 @@ async def football_health():
         "api_available": football_client is not None,
         "timestamp": datetime.now().isoformat(),
     }
+
+
+@router.get("/competitions")
+async def get_competitions():
+    """리그 목록 조회"""
+    try:
+        competitions = football_client.get_competitions()
+        return {"success": True, "data": competitions}
+    except Exception as e:
+        logger.error(f"❌ 리그 목록 조회 실패: {e}")
+        raise HTTPException(status_code=503, detail=str(e))
