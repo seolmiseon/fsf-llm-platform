@@ -82,7 +82,7 @@ jobs:
 
       - name: Create Firebase Service Account Key file
         working-directory: ./server
-        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}' > serviceAccountKey.json
+        run: echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}" > serviceAccountKey.json
         
       - name: Build and Push Docker Image
         working-directory: ./server
