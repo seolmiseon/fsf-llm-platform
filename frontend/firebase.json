@@ -1,7 +1,13 @@
 {
   "hosting": {
-    "public": ".",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    "source": ".",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "function": "ssrfsfprojectfd2e6"
+      }
+    ]
   },
   "functions": {
     "source": "functions",
