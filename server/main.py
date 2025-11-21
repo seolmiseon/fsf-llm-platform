@@ -19,7 +19,7 @@ load_dotenv()
 cred = None
 try:
     # 1순위: 환경변수에서 Firebase Service Account Key 읽기 (Cloud Run용)
-    firebase_key = os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY')
+    firebase_key = os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY")
     if firebase_key:
         try:
             service_account_info = json.loads(firebase_key)
@@ -30,12 +30,14 @@ try:
 
     # 2순위: 로컬 파일에서 읽기
     if not cred:
-        cred_path = os.path.join(os.path.dirname(__file__), 'serviceAccountKey.json')
+        cred_path = os.path.join(os.path.dirname(__file__), "serviceAccountKey.json")
         if os.path.exists(cred_path):
             cred = credentials.Certificate(cred_path)
             logger.info("✅ Firebase 로컬 파일에서 인증정보 로드 성공")
         else:
-            logger.warning(f"⚠️ Firebase Service Account 키 파일을 찾을 수 없습니다: {cred_path}")
+            logger.warning(
+                f"⚠️ Firebase Service Account 키 파일을 찾을 수 없습니다: {cred_path}"
+            )
 
     # Firebase Admin SDK 초기화
     if cred and not firebase_admin._apps:
@@ -53,6 +55,7 @@ try:
     from backend.routers.posts import router as posts_router
     from backend.routers.users import router as users_router
     from backend.routers.football_data import router as football_router
+
     logger.info("✅ Backend 라우터들 import 및 등록 성공")
 except Exception as e:
     logger.error(f"❌ Backend 라우터 import 실패: {e}")
@@ -64,6 +67,7 @@ try:
     from llm_service.routers.chat import router as chat_router
     from llm_service.routers.match_analysis import router as analysis_router
     from llm_service.routers.player_compare import router as compare_router
+
     logger.info("✅ LLM Service 라우터들 import 및 등록 성공")
 except Exception as e:
     logger.error(f"⚠️ LLM Service 라우터 import 실패: {e}")
@@ -121,7 +125,7 @@ async def root():
     return {
         "message": "FSF Platform API is running!",
         "version": "1.0.0",
-        "timestamp": str(datetime.now())
+        "timestamp": str(datetime.now()),
     }
 
 
@@ -129,8 +133,10 @@ async def root():
 async def health_check():
     """헬스 체크 엔드포인트"""
     firebase_status = "connected" if firebase_admin._apps else "disconnected"
-    openai_configured = "configured" if os.getenv("OPENAI_API_KEY") else "not configured"
-    
+    openai_configured = (
+        "configured" if os.getenv("OPENAI_API_KEY") else "not configured"
+    )
+
     return {
         "status": "healthy",
         "service": "FSF API",
@@ -138,7 +144,7 @@ async def health_check():
         "openai": openai_configured,
         "port": os.getenv("PORT", "8080"),
         "env": os.getenv("ENV", "development"),
-        "timestamp": str(datetime.now())
+        "timestamp": str(datetime.now()),
     }
 
 
@@ -168,12 +174,10 @@ if __name__ == "__main__":
 
     try:
         uvicorn.run(
-            "main:app",
-            host="0.0.0.0",
-            port=port,
-            reload=False,
-            log_level="info"
+            "main:app", host="0.0.0.0", port=port, reload=False, log_level="info"
         )
     except Exception as e:
         logger.error(f"❌ 서버 시작 실패: {e}")
         sys.exit(1)
+
+# 에러가 어디서 나오는건지....
