@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# .env 파일 명시적으로 복사 (이 줄 추가!)
-COPY .env /app/.env
+# Firebase 서비스 계정 키 복사 (중요!)
+COPY serviceAccountKey.json /app/serviceAccountKey.json
 
 # 나머지 소스 코드 복사
 COPY . /app
@@ -22,4 +22,4 @@ COPY . /app
 EXPOSE 8080
 
 # 개발 서버 실행 (핫 리로드)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
