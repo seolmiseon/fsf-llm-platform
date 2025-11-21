@@ -62,6 +62,7 @@ jobs:
           channelId: live
           projectId: fsfproject-fd2e6
           entryPoint: ./frontend
+          target: fsfproject-fd2e6
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
 
