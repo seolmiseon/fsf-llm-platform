@@ -36,7 +36,7 @@ export class FootballDataApi {
 
             // competitions 엔드포인트 처리
             if (path === '/standings') {
-                data = responseData.competitions || responseData;
+                data = responseData.standings || responseData;
             }
             // teams 엔드포인트 처리 추가
             // API 응답에서 teams 배열이 있다면 그것을 사용
