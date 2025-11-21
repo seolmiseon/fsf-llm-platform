@@ -389,6 +389,23 @@ class FootballDataClient:
             logger.error(f"❌ API 상태 확인 실패: {e}")
             return {"status": "error", "code": 0, "message": str(e)}
 
+    def get_competitions(self) -> List[Dict[str, Any]]:
+        """리그 목록 조회"""
+        try:
+            url = f"{self.BASE_URL}/competitions"
+            response = self.session.get(url, timeout=10)
+            response.raise_for_status()
+
+            data = response.json()
+            logger.info(
+                f"✅ 리그 목록 조회 성공: {len(data.get('competitions', []))}개"
+            )
+            return data.get("competitions", [])
+
+        except Exception as e:
+            logger.error(f"❌ 리그 목록 조회 실패: {e}")
+            raise
+
     def close(self):
         """세션 종료"""
         self.session.close()
