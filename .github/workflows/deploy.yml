@@ -102,7 +102,6 @@ jobs:
           flags: '--allow-unauthenticated --memory=1Gi --cpu=1 --timeout=60s --max-instances=10'
           env_vars: |
             ENV=production
-            PORT=8080
             OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
             OPENAI_MODEL=${{ secrets.OPENAI_MODEL }}
             FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
@@ -112,4 +111,4 @@ jobs:
             NAVER_MAP_CLIENT_ID=${{ secrets.NAVER_MAP_CLIENT_ID }}
             NAVER_MAP_CLIENT_SECRET=${{ secrets.NAVER_MAP_CLIENT_SECRET }}
             YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}
-            FIREBASE_SERVICE_ACCOUNT_KEY=${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
+
