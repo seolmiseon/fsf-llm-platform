@@ -106,7 +106,7 @@ if posts_router:
 if users_router:
     app.include_router(users_router, prefix="/api/users", tags=["Users"])
 if football_router:
-    app.include_router(football_router, prefix="/api/football", tags=["Football Data"])
+    app.include_router(football_router, prefix="/api", tags=["Football Data"])
 
 # LLM Service 라우터 등록
 if chat_router:
