@@ -4,8 +4,10 @@
 ├── README.md
 ├── SESSION_HANDOFF.md
 ├── frontend
+│   ├── README.md
 │   ├── build-errors.txt
 │   ├── components.json
+│   ├── firebase.json
 │   ├── next-env.d.ts
 │   ├── next.config.mjs
 │   ├── postcss.config.mjs
@@ -32,11 +34,11 @@
 │   │   │   │   │   └── route.ts
 │   │   │   │   ├── notification
 │   │   │   │   │   └── route.ts
-│   │   │   │   ├── scorebat
-│   │   │   │   │   └── route.ts
 │   │   │   │   ├── search
 │   │   │   │   │   └── route.ts
-│   │   │   │   └── sports-db
+│   │   │   │   ├── sports-db
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── youtube-highlights
 │   │   │   │       └── route.ts
 │   │   │   ├── auth
 │   │   │   │   ├── profile
@@ -92,6 +94,9 @@
 │   │   │   ├── banner
 │   │   │   │   ├── HomeBanner.module.css
 │   │   │   │   └── HomeBanner.tsx
+│   │   │   ├── chat
+│   │   │   │   ├── ChatBot.tsx
+│   │   │   │   └── FloatingChatBot.tsx
 │   │   │   ├── community
 │   │   │   │   └── board
 │   │   │   │       ├── CommentForm.tsx
@@ -218,7 +223,9 @@
 │   └── tsconfig.json
 ├── server
 │   ├── Dockerfile
+│   ├── README.md
 │   ├── backend
+│   │   ├── README.md
 │   │   ├── __init__.py
 │   │   ├── dependencies.py
 │   │   ├── firebase_config.py
@@ -230,9 +237,9 @@
 │   │       ├── posts.py
 │   │       └── users.py
 │   ├── data
-│   ├── firebase.json
 │   ├── firestore.indexes.json
 │   ├── initialize_rag.py
+│   ├── latest_logs.json
 │   ├── llm_service
 │   │   ├── __init__.py
 │   │   ├── external_apis
@@ -256,6 +263,7 @@
 │   │       ├── cache_service.py
 │   │       ├── data_ingestion.py
 │   │       ├── openai_service.py
+│   │       ├── prompt_service.py
 │   │       └── rag_service.py
 │   ├── main.py
 │   ├── rag_initialization.log
@@ -265,4 +273,4 @@
 ├── tree.txt
 └── update_tree.sh
 
-79 directories, 186 files
+80 directories, 193 files
