@@ -77,7 +77,7 @@ export class FootballDataApi {
     }
 
     async getCompetitions(): Promise<ApiResponse<Competition[]>> {
-        return this.fetchApi<Competition[]>('/standings');
+        return this.fetchApi<Competition[]>('/competitions');
     }
 
     async getCompetition(
