@@ -66,7 +66,7 @@ class FootballDataClient:
         """
         경기 목록 조회
 
-        📖 엔드포인트: GET /competitions/{competitionId}/matches
+        📖 엔드포인트: GET /standings/{competitionId}/matches
 
         Args:
             competition: 리그 코드 (PL, LA, BL, SA, FL1)
@@ -87,7 +87,7 @@ class FootballDataClient:
                 f"지원: {list(self.COMPETITIONS.keys())}"
             )
 
-        url = f"{self.BASE_URL}/competitions/{comp_id}/matches"
+        url = f"{self.BASE_URL}/standings/{comp_id}/matches"
         params = {"status": status, "limit": min(limit, 100)}  # 최대 100개
 
         try:
@@ -172,7 +172,7 @@ class FootballDataClient:
         """
         순위표 조회
 
-        📖 엔드포인트: GET /competitions/{competitionId}/standings
+        📖 엔드포인트: GET /standings/{competitionId}/standings
 
         Args:
             competition: 리그 코드
@@ -190,7 +190,7 @@ class FootballDataClient:
         if not comp_id:
             raise ValueError(f"지원하지 않는 리그: {competition}")
 
-        url = f"{self.BASE_URL}/competitions/{comp_id}/standings"
+        url = f"{self.BASE_URL}/standings/{comp_id}/standings"
 
         try:
             response = self.session.get(url, timeout=10)
@@ -269,9 +269,9 @@ class FootballDataClient:
         """
         특정 리그의 모든 팀 조회
 
-        📖 엔드포인트: GET /competitions/{competitionId}/standings
+        📖 엔드포인트: GET /standings/{competitionId}/standings
 
-        주의: Football-Data API는 /competitions/{id} 엔드포인트에서
+        주의: Football-Data API는 /standings/{id} 엔드포인트에서
         teams 배열을 반환하지 않습니다.
         대신 standings에서 팀 정보를 추출합니다.
 
@@ -290,7 +290,7 @@ class FootballDataClient:
         if not comp_id:
             raise ValueError(f"지원하지 않는 리그: {competition}")
 
-        url = f"{self.BASE_URL}/competitions/{comp_id}/standings"
+        url = f"{self.BASE_URL}/standings/{comp_id}/standings"
 
         try:
             response = self.session.get(url, timeout=10)
@@ -370,7 +370,7 @@ class FootballDataClient:
     def get_api_status(self) -> Dict[str, Any]:
         """API 상태 확인"""
         try:
-            response = self.session.get(f"{self.BASE_URL}/competitions", timeout=10)
+            response = self.session.get(f"{self.BASE_URL}/standings", timeout=10)
 
             if response.status_code == 200:
                 return {

@@ -204,11 +204,11 @@ export class BackendApi {
 
   // Football Data API (캐싱된 버전)
   async getStandings(competitionId: number): Promise<ApiResponse<any>> {
-    return this.fetch(`/api/football-data/competitions/${competitionId}/standings`);
+    return this.fetch(`/api/football-data/standings/${competitionId}/standings`);
   }
 
   async getMatches(competitionId: number): Promise<ApiResponse<any>> {
-    return this.fetch(`/api/football-data/competitions/${competitionId}/matches`);
+    return this.fetch(`/api/football-data/standings/${competitionId}/matches`);
   }
 
   async getTeam(teamId: number): Promise<ApiResponse<any>> {

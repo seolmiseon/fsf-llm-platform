@@ -35,7 +35,7 @@ export class FootballDataApi {
             let data = responseData;
 
             // competitions 엔드포인트 처리
-            if (path === '/competitions') {
+            if (path === '/standings') {
                 data = responseData.competitions || responseData;
             }
             // teams 엔드포인트 처리 추가
@@ -77,13 +77,13 @@ export class FootballDataApi {
     }
 
     async getCompetitions(): Promise<ApiResponse<Competition[]>> {
-        return this.fetchApi<Competition[]>('/competitions');
+        return this.fetchApi<Competition[]>('/standings');
     }
 
     async getCompetition(
         competitionId: string
     ): Promise<ApiResponse<Competition>> {
-        return this.fetchApi<Competition>(`/competitions/${competitionId}`);
+        return this.fetchApi<Competition>(`/standings/${competitionId}`);
     }
 
     async getTeamsByCompetition(
@@ -104,7 +104,7 @@ export class FootballDataApi {
             };
         }
         return this.fetchApi<TeamResponse[]>(
-            `/competitions/${competitionId}/teams`
+            `/standings/${competitionId}/teams`
         );
     }
 
@@ -162,7 +162,7 @@ export class FootballDataApi {
         competitionId: string
     ): Promise<ApiResponse<StandingsResponse>> {
         return this.fetchApi<StandingsResponse>(
-            `/competitions/${competitionId}/standings`
+            `/standings/${competitionId}/standings`
         );
     }
 }

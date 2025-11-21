@@ -15,7 +15,7 @@ export async function GET(request: Request) {
         // 백엔드 URL
         const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://fsf-server-303660711261.asia-northeast3.run.app';
         
-        // path 변환: /competitions → /api/football/competitions  
+        // path 변환: /standings → /api/football/standings  
         const apiPath = path.startsWith('/') ? path.substring(1) : path;
         const fullUrl = `${backendUrl}/api/football/${apiPath}`;
 
