@@ -14,7 +14,7 @@ export async function uploadImageToStorage(imageUrl: string, path: string) {
         const response = await fetch(imageUrl, {
             headers: {
                 'X-Auth-Token': process.env
-                    .NEXT_PUBLIC_FOOTBALL_API_KEY as string,
+                    .FOOTBALL_API_KEY as string,
                 Accept: 'image/*',
             },
         });

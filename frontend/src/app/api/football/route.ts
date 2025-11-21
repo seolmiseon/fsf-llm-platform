@@ -10,7 +10,7 @@ export async function GET(request: Request) {
         console.log('Path parameter:', path);
         console.log(
             'API Key exists:',
-            !!process.env.NEXT_PUBLIC_FOOTBALL_API_KEY
+            !!process.env.FOOTBALL_API_KEY
         );
 
         if (!path) {
@@ -46,8 +46,7 @@ export async function GET(request: Request) {
 
         const response = await fetch(apiUrl, {
             headers: {
-                'X-Auth-Token': process.env
-                    .NEXT_PUBLIC_FOOTBALL_API_KEY as string,
+                'X-Auth-Token': process.env.FOOTBALL_API_KEY as string,
             },
             next: { revalidate: 60 }, //1분캐싱
         });
