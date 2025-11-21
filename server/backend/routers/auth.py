@@ -432,5 +432,3 @@ async def auth_health():
         "timestamp": datetime.now().isoformat(),
     }
 
-
-""
