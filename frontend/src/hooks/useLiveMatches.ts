@@ -26,7 +26,15 @@ export const useLiveMatches = () => {
                 return;
             }
 
+            console.log('useLiveMatches - API result:', {
+                success: result.success,
+                dataType: typeof result.data,
+                isArray: Array.isArray(result.data),
+                data: result.data,
+            });
+
             if (!Array.isArray(result.data)) {
+                console.error('Invalid data format:', result.data);
                 setError('Invalid data format received');
                 return;
             }
