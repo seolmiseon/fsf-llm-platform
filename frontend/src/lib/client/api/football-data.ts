@@ -32,7 +32,7 @@ export class FootballDataApi {
             }
 
             // API 응답 구조에 따라 데이터 추출
-            let data = responseData;
+            let data = responseData.data || responseData;
 
             // competitions 엔드포인트 처리
             if (path === '/standings') {
