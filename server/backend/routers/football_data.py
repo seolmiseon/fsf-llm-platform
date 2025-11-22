@@ -173,6 +173,7 @@ async def get_standings(
             cached_data = get_cache(db, cache_key)
             if cached_data:
                 return {
+                    "success": True,
                     "data": cached_data,
                     "source": "cache",
                     "cached": True,
@@ -195,6 +196,7 @@ async def get_standings(
         set_cache(db, cache_key, standings, metadata={"competition": competition})
 
         return {
+            "success": True,
             "data": standings,
             "source": "api",
             "cached": False,
@@ -273,6 +275,7 @@ async def get_matches(
             cached_data = get_cache(db, cache_key)
             if cached_data:
                 return {
+                    "success": True,
                     "data": cached_data,
                     "source": "cache",
                     "cached": True,
@@ -305,6 +308,7 @@ async def get_matches(
         )
 
         return {
+            "success": True,
             "data": matches,
             "source": "api",
             "cached": False,
@@ -365,6 +369,7 @@ async def get_teams(
             cached_data = get_cache(db, cache_key)
             if cached_data:
                 return {
+                    "success": True,
                     "data": cached_data,
                     "source": "cache",
                     "cached": True,
@@ -385,6 +390,7 @@ async def get_teams(
         set_cache(db, cache_key, teams, metadata={"competition": competition})
 
         return {
+            "success": True,
             "data": teams,
             "source": "api",
             "cached": False,
