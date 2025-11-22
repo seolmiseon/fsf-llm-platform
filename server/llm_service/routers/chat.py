@@ -124,7 +124,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         messages.append({"role": "user", "content": user_message_with_context})
 
         # LLM 호출
-        ai_response = openai_service.chat(messages=messages)
+        ai_response = await openai_service.chat(messages=messages)
 
         # ============================================
         # ✅ STEP 5: 실제 토큰 수 계산 ($0)
