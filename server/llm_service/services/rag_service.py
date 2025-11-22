@@ -1,4 +1,3 @@
-
 from langchain_openai import OpenAI
 from langchain.chains import RetrievalQA
 from langchain_community.vectorstores import Chroma
@@ -13,3 +12,15 @@ class RAGService:
     
     def query(self, question: str) -> str:
         return self.qa_chain.run(question)
+    
+    def search(self, collection_name: str, query: str, top_k: int = 5):
+        """ChromaDB에서 유사 문서 검색"""
+        retriever = self.vector_store.as_retriever(search_kwargs={"k": top_k})
+        docs = retriever.get_relevant_documents(query)
+        
+        return {
+            "ids": [f"doc_{i}" for i in range(len(docs))],
+            "documents": [doc.page_content for doc in docs],
+            "metadatas": [doc.metadata for doc in docs],
+            "distances": [0.5] * len(docs)
+        }

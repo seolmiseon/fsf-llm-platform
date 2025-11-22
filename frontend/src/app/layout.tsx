@@ -8,6 +8,8 @@ import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { Toaster } from '@/components/ui/toast/Toaster';
 import FloatingChatBot from '@/components/chat/FloatingChatBot';  // 추가
+import { AmplitudeProvider } from '@/components/providers/AmplitudeProvider';
+
 
 const pretendard = localFont({
     src: '../fonts/PretendardVariable.woff2',
@@ -33,6 +35,7 @@ export default function RootLayout({
         <html lang="en">
             <body className={`${pretendard.variable} vsc-initialized`}>
                 <ErrorBoundary>
+                    <AmplitudeProvider>
                     <ThemeProvider>
                         <AuthProvider>
                             <Navigation />
@@ -41,7 +44,8 @@ export default function RootLayout({
                             <Toaster />
                             <FloatingChatBot />  {/* 추가 */}
                         </AuthProvider>
-                    </ThemeProvider>
+                        </ThemeProvider>
+                        </AmplitudeProvider>
                 </ErrorBoundary>
             </body>
         </html>

@@ -86,10 +86,14 @@ export class BackendApi {
   }
 
   // LLM API
-  async chat(message: string): Promise<ApiResponse<{ response: string }>> {
+   async chat(message: string): Promise<ApiResponse<{
+    answer: string;
+    cached?: boolean;
+    cache_hit?: boolean;
+  }>> {
     return this.fetch('/api/llm/chat', {
       method: 'POST',
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ query: message }),  // ← query로 변경!
     });
   }
 

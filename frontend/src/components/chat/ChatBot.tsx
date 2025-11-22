@@ -1,8 +1,9 @@
-
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { BackendApi } from '@/lib/client/api/backend';
+import { trackLLMRequest, trackError } from '@/lib/amplitude';  +3+
+652
 
 interface Message {
   id: string;
@@ -45,17 +46,27 @@ export default function ChatBot({ onClose }: ChatBotProps) {
     setInput('');
     setIsLoading(true);
 
+    const startTime = Date.now();  // 추가: 시작 시간
+
     try {
       const response = await backendApi.chat(userMessage.content);
+      const responseTime = Date.now() - startTime;  // 추가: 응답 시간 계산
 
       if (response.success && response.data) {
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: response.data.response,
+          content: response.data.answer,
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, assistantMessage]);
+
+        // 추가: LLM 요청 성공 트래킹
+        trackLLMRequest({
+          question_type: 'general_chat',
+          response_time_ms: responseTime,
+          cache_hit: response.data.cache_hit || false,
+        });
       } else {
         throw new Error(response.error || 'Failed to get response');
       }
@@ -68,6 +79,20 @@ export default function ChatBot({ onClose }: ChatBotProps) {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
+
+      // 추가: 에러 트래킹
+      const responseTime = Date.now() - startTime;
+      trackLLMRequest({
+        question_type: 'general_chat',
+        response_time_ms: responseTime,
+        cache_hit: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      
+      trackError('chat_error', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        user_input: userMessage.content.substring(0, 100), // 첫 100자만
+      });
     } finally {
       setIsLoading(false);
     }
