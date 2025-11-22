@@ -21,7 +21,8 @@ class CacheService:
         캐시 서비스 초기화
         """
         try:
-            self.rag_service = RAGService()
+            self.rag_service = RAGService(persist_directory="chroma_db")
+            self.cache_rag = RAGService(persist_directory="chroma_db_cache")
 
             # Firestore 연결 (lazy loading)
             self._db = None
@@ -74,20 +75,24 @@ class CacheService:
         try:
             normalized = self._normalize_query(query)
 
-            results = self.rag_service.search(
+            results = self.cache_rag.search(
                 collection_name="cached_answers", query=normalized, top_k=1
             )
+
+            logger.info(f"🔍 캐시 검색 결과: {len(results.get('ids', []))}개 발견")
+            logger.info(f"🔍 검색된 IDs: {results.get('ids', [])}")
 
             if not results["ids"] or len(results["ids"]) == 0:
                 logger.debug(f"⚠️ 캐시 미스: {query[:50]}")
                 return None
+            ...
 
             # 유사도 계산 (거리 → 유사도)
             distance = results["distances"][0]
             similarity = 1 - distance
 
-            # 유사도 0.85 이상: 캐시 히트!
-            if similarity >= 0.85:
+            # 유사도 0.3 이상: 캐시 히트!
+            if similarity >= 0.3:
                 logger.info(
                     f"🎯 ChromaDB 캐시 히트: '{query[:50]}...' (유사도 {similarity:.2f})"
                 )
@@ -99,7 +104,7 @@ class CacheService:
                     "source": "chromadb_cache",
                 }
             else:
-                logger.debug(f"⚠️ 유사도 부족: {similarity:.2f} < 0.85")
+                logger.debug(f"⚠️ 유사도 부족: {similarity:.2f} < 0.3")
                 return None
 
         except Exception as e:
@@ -137,8 +142,19 @@ class CacheService:
             query_hash = hashlib.md5(normalized.encode()).hexdigest()
             doc_id = f"answer_{query_hash}"
 
+            # metadata에서 리스트 값 필터링 (추가!)
+            filtered_metadata = {}
+            if metadata:
+                for key, value in metadata.items():
+                    # str, int, float, bool, None만 허용
+                    if isinstance(value, (str, int, float, bool, type(None))):
+                        filtered_metadata[key] = value
+                    elif isinstance(value, list):
+                        # 리스트는 문자열로 변환
+                        filtered_metadata[key] = str(value)
+
             # ChromaDB에 저장
-            self.rag_service.add_documents(
+            self.cache_rag.add_documents(
                 collection_name="cached_answers",
                 documents=[answer],
                 metadatas=[
@@ -148,7 +164,7 @@ class CacheService:
                         "answer_preview": answer[:100],
                         "created_at": datetime.now().isoformat(),
                         "tokens_saved": 500,  # 예상 절감 토큰
-                        **(metadata or {}),
+                        **filtered_metadata,
                     }
                 ],
                 ids=[doc_id],

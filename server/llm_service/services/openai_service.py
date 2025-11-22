@@ -117,11 +117,9 @@ class OpenAIService:
             print(f"응급 이미지 분석 오류: {e}")
             return "이미지 분석 중 오류가 발생했습니다. 응급 상황이 의심되면 즉시 병원에 가세요."
 
-    def chat(self, messages: List[Dict[str, str]]) -> str:
-        """동기 chat 메서드 (chat.py 호환용)"""
-        import asyncio
-
-        return asyncio.run(self.generate_chat_response(messages))
+    async def chat(self, messages: List[Dict[str, str]]) -> str:
+        """비동기 chat 메서드 (chat.py 호환용)"""
+        return await self.generate_chat_response(messages)
 
     def count_tokens(self, text: str) -> int:
         """토큰 수 계산 (대략적)"""

@@ -148,6 +148,7 @@ latest_logs.json
 /server/data/chroma_db/
 data/
 chroma_db/
+chroma_db_cache/
 
 # ============================================
 # 📊 로컬 테스트 및 임시 데이터
