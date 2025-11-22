@@ -125,37 +125,7 @@ export class FootballDataApi {
     }
 
     async getLiveMatches(): Promise<ApiResponse<MatchResponse[]>> {
-        try {
-            const response = await fetch(
-                `${this.baseUrl}?path=/matches&status=IN_PLAY`,
-                {
-                    next: { revalidate: 60 }, // 1분 캐싱
-                }
-            );
-
-            if (!response.ok) {
-                return {
-                    success: false,
-                    error: `Failed to fetch live matches: ${response.statusText}`,
-                };
-            }
-
-            const data = await response.json();
-            console.log('Live Matches API Data:', data);
-            return {
-                success: true,
-                data: data.matches,
-            };
-        } catch (error: unknown) {
-            console.error('Error fetching live matches:', error);
-            return {
-                success: false,
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : 'Failed to fetch live matches',
-            };
-        }
+        return this.fetchApi<MatchResponse[]>('/matches');
     }
 
     async getStandings(
