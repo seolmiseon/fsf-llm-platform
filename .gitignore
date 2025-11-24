@@ -169,6 +169,8 @@ test_results/
 test_data/
 sample_data/
 temp_data/
+portfolio-experiments/
+
 
 # ============================================
 # 🔍 개발 로그
