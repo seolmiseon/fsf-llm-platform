@@ -10,7 +10,7 @@ interface LeagueCardProps {
     competition: Competition;
 }
 
-// 리그별 브랜드 컬러 매핑
+// 리그별 브랜드 컬러 매핑 (무료 API에서 제공되는 리그만)
 const leagueColors: Record<string, string> = {
     'Premier League': 'from-purple-600 to-pink-600',
     'La Liga': 'from-red-600 to-orange-600',
@@ -31,7 +31,7 @@ export function LeagueCard({ competition }: LeagueCardProps) {
     return (
         <Link href={`/league/${competition.id}`} className={styles.card}>
             {/* 리그별 컬러 헤더 추가 */}
-            <div className={`w-full h-2 rounded-t-lg bg-gradient-to-r ${gradientColor}`} />
+            <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${gradientColor}`} />
 
             <div className={styles.logoContainer}>
                 {competition.emblem ? (
