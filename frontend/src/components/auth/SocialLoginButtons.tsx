@@ -60,33 +60,27 @@ export default function SocialLoginButtons() {
             )}
 
             <div className="space-y-3">
-                <Button
-                    variant="secondary"
-                    fullWidth
+                <button
                     onClick={() => handleSocialLogin('google')}
-                    className="flex items-center justify-center bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                    className="w-full flex items-center justify-center px-4 py-3 bg-white text-gray-700 border border-gray-300 rounded-md font-medium hover:bg-gray-50 transition-colors"
                 >
                     <FcGoogle className="mr-2 h-5 w-5" />
                     <span>Google로 로그인</span>
-                </Button>
-                <Button
+                </button>
+                <button
                     onClick={() => handleSocialLogin('kakao')}
-                    variant="secondary"
-                    fullWidth
-                    className="flex items-center justify-center bg-[#FEE500] text-[#000000] hover:bg-[#FDD835]"
+                    className="w-full flex items-center justify-center px-4 py-3 bg-[#FEE500] text-[#000000] rounded-md font-medium hover:bg-[#FDD835] transition-colors"
                 >
                     <RiKakaoTalkFill className="mr-2 h-5 w-5 text-[#000000]" />
                     <span>Kakao로 로그인</span>
-                </Button>
-                <Button
+                </button>
+                <button
                     onClick={() => handleSocialLogin('naver')}
-                    variant="secondary"
-                    fullWidth
-                    className="flex items-center justify-center bg-[#03C75A] text-white hover:bg-[#02b351]"
+                    className="w-full flex items-center justify-center px-4 py-3 bg-[#03C75A] text-white rounded-md font-medium hover:bg-[#02b351] transition-colors"
                 >
                     <SiNaver className="mr-2 h-5 w-5 text-white" />
                     <span>Naver로 로그인</span>
-                </Button>
+                </button>
             </div>
         </>
     );

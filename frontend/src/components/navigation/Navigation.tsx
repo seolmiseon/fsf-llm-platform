@@ -2,11 +2,12 @@
 
 import { Button } from '@/components/ui/button/Button';
 import FSFLogo from '@/components/ui/logo/FSFLogo';
-import { Search, Menu, X, User, LogOut } from 'lucide-react';
+import { Search, Menu, X, User, LogOut, Trophy, BarChart3, MessageCircle, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useModalStore } from '@/store/useModalStore';
 import { useCallback, useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
+import { usePathname } from 'next/navigation';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -30,19 +31,23 @@ export default function Navigation({ match }: NavigationProps) {
     const [imageError, setImageError] = useState(false);
     const { open } = useModalStore();
     const { user, loading } = useAuthStore();
+    const pathname = usePathname();
 
     const navLinks = [
         {
             href: '/match',
             label: 'Match',
+            icon: Trophy,
         },
         {
             href: '/stats',
             label: 'Stats',
+            icon: BarChart3,
         },
         {
             href: '/community',
             label: 'Community',
+            icon: MessageCircle,
             onClick: (e: React.MouseEvent) => {
                 if (!user) {
                     e.preventDefault();
@@ -56,6 +61,7 @@ export default function Navigation({ match }: NavigationProps) {
         {
             href: '/fanpicker',
             label: 'FanPicker',
+            icon: Star,
             onClick: (e: React.MouseEvent) => {
                 if (!user) {
                     e.preventDefault();
@@ -209,17 +215,27 @@ export default function Navigation({ match }: NavigationProps) {
                     </div>
 
                     <div className="hidden sm:flex sm:items-center sm:space-x-8">
-                        <div className="flex items-center">
-                            {navLinks.map(({ href, label, onClick }) => (
-                                <Link
-                                    key={href}
-                                    href={href}
-                                    onClick={onClick}
-                                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                                >
-                                    {label}
-                                </Link>
-                            ))}
+                        <div className="flex items-center gap-2">
+                            {navLinks.map(({ href, label, icon: Icon, onClick }) => {
+                                const isActive = pathname === href;
+                                return (
+                                    <Link
+                                        key={href}
+                                        href={href}
+                                        onClick={onClick}
+                                        className={`
+                                            flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all
+                                            ${isActive
+                                                ? 'text-purple-600 bg-purple-50 border-b-2 border-purple-600'
+                                                : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50/50'
+                                            }
+                                        `}
+                                    >
+                                        <Icon className="w-4 h-4" />
+                                        {label}
+                                    </Link>
+                                );
+                            })}
                         </div>
 
                         <div className="hidden sm:flex items-center gap-4">
@@ -272,19 +288,29 @@ export default function Navigation({ match }: NavigationProps) {
                 {isMenuOpen && (
                     <div className="sm:hidden" id="mobile-menu">
                         <div className="px-2 pt-2 pb-3 space-y-1">
-                            {navLinks.map(({ href, label, onClick }) => (
-                                <Link
-                                    key={href}
-                                    href={href}
-                                    onClick={(e) => {
-                                        onClick?.(e);
-                                        setIsMenuOpen(false);
-                                    }}
-                                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                                >
-                                    {label}
-                                </Link>
-                            ))}
+                            {navLinks.map(({ href, label, icon: Icon, onClick }) => {
+                                const isActive = pathname === href;
+                                return (
+                                    <Link
+                                        key={href}
+                                        href={href}
+                                        onClick={(e) => {
+                                            onClick?.(e);
+                                            setIsMenuOpen(false);
+                                        }}
+                                        className={`
+                                            flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium transition-all
+                                            ${isActive
+                                                ? 'text-purple-600 bg-purple-50 border-l-4 border-purple-600'
+                                                : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'
+                                            }
+                                        `}
+                                    >
+                                        <Icon className="w-5 h-5" />
+                                        {label}
+                                    </Link>
+                                );
+                            })}
 
                             {user ? (
                                 <>

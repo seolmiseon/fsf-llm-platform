@@ -121,6 +121,8 @@ Thumbs.db
 .cache/
 build-errors.txt
 
+
+
 # 빌드 아티팩트
 *.tgz
 
@@ -138,6 +140,7 @@ DEPLOYMENT_GUIDE.md
 NEXT_SESSION.md
 START_HERE_NEW_SESSION.md
 PROJECT_STATUS.md
+FSF_프론트엔드_리팩토링_인계.md
 latest_logs.json 
 
 # ============================================

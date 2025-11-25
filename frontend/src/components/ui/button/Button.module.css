@@ -1,16 +1,16 @@
 .primary {
-    background-color: #607d8b; /* 새로운 primary 컬러 */
+    background: linear-gradient(to right, #9333ea, #6366f1); /* 보라색 그라데이션 */
     color: white;
 }
 .primary:hover {
-    background-color: #37474f; /* 새로운 hover 컬러 */
+    background: linear-gradient(to right, #7e22ce, #4f46e5); /* 더 진한 보라색 */
 }
 .primary:hover:not(:disabled) {
-    background-color: #37474f;
+    background: linear-gradient(to right, #7e22ce, #4f46e5);
 }
 
 .primary:disabled {
-    background-color: #b0bec5; /* 밝은 버전의 primary */
+    background: linear-gradient(to right, #c4b5fd, #a5b4fc); /* 밝은 보라색 */
     cursor: not-allowed;
 }
 

@@ -135,6 +135,7 @@
 │   │   │   ├── notification
 │   │   │   │   └── NotificationBell.tsx
 │   │   │   ├── providers
+│   │   │   │   ├── AmplitudeProvider.tsx
 │   │   │   │   ├── AuthProvider.tsx
 │   │   │   │   ├── ErrorBoundary.tsx
 │   │   │   │   └── ThemeProvider.tsx
@@ -236,12 +237,29 @@
 │   │       ├── football_data.py
 │   │       ├── posts.py
 │   │       └── users.py
+│   ├── chroma_db.backup
+│   │   ├── 60abf6dd-cdfa-403c-a55e-0ff789e52ecb
+│   │   │   ├── data_level0.bin
+│   │   │   ├── header.bin
+│   │   │   ├── length.bin
+│   │   │   └── link_lists.bin
+│   │   └── chroma.sqlite3
+│   ├── chroma_db_cache
+│   │   ├── 8ad8ff17-503f-49ca-9a16-6258dde23a62
+│   │   │   ├── data_level0.bin
+│   │   │   ├── header.bin
+│   │   │   ├── length.bin
+│   │   │   └── link_lists.bin
+│   │   └── chroma.sqlite3
 │   ├── data
+│   ├── fetch_real_data.py
 │   ├── firestore.indexes.json
 │   ├── initialize_rag.py
 │   ├── latest_logs.json
 │   ├── llm_service
 │   │   ├── __init__.py
+│   │   ├── chroma_db.backup
+│   │   │   └── chroma.sqlite3
 │   │   ├── external_apis
 │   │   │   ├── __init__.py
 │   │   │   ├── football_data.py
@@ -266,11 +284,32 @@
 │   │       ├── prompt_service.py
 │   │       └── rag_service.py
 │   ├── main.py
+│   ├── portfolio-experiments
+│   │   ├── generate_rag_documents_with_llm.py
+│   │   ├── lora-training
+│   │   │   ├── dataset
+│   │   │   │   └── fsf_qa_dataset.json
+│   │   │   ├── generate_dataset.py
+│   │   │   ├── notebooks
+│   │   │   └── results
+│   │   ├── portfolio-experiments
+│   │   │   ├── rag_documents
+│   │   │   │   └── documents.json
+│   │   │   └── results
+│   │   │       ├── api_performance.json
+│   │   │       └── api_performance.png
+│   │   ├── rag-optimization
+│   │   │   ├── benchmark.py
+│   │   │   ├── results
+│   │   │   │   └── benchmark_results.json
+│   │   │   └── rrf_search.py
+│   │   └── test_api_performance.py
 │   ├── rag_initialization.log
 │   ├── requirements.txt
-│   └── serviceAccountKey.json
+│   ├── serviceAccountKey.json
+│   └── simulate_users.py
 ├── tree.md
 ├── tree.txt
 └── update_tree.sh
 
-80 directories, 193 files
+95 directories, 217 files

@@ -60,8 +60,8 @@ export const useLiveMatches = () => {
     useEffect(() => {
         loadLiveMatches();
 
-        // 30분마다 업데이트
-        const interval = setInterval(loadLiveMatches, 30 * 60 * 1000);
+        // 10초마다 실시간 업데이트 (Live Matches용)
+        const interval = setInterval(loadLiveMatches, 10 * 1000);
         return () => clearInterval(interval);
     }, [loadLiveMatches]);
 
