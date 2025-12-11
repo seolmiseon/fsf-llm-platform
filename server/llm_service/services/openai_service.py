@@ -117,6 +117,130 @@ class OpenAIService:
             print(f"응급 이미지 분석 오류: {e}")
             return "이미지 분석 중 오류가 발생했습니다. 응급 상황이 의심되면 즉시 병원에 가세요."
 
+    async def analyze_match_chart(self, image_data: bytes, user_question: str = "경기 차트를 분석해주세요") -> str:
+        """경기 차트 이미지 분석 (GPT-4 Vision) - 동적 프롬프트"""
+        try:
+            import base64
+
+            # 이미지를 base64로 인코딩
+            base64_image = base64.b64encode(image_data).decode()
+
+            # PromptService에서 동적 프롬프트 가져오기
+            prompt_text = self.prompt_service.manager.format_prompt(
+                'vision_analysis',
+                'MATCH_CHART_PROMPT',
+                user_question=user_question
+            )
+
+            response = self.client.chat.completions.create(
+                model="gpt-4-vision-preview",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt_text},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{base64_image}"
+                                },
+                            },
+                        ],
+                    }
+                ],
+                temperature=0.5,
+                max_tokens=800,
+            )
+            return response.choices[0].message.content
+
+        except Exception as e:
+            print(f"경기 차트 분석 오류: {e}")
+            return "경기 차트 분석 중 오류가 발생했습니다. 다시 시도해주세요."
+
+    async def analyze_injury_photo(self, image_data: bytes) -> str:
+        """부상 사진 분석 (GPT-4 Vision)"""
+        try:
+            import base64
+            base64_image = base64.b64encode(image_data).decode()
+
+            prompt_text = self.prompt_service.manager.get_prompt(
+                'vision_analysis',
+                'INJURY_ANALYSIS_PROMPT'
+            )
+
+            response = self.client.chat.completions.create(
+                model="gpt-4-vision-preview",
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt_text},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                    ]
+                }],
+                temperature=0.3,
+                max_tokens=600
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"부상 사진 분석 오류: {e}")
+            return "부상 사진 분석 중 오류가 발생했습니다."
+
+    async def analyze_tactical_board(self, image_data: bytes) -> str:
+        """전술 보드 분석 (GPT-4 Vision)"""
+        try:
+            import base64
+            base64_image = base64.b64encode(image_data).decode()
+
+            prompt_text = self.prompt_service.manager.get_prompt(
+                'vision_analysis',
+                'TACTICAL_BOARD_PROMPT'
+            )
+
+            response = self.client.chat.completions.create(
+                model="gpt-4-vision-preview",
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt_text},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                    ]
+                }],
+                temperature=0.5,
+                max_tokens=800
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"전술 보드 분석 오류: {e}")
+            return "전술 보드 분석 중 오류가 발생했습니다."
+
+    async def analyze_player_comparison(self, image_data: bytes) -> str:
+        """선수 비교 차트 분석 (GPT-4 Vision)"""
+        try:
+            import base64
+            base64_image = base64.b64encode(image_data).decode()
+
+            prompt_text = self.prompt_service.manager.get_prompt(
+                'vision_analysis',
+                'PLAYER_COMPARISON_CHART_PROMPT'
+            )
+
+            response = self.client.chat.completions.create(
+                model="gpt-4-vision-preview",
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt_text},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                    ]
+                }],
+                temperature=0.5,
+                max_tokens=800
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"선수 비교 분석 오류: {e}")
+            return "선수 비교 분석 중 오류가 발생했습니다."
+
     async def chat(self, messages: List[Dict[str, str]]) -> str:
         """비동기 chat 메서드 (chat.py 호환용)"""
         return await self.generate_chat_response(messages)

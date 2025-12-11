@@ -2,7 +2,6 @@
 ├── NEXT_SESSION.md
 ├── PROJECT_STATUS.md
 ├── README.md
-├── SESSION_HANDOFF.md
 ├── frontend
 │   ├── README.md
 │   ├── build-errors.txt
@@ -244,7 +243,16 @@
 │   │   │   ├── length.bin
 │   │   │   └── link_lists.bin
 │   │   └── chroma.sqlite3
+│   ├── chroma_db.backup_20251211_115346
+│   │   ├── 03a4f4ad-706e-4cd2-828b-13cf467df76d
+│   │   │   ├── data_level0.bin
+│   │   │   ├── header.bin
+│   │   │   ├── length.bin
+│   │   │   └── link_lists.bin
+│   │   └── chroma.sqlite3
 │   ├── chroma_db_cache
+│   │   └── chroma.sqlite3
+│   ├── chroma_db_cache.old
 │   │   ├── 8ad8ff17-503f-49ca-9a16-6258dde23a62
 │   │   │   ├── data_level0.bin
 │   │   │   ├── header.bin
@@ -252,7 +260,21 @@
 │   │   │   └── link_lists.bin
 │   │   └── chroma.sqlite3
 │   ├── data
-│   ├── fetch_real_data.py
+│   │   └── chroma_db.old
+│   │       ├── 1c6dfd77-fcbf-40eb-946e-76852eabd549
+│   │       │   ├── data_level0.bin
+│   │       │   ├── header.bin
+│   │       │   ├── length.bin
+│   │       │   └── link_lists.bin
+│   │       ├── 20d5e5e5-8fed-4aeb-be27-f597a69eb5e1
+│   │       │   ├── data_level0.bin
+│   │       │   ├── header.bin
+│   │       │   ├── length.bin
+│   │       │   └── link_lists.bin
+│   │       ├── 4934567e-5fad-4312-893c-400e82ddb2c2
+│   │       ├── 5bc6f8a0-5bf0-4135-a265-6577c4b56888
+│   │       ├── c2e1b2d6-73fe-4dfc-a1de-586cd45084c5
+│   │       └── chroma.sqlite3
 │   ├── firestore.indexes.json
 │   ├── initialize_rag.py
 │   ├── latest_logs.json
@@ -260,6 +282,10 @@
 │   │   ├── __init__.py
 │   │   ├── chroma_db.backup
 │   │   │   └── chroma.sqlite3
+│   │   ├── chroma_db.old
+│   │   │   └── chroma.sqlite3
+│   │   ├── data
+│   │   │   └── espn_player_ids.json
 │   │   ├── external_apis
 │   │   │   ├── __init__.py
 │   │   │   ├── football_data.py
@@ -275,7 +301,13 @@
 │   │   │   ├── __init__.py
 │   │   │   ├── chat.py
 │   │   │   ├── match_analysis.py
-│   │   │   └── player_compare.py
+│   │   │   ├── player_compare.py
+│   │   │   └── stats.py
+│   │   ├── scrapers
+│   │   │   ├── __init__.py
+│   │   │   ├── espn_id_collector.py
+│   │   │   ├── espn_scraper_dynamic.py
+│   │   │   └── espn_scraper_hybrid.py
 │   │   └── services
 │   │       ├── __init__.py
 │   │       ├── cache_service.py
@@ -285,6 +317,49 @@
 │   │       └── rag_service.py
 │   ├── main.py
 │   ├── portfolio-experiments
+│   │   ├── add_rag_documents_to_chromadb.py
+│   │   ├── chroma_db_portfolio
+│   │   │   ├── 14474e64-bbe4-4219-8c86-e0f79fdb44fe
+│   │   │   │   ├── data_level0.bin
+│   │   │   │   ├── header.bin
+│   │   │   │   ├── length.bin
+│   │   │   │   └── link_lists.bin
+│   │   │   ├── 3044af2c-5ea7-4ffd-8ddd-e5549ae25463
+│   │   │   │   ├── data_level0.bin
+│   │   │   │   ├── header.bin
+│   │   │   │   ├── length.bin
+│   │   │   │   └── link_lists.bin
+│   │   │   ├── 6521cad1-0030-4233-a7ce-c8e687a7ef6e
+│   │   │   │   ├── data_level0.bin
+│   │   │   │   ├── header.bin
+│   │   │   │   ├── length.bin
+│   │   │   │   └── link_lists.bin
+│   │   │   ├── 6767a4a1-7e90-4a40-aa93-a2146909161e
+│   │   │   │   ├── data_level0.bin
+│   │   │   │   ├── header.bin
+│   │   │   │   ├── length.bin
+│   │   │   │   └── link_lists.bin
+│   │   │   ├── 8e4aedbe-702f-403c-b086-9c4463329978
+│   │   │   │   ├── data_level0.bin
+│   │   │   │   ├── header.bin
+│   │   │   │   ├── length.bin
+│   │   │   │   └── link_lists.bin
+│   │   │   ├── 9a9ddffd-45a9-446e-9068-f2953bec5414
+│   │   │   │   ├── data_level0.bin
+│   │   │   │   ├── header.bin
+│   │   │   │   ├── length.bin
+│   │   │   │   └── link_lists.bin
+│   │   │   ├── bd3c5ee2-ca42-48f5-a50b-b7f768825cee
+│   │   │   │   ├── data_level0.bin
+│   │   │   │   ├── header.bin
+│   │   │   │   ├── length.bin
+│   │   │   │   └── link_lists.bin
+│   │   │   ├── chroma.sqlite3
+│   │   │   └── f256d0cc-058f-4ed3-8c7c-b9eb025041fe
+│   │   │       ├── data_level0.bin
+│   │   │       ├── header.bin
+│   │   │       ├── length.bin
+│   │   │       └── link_lists.bin
 │   │   ├── generate_rag_documents_with_llm.py
 │   │   ├── lora-training
 │   │   │   ├── dataset
@@ -292,24 +367,21 @@
 │   │   │   ├── generate_dataset.py
 │   │   │   ├── notebooks
 │   │   │   └── results
-│   │   ├── portfolio-experiments
-│   │   │   ├── rag_documents
-│   │   │   │   └── documents.json
-│   │   │   └── results
-│   │   │       ├── api_performance.json
-│   │   │       └── api_performance.png
 │   │   ├── rag-optimization
 │   │   │   ├── benchmark.py
 │   │   │   ├── results
 │   │   │   │   └── benchmark_results.json
 │   │   │   └── rrf_search.py
+│   │   ├── rag_documents
+│   │   │   └── documents.json
+│   │   ├── results
+│   │   │   ├── api_performance.json
+│   │   │   └── api_performance.png
+│   │   ├── simulate_users.py
 │   │   └── test_api_performance.py
-│   ├── rag_initialization.log
 │   ├── requirements.txt
-│   ├── serviceAccountKey.json
-│   └── simulate_users.py
-├── tree.md
+│   └── serviceAccountKey.json
 ├── tree.txt
 └── update_tree.sh
 
-95 directories, 217 files
+115 directories, 269 files

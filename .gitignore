@@ -153,6 +153,8 @@ data/
 chroma_db/
 chroma_db_cache/
 chroma_db.*/
+chroma_db_cache.old
+
 
 
 # ============================================

@@ -1,8 +1,9 @@
 """
 경기 분석 엔드포인트
 POST /api/llm/match/{match_id}/analysis
+POST /api/llm/match/chart/analyze - 경기 차트 이미지 분석
 """
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import APIRouter, HTTPException, Path, File, UploadFile, Form
 from typing import Optional
 import logging
 from datetime import datetime
@@ -20,18 +21,6 @@ router = APIRouter(prefix="/match", tags=["Match Analysis"])
 openai_service = OpenAIService()
 rag_service = RAGService()
 football_client = FootballDataClient()
-
-MATCH_ANALYSIS_SYSTEM = """당신은 축구 경기 분석 전문가입니다.
-
-제공된 팀 데이터를 바탕으로 경기를 분석해주세요.
-
-분석 항목:
-1. 팀 폼 분석 (최근 5경기)
-2. 주요 선수 분석
-3. 전술 분석
-4. 예상 경기 전개
-
-한국어로 전문적이고 명확하게 답변하세요."""
 
 @router.post(
     "/{match_id}/analysis",
@@ -107,11 +96,16 @@ async def analyze_match(
         # 3️⃣ 컨텍스트 포맷팅
         context = "\n".join([s.get("content", "") for s in all_sources])
         
-        # 4️⃣ OpenAI 호출
+        # 4️⃣ OpenAI 호출 - PromptService에서 동적 프롬프트 가져오기
+        system_prompt = openai_service.prompt_service.manager.get_prompt(
+            'match_analysis_system',
+            'SYSTEM_PROMPT'
+        )
+
         messages = [
             {
                 "role": "system",
-                "content": MATCH_ANALYSIS_SYSTEM
+                "content": system_prompt
             },
             {
                 "role": "user",
@@ -121,9 +115,9 @@ async def analyze_match(
 {context}"""
             }
         ]
-        
+
         analysis_response = openai_service.chat_completion(messages=messages)
-        
+
         # 5️⃣ 예측 포함 여부
         prediction = None
         if request.include_prediction:
@@ -166,6 +160,51 @@ async def analyze_match(
         raise HTTPException(
             status_code=500,
             detail=f"경기 분석 실패: {str(e)}"
+        )
+
+@router.post(
+    "/chart/analyze",
+    summary="경기 차트 이미지 분석 (GPT-4 Vision)"
+)
+async def analyze_chart(
+    image: UploadFile = File(..., description="경기 차트 이미지 파일"),
+    question: str = Form("경기 차트를 분석해주세요", description="사용자 질문")
+):
+    """
+    경기 차트 이미지를 GPT-4 Vision으로 분석
+
+    - **image**: 업로드할 이미지 파일 (JPG, PNG 등)
+    - **question**: 분석 요청 질문 (예: "손흥민 오늘 경기 어땠어?")
+
+    Returns:
+        분석 결과 텍스트
+    """
+    try:
+        logger.info(f"📊 경기 차트 분석 요청: {question}")
+
+        # 이미지 파일 읽기
+        image_data = await image.read()
+
+        # OpenAI Vision 분석
+        analysis_result = await openai_service.analyze_match_chart(
+            image_data=image_data,
+            user_question=question
+        )
+
+        logger.info(f"✅ 경기 차트 분석 완료")
+
+        return {
+            "success": True,
+            "question": question,
+            "analysis": analysis_result,
+            "timestamp": datetime.now().isoformat()
+        }
+
+    except Exception as e:
+        logger.error(f"❌ 경기 차트 분석 오류: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"경기 차트 분석 실패: {str(e)}"
         )
 
 @router.get(

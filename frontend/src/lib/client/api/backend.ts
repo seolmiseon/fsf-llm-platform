@@ -113,6 +113,43 @@ export class BackendApi {
     });
   }
 
+  async analyzeMatchChart(
+    image: File,
+    question: string
+  ): Promise<ApiResponse<{ analysis: string; question: string; timestamp: string }>> {
+    const formData = new FormData();
+    formData.append('image', image);
+    formData.append('question', question);
+
+    try {
+      const response = await fetch(`${this.baseUrl}/api/llm/match/chart/analyze`, {
+        method: 'POST',
+        body: formData,
+        // Don't set Content-Type header - browser will set it with boundary for multipart/form-data
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return {
+          success: false,
+          error: errorData.detail || `HTTP ${response.status}: ${response.statusText}`,
+        };
+      }
+
+      const data = await response.json();
+      return {
+        success: true,
+        data,
+      };
+    } catch (error) {
+      console.error('Chart analysis error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Network error',
+      };
+    }
+  }
+
   // Auth API
   async login(): Promise<ApiResponse<{ access_token: string; user: any }>> {
     return this.fetchWithAuth('/api/auth/login', {
