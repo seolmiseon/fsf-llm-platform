@@ -15,7 +15,7 @@ export default function SignupForm() {
     const [validationErrors, setValidationErrors] = useState<
         Record<string, string>
     >({});
-    const { switchToSignin } = useModalStore();
+    const { close } = useModalStore();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -35,7 +35,8 @@ export default function SignupForm() {
             });
 
             setUser(userCredential.user);
-            switchToSignin();
+            // 회원가입 완료 후 바로 로그인 상태로 모달 닫기
+            close();
         } catch (error: any) {
             console.error('Signup error:', error);
         }

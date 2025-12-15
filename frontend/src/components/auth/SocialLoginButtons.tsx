@@ -1,7 +1,6 @@
 //@ts-nocheck
 'use client';
 
-import { Button } from '../ui/button/Button';
 import { FcGoogle } from 'react-icons/fc';
 import { RiKakaoTalkFill } from 'react-icons/ri';
 import { SiNaver } from 'react-icons/si';
@@ -12,6 +11,7 @@ import {
     OAuthProvider,
 } from 'firebase/auth';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useModalStore } from '@/store/useModalStore';
 import { useRouter } from 'next/navigation';
 import { Error } from '../ui/common';
 import { useState } from 'react';
@@ -19,6 +19,7 @@ import { useState } from 'react';
 export default function SocialLoginButtons() {
     const router = useRouter();
     const setUser = useAuthStore((state) => state.setUser);
+    const close = useModalStore((state) => state.close);
     const [errorMessage, setErrorMessage] = useState<string | undefined>('');
 
     const handleSocialLogin = async (provider: string) => {
@@ -43,6 +44,7 @@ export default function SocialLoginButtons() {
 
             const result = await signInWithPopup(auth, authProvider);
             setUser(result.user);
+            close();
             router.push('/');
         } catch (error) {
             console.error(`${provider} login error:`, error);

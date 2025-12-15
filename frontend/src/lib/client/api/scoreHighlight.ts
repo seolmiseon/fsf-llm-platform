@@ -6,8 +6,7 @@ export class YouTubeHighlightApi {
 
     async getMatchHighlights(
         homeTeam: string,
-        awayTeam: string,
-        matchDate: string
+        awayTeam: string
     ): Promise<ApiResponse<YouTubeHighlight[]>> {
         try {
             const query = `${homeTeam} vs ${awayTeam} highlights`;

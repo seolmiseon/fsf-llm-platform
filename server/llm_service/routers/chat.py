@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import Optional
+import re
 import logging
 from datetime import datetime
 
@@ -8,6 +9,7 @@ from ..services.openai_service import OpenAIService
 from ..services.rag_service import RAGService
 from ..services.cache_service import CacheService  # ← 🆕 추가!
 from ..prompts.chat_prompts import SYSTEM_PROMPT, format_chat_context
+from ..routers.stats import get_player_stats
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +19,77 @@ router = APIRouter(prefix="/chat", tags=["AI Chat"])
 openai_service = OpenAIService()
 rag_service = RAGService()
 cache_service = CacheService()  # ← 🆕 추가!
+
+
+def _is_stats_question(query: str) -> bool:
+    """
+    득점/어시스트 등 통계성 질문인지 간단히 감지
+    (1차 버전: 키워드 기반)
+    """
+    stats_keywords = [
+        "득점",
+        "골",
+        "도움",
+        "어시스트",
+        "assist",
+        "assists",
+        "goals",
+        "scorer",
+        "top scorer",
+    ]
+    q = query.lower()
+    return any(kw in q or kw in query for kw in stats_keywords)
+
+
+def _extract_english_name(query: str) -> Optional[str]:
+    """
+    질문에서 영문 선수 이름 추출 (예: "Son Heung-Min")
+    - 한글 이름 매핑은 추후 확장 (현재는 영문 이름이 포함된 경우만 처리)
+    """
+    # 두 단어 이상 연속된 영문 패턴
+    matches = re.findall(r"[A-Za-z]+(?:\s+[A-Za-z]+)+", query)
+    if not matches:
+        return None
+    # 가장 처음 매칭된 이름 사용
+    return matches[0].strip()
+
+
+async def _build_stats_context(query: str) -> Optional[str]:
+    """
+    스탯 관련 질문일 때, 선수 통계 API를 호출해 컨텍스트 텍스트 생성
+    - 1차 버전: 영문 선수 이름 + 개인 스탯만 지원
+    """
+    if not _is_stats_question(query):
+        return None
+
+    player_name_en = _extract_english_name(query)
+    if not player_name_en:
+        # 아직 한글 이름 → 영문 매핑은 미구현
+        return None
+
+    try:
+        # 기존 stats 라우터의 로직을 그대로 재사용
+        stats_response = await get_player_stats(player_name_en)
+    except HTTPException:
+        return None
+
+    if not stats_response.get("success"):
+        return None
+
+    # stats_response 구조를 사람이 읽을 수 있는 텍스트로 변환
+    goals = stats_response.get("goals", 0)
+    assists = stats_response.get("assists", 0)
+    matches = stats_response.get("matches", 0)
+    team = stats_response.get("team", "Unknown")
+
+    return (
+        f"[실시간 선수 통계]\n"
+        f"선수: {stats_response.get('name', player_name_en)}\n"
+        f"팀: {team}\n"
+        f"경기 수: {matches}\n"
+        f"득점: {goals}골\n"
+        f"도움: {assists}개\n"
+    )
 
 
 @router.post(
@@ -82,9 +155,15 @@ async def chat(request: ChatRequest) -> ChatResponse:
         logger.debug("⚠️ 캐시 미스 → 새로운 질문으로 처리")
 
         # ============================================
-        # ✅ STEP 2: RAG 검색 ($0)
+        # ✅ STEP 2: (선택) 스탯 API 컨텍스트 구성 ($0.001 미만, 내부 호출)
         # ============================================
-        logger.debug("Step 2️⃣: RAG 검색 중...")
+        logger.debug("Step 2️⃣: 스탯/팀 관련 질문인지 확인 중...")
+        stats_context = await _build_stats_context(request.query)
+
+        # ============================================
+        # ✅ STEP 3: RAG 검색 ($0)
+        # ============================================
+        logger.debug("Step 3️⃣: RAG 검색 중...")
         search_query = request.query
         rag_results = rag_service.search(
             collection_name="default", query=search_query, top_k=request.top_k
@@ -104,15 +183,20 @@ async def chat(request: ChatRequest) -> ChatResponse:
         logger.info(f"🔍 RAG 검색 완료: {len(sources)}개 소스")
 
         # ============================================
-        # ✅ STEP 3: 컨텍스트 포맷팅 ($0)
+        # ✅ STEP 4: 컨텍스트 포맷팅 (RAG + 선택적 스탯 컨텍스트) ($0)
         # ============================================
-        logger.debug("Step 3️⃣: 컨텍스트 포맷팅 중...")
-        context_text = format_chat_context(sources)
+        logger.debug("Step 4️⃣: 컨텍스트 포맷팅 중...")
+        rag_context_text = format_chat_context(sources)
+
+        if stats_context:
+            context_text = f"{stats_context}\n\n{rag_context_text}"
+        else:
+            context_text = rag_context_text
 
         # ============================================
-        # ✅ STEP 4: OpenAI LLM 호출 ($0.001) ⚠️
+        # ✅ STEP 5: OpenAI LLM 호출 ($0.001) ⚠️
         # ============================================
-        logger.debug("Step 4️⃣: OpenAI LLM 호출 중... (비용 발생!)")
+        logger.debug("Step 5️⃣: OpenAI LLM 호출 중... (비용 발생!)")
         messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
         # 사용자 메시지 추가 (컨텍스트 포함)
@@ -127,9 +211,9 @@ async def chat(request: ChatRequest) -> ChatResponse:
         ai_response = await openai_service.chat(messages=messages)
 
         # ============================================
-        # ✅ STEP 5: 실제 토큰 수 계산 ($0)
+        # ✅ STEP 6: 실제 토큰 수 계산 ($0)
         # ============================================
-        logger.debug("Step 5️⃣: 토큰 수 계산 중...")
+        logger.debug("Step 6️⃣: 토큰 수 계산 중...")
         input_tokens = openai_service.count_tokens(user_message_with_context)
         output_tokens = openai_service.count_tokens(ai_response)
         total_tokens = input_tokens + output_tokens
@@ -140,9 +224,9 @@ async def chat(request: ChatRequest) -> ChatResponse:
         )
 
         # ============================================
-        # ✅ STEP 6: ChromaDB에 답변 저장 ($0)
+        # ✅ STEP 7: ChromaDB에 답변 저장 ($0)
         # ============================================
-        logger.debug("Step 6️⃣: ChromaDB에 답변 저장 중...")
+        logger.debug("Step 7️⃣: ChromaDB에 답변 저장 중...")
         cache_saved = await cache_service.cache_answer(
             query=request.query,
             answer=ai_response,
@@ -163,7 +247,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         logger.info(f"✅ 챗봇 응답 생성 & 캐시 저장 완료")
 
         # ============================================
-        # ✅ STEP 7: 사용자에게 반환 ✅
+        # ✅ STEP 8: 사용자에게 반환 ✅
         # ============================================
         return ChatResponse(
             answer=ai_response,

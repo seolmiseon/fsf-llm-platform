@@ -197,11 +197,14 @@ export default function ChatBot({ onClose }: ChatBotProps) {
               }`}
             >
               {message.image && (
-                <img
-                  src={message.image}
-                  alt="Uploaded"
-                  className="mb-2 rounded max-w-full h-auto max-h-48 object-contain"
-                />
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={message.image}
+                    alt="Uploaded"
+                    className="mb-2 rounded max-w-full h-auto max-h-48 object-contain"
+                  />
+                </>
               )}
               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
               <p
@@ -238,6 +241,7 @@ export default function ChatBot({ onClose }: ChatBotProps) {
         {/* 이미지 미리보기 */}
         {imagePreview && (
           <div className="mb-3 relative inline-block">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={imagePreview}
               alt="Preview"

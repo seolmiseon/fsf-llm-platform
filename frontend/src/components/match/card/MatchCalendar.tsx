@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/common/dialog';
 import NotificationBell from '@/components/notification/NotificationBell';
 import { EventClickArg } from '@fullcalendar/core/index.js';
+import { FootballDataApi } from '@/lib/client/api/football-data';
 
 interface Match {
     id: number;
@@ -35,14 +36,18 @@ export default function MatchCalendar() {
     useEffect(() => {
         const fetchMatches = async () => {
             try {
-                const response = await fetch('/api/football?path=matches');
-                const data = await response.json();
+                const api = new FootballDataApi();
+                const response = await api.getMatches();
 
-                if (data.matches) {
-                    setMatches(data.matches);
+                if (response.success) {
+                    setMatches(response.data);
+                } else {
+                    console.error('Failed to fetch matches:', response.error);
+                    setMatches([]);
                 }
             } catch (error) {
                 console.error('Failed to fetch matches:', error);
+                setMatches([]);
             } finally {
                 setLoading(false);
             }

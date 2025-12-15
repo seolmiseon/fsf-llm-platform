@@ -12,8 +12,11 @@ export async function GET(request: Request) {
             );
         }
 
-        // 백엔드 URL
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://fsf-server-303660711261.asia-northeast3.run.app';
+        // 백엔드 URL (NEXT_PUBLIC_BACKEND_URL 우선, 기존 변수는 폴백)
+        const backendUrl =
+            process.env.NEXT_PUBLIC_BACKEND_URL ||
+            process.env.NEXT_PUBLIC_API_URL ||
+            'https://fsf-server-303660711261.asia-northeast3.run.app';
         
         // path 변환: /standings → /api/football/standings  
         const apiPath = path.startsWith('/') ? path.substring(1) : path;

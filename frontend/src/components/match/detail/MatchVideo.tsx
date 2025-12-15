@@ -19,11 +19,7 @@ export function MatchVideo({ homeTeam, awayTeam, utcDate }: MatchVideoProps) {
         const fetchVideo = async () => {
             try {
                 const api = new YouTubeHighlightApi();
-                const result = await api.getMatchHighlights(
-                    homeTeam,
-                    awayTeam,
-                    utcDate
-                );
+                const result = await api.getMatchHighlights(homeTeam, awayTeam);
 
                 if (result.success && result.data.length > 0) {
                     setVideoData(result.data[0]);

@@ -11,6 +11,21 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+export interface StatsListResponse {
+  success: boolean;
+  league: string;
+  count: number;
+  data: Array<{
+    rank?: number;
+    name: string;
+    team?: string;
+    goals?: number;
+    assists?: number;
+    espn_id?: number;
+  }>;
+  timestamp?: string;
+}
+
 export class BackendApi {
   private baseUrl: string;
 
@@ -148,6 +163,25 @@ export class BackendApi {
         error: error instanceof Error ? error.message : 'Network error',
       };
     }
+  }
+
+  // Stats API
+  async getTopScorers(
+    league: string,
+    limit: number = 20
+  ): Promise<ApiResponse<StatsListResponse>> {
+    return this.fetch(
+      `/api/stats/top-scorers?league=${encodeURIComponent(league)}&limit=${limit}`
+    );
+  }
+
+  async getTopAssists(
+    league: string,
+    limit: number = 20
+  ): Promise<ApiResponse<StatsListResponse>> {
+    return this.fetch(
+      `/api/stats/top-assists?league=${encodeURIComponent(league)}&limit=${limit}`
+    );
   }
 
   // Auth API

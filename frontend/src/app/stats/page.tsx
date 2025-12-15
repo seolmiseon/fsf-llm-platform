@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { BackendApi } from '@/lib/client/api/backend';
 import { Trophy, Target, Users } from 'lucide-react';
 
@@ -13,13 +13,6 @@ interface PlayerStat {
     espn_id: number;
 }
 
-interface StatsResponse {
-    success: boolean;
-    league: string;
-    count: number;
-    data: PlayerStat[];
-}
-
 export default function StatsPage() {
     const [league, setLeague] = useState('프리미어리그');
     const [topScorers, setTopScorers] = useState<PlayerStat[]>([]);
@@ -27,7 +20,7 @@ export default function StatsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'scorers' | 'assists'>('scorers');
 
-    const backendApi = new BackendApi();
+    const backendApi = useMemo(() => new BackendApi(), []);
 
     const leagues = [
         '프리미어리그',
@@ -39,38 +32,49 @@ export default function StatsPage() {
         '챔피언스리그'
     ];
 
-    useEffect(() => {
-        fetchStats();
-    }, [league]);
+    const normalize = (list: Array<Partial<PlayerStat>>): PlayerStat[] =>
+        list.map((item, idx) => ({
+            rank: item.rank ?? idx + 1,
+            name: item.name ?? 'Unknown',
+            team: item.team ?? 'Unknown',
+            goals: item.goals ?? 0,
+            assists: item.assists ?? 0,
+            espn_id: item.espn_id ?? idx,
+        }));
 
-    const fetchStats = async () => {
+    const fetchStats = useCallback(async () => {
         setIsLoading(true);
         try {
-            // 득점 순위
-            const scorersRes = await fetch(
-                `/api/stats/top-scorers?league=${encodeURIComponent(league)}&limit=20`
-            );
-            const scorersData: StatsResponse = await scorersRes.json();
+            const [scorersRes, assistsRes] = await Promise.all([
+                backendApi.getTopScorers(league, 20),
+                backendApi.getTopAssists(league, 20)
+            ]);
 
-            if (scorersData.success) {
-                setTopScorers(scorersData.data);
+            if (scorersRes.success && scorersRes.data?.data) {
+                setTopScorers(normalize(scorersRes.data.data));
+            } else {
+                setTopScorers([]);
+                console.error('득점 순위 로드 실패:', scorersRes.error || '알 수 없는 오류');
             }
 
-            // 어시스트 순위
-            const assistsRes = await fetch(
-                `/api/stats/top-assists?league=${encodeURIComponent(league)}&limit=20`
-            );
-            const assistsData: StatsResponse = await assistsRes.json();
-
-            if (assistsData.success) {
-                setTopAssists(assistsData.data);
+            if (assistsRes.success && assistsRes.data?.data) {
+                setTopAssists(normalize(assistsRes.data.data));
+            } else {
+                setTopAssists([]);
+                console.error('어시스트 순위 로드 실패:', assistsRes.error || '알 수 없는 오류');
             }
         } catch (error) {
             console.error('통계 로드 실패:', error);
+            setTopScorers([]);
+            setTopAssists([]);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [backendApi, league]);
+
+    useEffect(() => {
+        fetchStats();
+    }, [fetchStats]);
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-6xl">

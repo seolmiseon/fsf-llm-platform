@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, status, Depends, Query, Path
 from firebase_admin import firestore
 
 from llm_service.external_apis.football_data import FootballDataClient
-from ..dependencies import get_firestore_db
+from ..dependencies import get_optional_firestore_db, get_firestore_db
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +135,7 @@ def clear_cache(db: firestore.client, cache_key: str) -> bool:
 async def get_standings(
     competition: str = Query("PL", description="리그 코드 (PL, LA, BL, SA, FL1)"),
     force_refresh: bool = Query(False, description="캐시 무시 강제 새로고침"),
-    db: firestore.client = Depends(get_firestore_db),
+    db: firestore.client = Depends(get_optional_firestore_db),
 ):
     """
     순위표 조회 (캐싱 포함)
@@ -169,7 +169,7 @@ async def get_standings(
         logger.info(f"📖 순위표 조회: {competition} (force_refresh={force_refresh})")
 
         # 1. 캐시 확인 (force_refresh=false인 경우)
-        if not force_refresh:
+        if db and not force_refresh:
             cached_data = get_cache(db, cache_key)
             if cached_data:
                 return {
@@ -193,7 +193,8 @@ async def get_standings(
             )
 
         # 3. 캐시에 저장
-        set_cache(db, cache_key, standings, metadata={"competition": competition})
+        if db:
+            set_cache(db, cache_key, standings, metadata={"competition": competition})
 
         return {
             "success": True,
@@ -234,7 +235,7 @@ async def get_matches(
     ),
     limit: int = Query(10, ge=1, le=100, description="최대 경기 수"),
     force_refresh: bool = Query(False, description="캐시 무시"),
-    db: firestore.client = Depends(get_firestore_db),
+    db: firestore.client = Depends(get_optional_firestore_db),
 ):
     """
     경기 조회 (캐싱 포함)
@@ -271,7 +272,7 @@ async def get_matches(
         logger.info(f"🎮 경기 조회: {competition}/{status} (limit={limit})")
 
         # 1. 캐시 확인
-        if not force_refresh:
+        if db and not force_refresh:
             cached_data = get_cache(db, cache_key)
             if cached_data:
                 return {
@@ -296,16 +297,17 @@ async def get_matches(
             )
 
         # 3. 캐시에 저장 (기간은 상태에 따라)
-        set_cache(
-            db,
-            cache_key,
-            matches,
-            metadata={
-                "competition": competition,
-                "status": status,
-                "cache_duration_minutes": cache_duration,
-            },
-        )
+        if db:
+            set_cache(
+                db,
+                cache_key,
+                matches,
+                metadata={
+                    "competition": competition,
+                    "status": status,
+                    "cache_duration_minutes": cache_duration,
+                },
+            )
 
         return {
             "success": True,

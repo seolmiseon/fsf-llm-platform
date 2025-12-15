@@ -200,21 +200,18 @@ async def get_optional_user(
         return None
 
 
+from fastapi import status
+
 # ============================================
 # 4. Firestore 의존성
 # ============================================
 
 def get_firestore_db():
     """
-    Firestore 클라이언트 반환
+    Firestore 클라이언트 반환 (필수)
     
-    Returns:
-        Firestore 클라이언트
-    
-    Example:
-        >>> @router.post("/posts")
-        >>> async def create_post(db = Depends(get_firestore_db)):
-        >>>     db.collection("posts").document().set({...})
+    - Firebase 미초기화 시 500 에러 발생
+    - 인증/게시글 등 Firestore가 필수인 엔드포인트에서 사용
     """
     if not firebase_admin._apps:
         raise HTTPException(
@@ -223,6 +220,24 @@ def get_firestore_db():
         )
     
     return firestore.client()
+
+
+def get_optional_firestore_db():
+    """
+    Firestore 클라이언트 반환 (선택)
+
+    - Firebase 미초기화 시 None 반환
+    - 캐시가 있으면 사용, 없으면 그냥 통과하는 read-only 용도에 사용
+    """
+    try:
+        if not firebase_admin._apps:
+            logger.warning("⚠️ Firebase not initialized, skipping Firestore (optional)")
+            return None
+
+        return firestore.client()
+    except Exception as e:
+        logger.warning(f"⚠️ Optional Firestore init failed: {e}")
+        return None
 
 
 # ============================================

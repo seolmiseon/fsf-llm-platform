@@ -143,13 +143,12 @@ export class TeamData {
                 throw new Error('Failed to fetch match details');
             }
 
-            let highlights: YouTubeHighlight[] = [];  // 변경
+            let highlights: YouTubeHighlight[] = [];
             try {
                 const highlightsResponse =
                     await this.YouTubeHighlightApi.getMatchHighlights(
                         match.homeTeam.name,
-                        match.awayTeam.name,
-                        match.utcDate
+                        match.awayTeam.name
                     );
                 highlights = highlightsResponse.success
                     ? highlightsResponse.data

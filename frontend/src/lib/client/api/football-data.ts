@@ -6,16 +6,24 @@ import {
     TeamResponse,
 } from '@/types/api/responses';
 
+const DEFAULT_BACKEND_URL =
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    'https://fsf-server-303660711261.asia-northeast3.run.app';
+
 export class FootballDataApi {
     private readonly baseUrl: string;
 
-    constructor(baseUrl = '/api/football') {
-        this.baseUrl = baseUrl;
+    constructor(baseUrl = `${DEFAULT_BACKEND_URL}/api/football`) {
+        // 슬래시 중복 방지
+        this.baseUrl = baseUrl.replace(/\/+$/, '');
     }
 
     private async fetchApi<T>(path: string): Promise<ApiResponse<T>> {
         try {
-            const response = await fetch(`${this.baseUrl}?path=${path}`);
+            const normalizedPath = path.startsWith('/')
+                ? path
+                : `/${path}`;
+            const response = await fetch(`${this.baseUrl}${normalizedPath}`);
             console.log('API Response Status:', response.status);
 
             const responseData = await response.json();
@@ -103,11 +111,8 @@ export class FootballDataApi {
     }
 
     async getMatches(status?: string): Promise<ApiResponse<MatchResponse[]>> {
-        let path = '/matches';
-        if (status) {
-            path += `?status=${status}`;
-        }
-        return this.fetchApi<MatchResponse[]>(path);
+        const query = status ? `?status=${encodeURIComponent(status)}` : '';
+        return this.fetchApi<MatchResponse[]>(`/matches${query}`);
     }
 
     async getLiveMatches(): Promise<ApiResponse<MatchResponse[]>> {
