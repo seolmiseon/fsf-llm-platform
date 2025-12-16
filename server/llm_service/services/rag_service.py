@@ -1,6 +1,10 @@
 from langchain_openai import OpenAI
 from langchain.chains import RetrievalQA
-from langchain_community.vectorstores import Chroma
+try:
+    from langchain_chroma import Chroma
+except ImportError:
+    # Fallback to deprecated import if langchain-chroma not installed
+    from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
 
 

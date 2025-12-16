@@ -13,10 +13,8 @@ import os
 import json
 
 # espn_scraper_hybrid 임포트
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
-
 try:
-    from server.llm_service.scrapers.espn_scraper_hybrid import (
+    from llm_service.scrapers.espn_scraper_hybrid import (
         get_competition_teams,
         get_team_squad,
         find_espn_id,
