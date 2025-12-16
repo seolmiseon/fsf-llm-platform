@@ -67,7 +67,7 @@ body {
     overflow-x: hidden;
     background-color: var(--main-bg);
     color: var(--text-primary);
-    @apply font-pretendard; /* Tailwind 폰트 클래스 사용 */
+    @apply font-sans; /* Tailwind 기본 sans 폰트 (Pretendard로 설정됨) */
 }
 
 /* 코드 폰트 */

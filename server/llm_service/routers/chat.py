@@ -1,7 +1,9 @@
 from fastapi import APIRouter, HTTPException
-from typing import Optional
+from typing import Optional, Dict
 import re
 import logging
+import os
+import json
 from datetime import datetime
 
 from ..models import ChatRequest, ChatResponse, ErrorResponse
@@ -19,6 +21,61 @@ router = APIRouter(prefix="/chat", tags=["AI Chat"])
 openai_service = OpenAIService()
 rag_service = RAGService()
 cache_service = CacheService()  # ← 🆕 추가!
+
+# 한글 이름 → 영문 이름 매핑 테이블 (서버 시작 시 로드)
+_ko_to_en_name_map: Dict[str, str] = {}
+
+
+def _load_ko_name_mapping() -> Dict[str, str]:
+    """
+    espn_player_ids.json에서 ko_name → name 매핑 테이블 로드
+    
+    Returns:
+        {"손흥민": "Son Heung-Min", "이강인": "Lee Kang-In", ...}
+    """
+    global _ko_to_en_name_map
+    
+    if _ko_to_en_name_map:
+        return _ko_to_en_name_map
+    
+    try:
+        json_file = os.path.join(
+            os.path.dirname(__file__), '../data/espn_player_ids.json'
+        )
+        
+        if not os.path.exists(json_file):
+            logger.warning(f"⚠️ JSON 파일 없음: {json_file}")
+            return {}
+        
+        with open(json_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        mapping = {}
+        for league, players in data.items():
+            for player in players:
+                ko_name = player.get('ko_name')
+                en_name = player.get('name')
+                
+                if ko_name and en_name:
+                    mapping[ko_name] = en_name
+                    # "손흥민", "Son Heung-Min" 같은 변형도 추가
+                    if ' ' in ko_name:
+                        parts = ko_name.split()
+                        if len(parts) == 2:
+                            # "손 흥민" → "Son Heung-Min" (공백 제거 버전도)
+                            mapping[parts[0] + parts[1]] = en_name
+        
+        _ko_to_en_name_map = mapping
+        logger.info(f"✅ 한글 이름 매핑 로드 완료: {len(mapping)}개")
+        return mapping
+        
+    except Exception as e:
+        logger.warning(f"⚠️ 한글 이름 매핑 로드 실패: {e}")
+        return {}
+
+
+# 서버 시작 시 매핑 로드
+_load_ko_name_mapping()
 
 
 def _is_stats_question(query: str) -> bool:
@@ -43,15 +100,28 @@ def _is_stats_question(query: str) -> bool:
 
 def _extract_english_name(query: str) -> Optional[str]:
     """
-    질문에서 영문 선수 이름 추출 (예: "Son Heung-Min")
-    - 한글 이름 매핑은 추후 확장 (현재는 영문 이름이 포함된 경우만 처리)
+    질문에서 영문 선수 이름 추출
+    - 영문 이름이 직접 포함된 경우: 그대로 반환
+    - 한글 이름이 포함된 경우: ko_name → name 매핑 테이블로 변환
     """
-    # 두 단어 이상 연속된 영문 패턴
+    # 1. 영문 이름 패턴 먼저 확인 (두 단어 이상)
     matches = re.findall(r"[A-Za-z]+(?:\s+[A-Za-z]+)+", query)
-    if not matches:
-        return None
-    # 가장 처음 매칭된 이름 사용
-    return matches[0].strip()
+    if matches:
+        return matches[0].strip()
+    
+    # 2. 한글 이름 매핑 시도
+    ko_map = _load_ko_name_mapping()
+    
+    # 한글 문자 패턴 찾기 (2-4글자 이름 추정)
+    korean_matches = re.findall(r"[가-힣]{2,4}", query)
+    
+    for ko_name in korean_matches:
+        if ko_name in ko_map:
+            en_name = ko_map[ko_name]
+            logger.debug(f"✅ 한글 이름 매핑: '{ko_name}' → '{en_name}'")
+            return en_name
+    
+    return None
 
 
 async def _build_stats_context(query: str) -> Optional[str]:

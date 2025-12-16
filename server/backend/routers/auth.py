@@ -11,7 +11,6 @@ import logging
 from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException, status, Depends
 from firebase_admin import auth, firestore
-from datetime import datetime
 
 from ..models import (
     UserCreate,
@@ -421,6 +420,60 @@ async def update_user(
 # ============================================
 # 6. 헬스 체크
 # ============================================
+
+
+# ============================================
+# 6. 세션 갱신 (Activity Update)
+# ============================================
+
+
+@router.post(
+    "/activity",
+    response_model=MessageResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "활동 시각 업데이트 성공"},
+        401: {"model": ErrorResponse, "description": "인증 실패"},
+    },
+)
+async def update_activity(
+    current_user: UserResponse = Depends(get_current_user),
+    db: firestore.client = Depends(get_firestore_db),
+) -> MessageResponse:
+    """
+    사용자 마지막 활동 시각 업데이트
+    
+    프론트에서 주기적으로 호출하여 비활성 타임아웃 방지
+    
+    Returns:
+        MessageResponse: 업데이트 성공 메시지
+        
+    Example:
+        >>> POST /api/auth/activity
+        >>> Authorization: Bearer eyJhbGciOiJIUzI1NiI...
+    """
+    try:
+        now = datetime.now()
+        
+        # Firestore에 마지막 활동 시각 저장
+        db.collection("users").document(current_user.uid).update({
+            "last_activity_at": now,
+            "updated_at": now,
+        })
+        
+        logger.debug(f"✅ 활동 시각 업데이트: {current_user.uid} ({now.isoformat()})")
+        
+        return MessageResponse(
+            message="Activity updated successfully",
+            timestamp=now.isoformat(),
+        )
+        
+    except Exception as e:
+        logger.error(f"❌ 활동 시각 업데이트 실패: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update activity",
+        )
 
 
 @router.get("/health", response_model=dict)

@@ -241,7 +241,7 @@ export default function StatsPage() {
             {/* 푸터 정보 */}
             <div className="mt-8 text-center text-sm text-gray-500">
                 <p>데이터 출처: ESPN 스크래핑 (537명 선수 데이터)</p>
-                <p className="mt-1">실시간 업데이트는 백엔드에서 주기적으로 수집</p>
+               
             </div>
         </div>
     );
