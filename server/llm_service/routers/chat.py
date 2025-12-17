@@ -10,6 +10,7 @@ from ..models import ChatRequest, ChatResponse, ErrorResponse
 from ..services.openai_service import OpenAIService
 from ..services.rag_service import RAGService
 from ..services.cache_service import CacheService  # ← 🆕 추가!
+from ..services.content_safety_service import ContentSafetyService  # ← 🆕 콘텐츠 필터링 추가!
 from ..prompts.chat_prompts import SYSTEM_PROMPT, format_chat_context
 from ..routers.stats import get_player_stats
 
@@ -27,6 +28,13 @@ try:
 except Exception as e:
     logger.warning(f"⚠️ CacheService 초기화 실패 (캐시 기능 비활성화): {e}")
     cache_service = None
+
+# ContentSafetyService 초기화 (콘텐츠 필터링)
+try:
+    content_safety_service = ContentSafetyService()
+except Exception as e:
+    logger.warning(f"⚠️ ContentSafetyService 초기화 실패 (필터링 기능 비활성화): {e}")
+    content_safety_service = None
 
 # 한글 매핑 테이블 제거됨 - JSON에서 ko_name 필드로 직접 검색
 
@@ -158,6 +166,31 @@ async def chat(request: ChatRequest) -> ChatResponse:
     """
     try:
         logger.info(f"💬 챗봇 요청: {request.query}")
+
+        # ============================================
+        # 🛡️ STEP 0: 입력 게이트웨이 - 사용자 쿼리 필터링
+        # ============================================
+        if content_safety_service:
+            logger.debug("🛡️ 입력 필터링 중...")
+            input_check = content_safety_service.check_input(request.query)
+            
+            if not input_check.is_safe:
+                logger.warning(
+                    f"🚫 유해 콘텐츠 감지 (입력): "
+                    f"카테고리={input_check.category}, "
+                    f"감지된 단어={input_check.detected_words}, "
+                    f"이유={input_check.reason}"
+                )
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "부적절한 내용이 포함된 요청입니다.",
+                        "error_code": "INAPPROPRIATE_CONTENT",
+                        "category": input_check.category.value if input_check.category else None,
+                        "reason": input_check.reason
+                    }
+                )
+            logger.debug("✅ 입력 필터링 통과")
 
         # ============================================
         # ✅ STEP 1: ChromaDB 캐시 확인 ($0) - 통계 질문이 아닐 때만

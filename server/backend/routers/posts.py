@@ -22,6 +22,18 @@ from ..dependencies import (
     get_current_user, get_firestore_db, handle_firestore_error, get_optional_user
 )
 
+# ✅ 커뮤니티용 텍스트 필터링 (욕설/스팸/유해 내용 방지)
+try:
+    from llm_service.services.content_safety_service import ContentSafetyService
+
+    content_safety_service = ContentSafetyService()
+    logging.getLogger(__name__).info("✅ ContentSafetyService 초기화 완료 (커뮤니티용 필터링)")
+except Exception as e:
+    content_safety_service = None
+    logging.getLogger(__name__).warning(
+        f"⚠️ ContentSafetyService 초기화 실패 (커뮤니티 필터링 비활성화): {e}"
+    )
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
@@ -69,6 +81,26 @@ async def create_post(
     """
     try:
         logger.info(f"📝 게시글 생성: {current_user.username}")
+        
+        # 🔒 콘텐츠 필터링 (제목 + 내용)
+        if content_safety_service:
+            text_to_check = f"{post_data.title}\n{post_data.content}"
+            check_result = content_safety_service.check_input(text_to_check)
+            if not check_result.is_safe:
+                logger.warning(
+                    "🚫 게시글 내용에 유해 콘텐츠 감지: "
+                    f"카테고리={check_result.category}, "
+                    f"단어={check_result.detected_words}"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail={
+                        "error": "부적절한 내용이 포함된 게시글입니다.",
+                        "error_code": "INAPPROPRIATE_CONTENT",
+                        "category": check_result.category.value if check_result.category else None,
+                        "reason": check_result.reason,
+                    },
+                )
         
         # 게시글 ID 생성
         post_id = str(uuid.uuid4())[:8]
@@ -331,6 +363,29 @@ async def update_post(
         
         # 수정 데이터 준비
         update_dict = {}
+        new_title = post_data.title if post_data.title is not None else post.get("title")
+        new_content = post_data.content if post_data.content is not None else post.get("content")
+
+        # 🔒 콘텐츠 필터링 (수정 후 제목 + 내용)
+        if content_safety_service and (post_data.title is not None or post_data.content is not None):
+            text_to_check = f"{new_title}\n{new_content}"
+            check_result = content_safety_service.check_input(text_to_check)
+            if not check_result.is_safe:
+                logger.warning(
+                    "🚫 게시글 수정 내용에 유해 콘텐츠 감지: "
+                    f"카테고리={check_result.category}, "
+                    f"단어={check_result.detected_words}"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail={
+                        "error": "부적절한 내용이 포함된 게시글입니다.",
+                        "error_code": "INAPPROPRIATE_CONTENT",
+                        "category": check_result.category.value if check_result.category else None,
+                        "reason": check_result.reason,
+                    },
+                )
+
         if post_data.title is not None:
             update_dict["title"] = post_data.title
         if post_data.content is not None:
@@ -492,6 +547,25 @@ async def add_comment(
     """
     try:
         logger.info(f"💬 댓글 추가: {post_id}")
+        
+        # 🔒 댓글 콘텐츠 필터링
+        if content_safety_service:
+            check_result = content_safety_service.check_input(comment_data.content)
+            if not check_result.is_safe:
+                logger.warning(
+                    "🚫 댓글 내용에 유해 콘텐츠 감지: "
+                    f"카테고리={check_result.category}, "
+                    f"단어={check_result.detected_words}"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail={
+                        "error": "부적절한 내용이 포함된 댓글입니다.",
+                        "error_code": "INAPPROPRIATE_CONTENT",
+                        "category": check_result.category.value if check_result.category else None,
+                        "reason": check_result.reason,
+                    },
+                )
         
         # 게시글 존재 확인
         post_doc = db.collection("posts").document(post_id).get()
@@ -721,6 +795,25 @@ async def update_comment(
                 detail="Not authorized to update this comment"
             )
         
+        # 🔒 댓글 수정 내용 필터링
+        if content_safety_service:
+            check_result = content_safety_service.check_input(comment_data.content)
+            if not check_result.is_safe:
+                logger.warning(
+                    "🚫 댓글 수정 내용에 유해 콘텐츠 감지: "
+                    f"카테고리={check_result.category}, "
+                    f"단어={check_result.detected_words}"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail={
+                        "error": "부적절한 내용이 포함된 댓글입니다.",
+                        "error_code": "INAPPROPRIATE_CONTENT",
+                        "category": check_result.category.value if check_result.category else None,
+                        "reason": check_result.reason,
+                    },
+                )
+
         # 댓글 수정
         update_dict = {
             "content": comment_data.content,

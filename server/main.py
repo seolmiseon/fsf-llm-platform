@@ -68,12 +68,13 @@ try:
     from llm_service.routers.match_analysis import router as analysis_router
     from llm_service.routers.player_compare import router as compare_router
     from llm_service.routers.stats import router as stats_router
+    from llm_service.routers.agent import router as agent_router  # ← 🆕 Agent 라우터 추가
 
     logger.info("✅ LLM Service 라우터들 import 및 등록 성공")
 except Exception as e:
     logger.error(f"⚠️ LLM Service 라우터 import 실패: {e}")
     # LLM 라우터 실패해도 계속 진행
-    chat_router = analysis_router = compare_router = stats_router = None
+    chat_router = analysis_router = compare_router = stats_router = agent_router = None
 
 # FastAPI 앱 초기화
 app = FastAPI(
@@ -118,6 +119,8 @@ if compare_router:
     app.include_router(compare_router, prefix="/api/llm", tags=["Player Compare"])
 if stats_router:
     app.include_router(stats_router, prefix="/api", tags=["Stats"])
+if agent_router:
+    app.include_router(agent_router, prefix="/api/llm", tags=["AI Agent"])  # ← 🆕 Agent 라우터 등록
 
 logger.info("🔗 모든 라우터 등록 완료!")
 

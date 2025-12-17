@@ -262,3 +262,39 @@ class HealthCheckResponse(BaseModel):
     service: str = Field(..., description="서비스명", example="fsf_llm_service")
     version: str = Field(..., description="버전", example="0.1.0")
     timestamp: datetime = Field(default_factory=datetime.now, description="시간")
+
+
+# ============================================
+# 6. Agent 관련 모델
+# ============================================
+
+class AgentRequest(BaseModel):
+    """Agent 요청"""
+    query: str = Field(..., description="사용자 질문", example="손흥민 최근 경기 분석해줘")
+    context: Optional[str] = Field(default=None, description="추가 컨텍스트")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "query": "손흥민 vs 홀란드 비교해줘",
+                "context": None
+            }
+        }
+
+
+class AgentResponse(BaseModel):
+    """Agent 응답"""
+    answer: str = Field(..., description="AI 답변")
+    tools_used: List[str] = Field(default=[], description="사용된 Tool 목록")
+    tokens_used: int = Field(default=0, description="사용된 토큰 수")
+    confidence: float = Field(default=0.0, description="답변 신뢰도 (0-1)", ge=0, le=1)
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "answer": "손흥민과 홀란드를 비교한 결과...",
+                "tools_used": ["rag_search", "player_compare"],
+                "tokens_used": 500,
+                "confidence": 0.9
+            }
+        }

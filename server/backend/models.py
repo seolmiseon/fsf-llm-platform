@@ -210,20 +210,6 @@ class CommentUpdate(BaseModel):
         }
 
 
-class CommentListResponse(BaseModel):
-    """댓글 목록 응답 (계층 구조 포함)"""
-    comments: list[CommentResponse] = Field(..., description="댓글 목록")
-    total_count: int = Field(..., description="전체 댓글 수")
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "comments": [],
-                "total_count": 10
-            }
-        }
-
-
 class CommentResponse(BaseModel):
     """댓글 응답 모델"""
     comment_id: str = Field(..., description="댓글 ID")
@@ -246,6 +232,20 @@ class CommentResponse(BaseModel):
                 "content": "좋은 분석입니다!",
                 "likes": 3,
                 "created_at": "2025-01-15T11:00:00Z"
+            }
+        }
+
+
+class CommentListResponse(BaseModel):
+    """댓글 목록 응답 (계층 구조 포함)"""
+    comments: list[CommentResponse] = Field(..., description="댓글 목록")
+    total_count: int = Field(..., description="전체 댓글 수")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "comments": [],
+                "total_count": 10
             }
         }
 
