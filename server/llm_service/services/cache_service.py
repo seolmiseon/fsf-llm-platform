@@ -20,17 +20,19 @@ class CacheService:
         """
         캐시 서비스 초기화
         """
+        self.rag_service = None
+        self.cache_rag = None
+        self._db = None
+        
         try:
             self.rag_service = RAGService(persist_directory="chroma_db")
             self.cache_rag = RAGService(persist_directory="chroma_db_cache")
-
-            # Firestore 연결 (lazy loading)
-            self._db = None
-
             logger.info("✅ CacheService 초기화 완료")
         except Exception as e:
-            logger.error(f"❌ CacheService 초기화 실패: {e}")
-            raise
+            logger.warning(f"⚠️ ChromaDB 초기화 실패 (캐시 기능 비활성화): {e}")
+            logger.warning("💡 해결 방법: ChromaDB 데이터베이스를 삭제하고 재생성하세요.")
+            logger.warning("   rm -rf chroma_db chroma_db_cache")
+            # ChromaDB 실패해도 서비스는 계속 실행 (캐시 없이)
 
     @property
     def db(self):
@@ -49,6 +51,9 @@ class CacheService:
     # ============================================
     # PART 1: ChromaDB 답변 캐시
     # ============================================
+    
+    # LLM 답변 캐시 TTL (일) - 현업에서는 보통 7-30일
+    LLM_CACHE_TTL_DAYS = 7  # 7일 후 자동 만료
 
     async def get_cached_answer(self, query: str) -> Optional[dict]:
         """
@@ -72,6 +77,9 @@ class CacheService:
             >>> if cached:
             ...     print(cached["answer"])
         """
+        if not self.cache_rag:
+            return None
+            
         try:
             normalized = self._normalize_query(query)
 
@@ -93,6 +101,32 @@ class CacheService:
 
             # 유사도 0.3 이상: 캐시 히트!
             if similarity >= 0.3:
+                # TTL 체크: 만료된 캐시는 무시
+                metadata = results["metadatas"][0] if results.get("metadatas") else {}
+                created_at_str = metadata.get("created_at")
+                
+                if created_at_str:
+                    try:
+                        # ISO 포맷 파싱 (타임존 제거)
+                        created_at_str_clean = created_at_str.split('+')[0].split('Z')[0]
+                        created_at = datetime.fromisoformat(created_at_str_clean)
+                        # 타임존 제거 (naive datetime으로 통일)
+                        if created_at.tzinfo:
+                            created_at = created_at.replace(tzinfo=None)
+                        
+                        now = datetime.now()
+                        age_days = (now - created_at).days
+                        
+                        if age_days > self.LLM_CACHE_TTL_DAYS:
+                            logger.info(
+                                f"⏰ 캐시 만료: '{query[:50]}...' ({age_days}일 경과, TTL: {self.LLM_CACHE_TTL_DAYS}일)"
+                            )
+                            return None
+                        else:
+                            logger.debug(f"✅ 캐시 유효: {age_days}일 경과 (TTL: {self.LLM_CACHE_TTL_DAYS}일)")
+                    except (ValueError, AttributeError, TypeError) as e:
+                        logger.debug(f"⚠️ 캐시 날짜 파싱 실패: {e}, 캐시 사용 계속")
+
                 logger.info(
                     f"🎯 ChromaDB 캐시 히트: '{query[:50]}...' (유사도 {similarity:.2f})"
                 )
@@ -135,6 +169,9 @@ class CacheService:
             ...     metadata={"model": "gpt-4o-mini", "tokens": 350}
             ... )
         """
+        if not self.cache_rag:
+            return False
+            
         try:
             normalized = self._normalize_query(query)
 

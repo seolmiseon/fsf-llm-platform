@@ -15,7 +15,8 @@ import uuid
 
 from ..models import (
     PostCreate, PostUpdate, PostResponse, PostListResponse,
-    CommentCreate, CommentResponse, UserResponse, MessageResponse
+    CommentCreate, CommentUpdate, CommentResponse, CommentListResponse,
+    UserResponse, MessageResponse
 )
 from ..dependencies import (
     get_current_user, get_firestore_db, handle_firestore_error, get_optional_user
@@ -524,6 +525,46 @@ async def add_comment(
         new_count = post_data.get("comment_count", 0) + 1
         db.collection("posts").document(post_id).update({"comment_count": new_count})
         
+        # 알림 생성 (대댓글이 아닌 경우에만 게시글 작성자에게 알림)
+        if not comment_data.parent_comment_id:
+            # 게시글 작성자에게 알림
+            notification_id = str(uuid.uuid4())[:8]
+            notification_doc = {
+                "notification_id": notification_id,
+                "user_id": post_data.get("author_id"),
+                "type": "comment",
+                "post_id": post_id,
+                "from_user_id": current_user.uid,
+                "from_username": current_user.username,
+                "message": f"{current_user.username}님이 댓글을 남겼습니다.",
+                "read": False,
+                "created_at": now
+            }
+            db.collection("notifications").document(notification_id).set(notification_doc)
+            logger.info(f"📬 알림 생성: {post_data.get('author_id')}")
+        else:
+            # 대댓글인 경우 부모 댓글 작성자에게 알림
+            parent_comment_doc = db.collection("comments").document(
+                comment_data.parent_comment_id
+            ).get()
+            if parent_comment_doc.exists:
+                parent_comment = parent_comment_doc.to_dict()
+                notification_id = str(uuid.uuid4())[:8]
+                notification_doc = {
+                    "notification_id": notification_id,
+                    "user_id": parent_comment.get("author_id"),
+                    "type": "reply",
+                    "post_id": post_id,
+                    "comment_id": comment_id,
+                    "from_user_id": current_user.uid,
+                    "from_username": current_user.username,
+                    "message": f"{current_user.username}님이 답글을 남겼습니다.",
+                    "read": False,
+                    "created_at": now
+                }
+                db.collection("notifications").document(notification_id).set(notification_doc)
+                logger.info(f"📬 대댓글 알림 생성: {parent_comment.get('author_id')}")
+        
         logger.info(f"✅ 댓글 추가 완료: {comment_id}")
         
         return CommentResponse(
@@ -548,27 +589,27 @@ async def add_comment(
 
 
 # ============================================
-# 7. 댓글 목록 조회 (Get Comments)
+# 7. 댓글 목록 조회 (Get Comments) - 계층 구조
 # ============================================
 
 @router.get(
     "/{post_id}/comments",
-    response_model=list[CommentResponse],
+    response_model=CommentListResponse,
     status_code=status.HTTP_200_OK
 )
 async def get_comments(
     post_id: str,
     db: firestore.client = Depends(get_firestore_db)
-) -> list[CommentResponse]:
+) -> CommentListResponse:
     """
-    게시글의 댓글 목록 조회
+    게시글의 댓글 목록 조회 (계층 구조 포함)
     
     Args:
         post_id: 게시글 ID
         db: Firestore 클라이언트
     
     Returns:
-        댓글 리스트
+        CommentListResponse: 댓글 목록 (부모 댓글 + 대댓글)
     
     Example:
         >>> GET /api/posts/abc123/comments
@@ -576,27 +617,31 @@ async def get_comments(
     try:
         logger.info(f"💬 댓글 목록 조회: {post_id}")
         
+        # 모든 댓글 조회 (부모 + 대댓글)
         comments_docs = db.collection("comments").where(
             "post_id", "==", post_id
-        ).order_by("created_at", direction=firestore.Query.DESCENDING).stream()
+        ).order_by("created_at", direction=firestore.Query.ASCENDING).stream()
         
-        comments = [
-            CommentResponse(
-                comment_id=doc.get("comment_id"),
-                post_id=doc.get("post_id"),
-                author_id=doc.get("author_id"),
-                author_username=doc.get("author_username"),
-                content=doc.get("content"),
-                likes=doc.get("likes", 0),
-                parent_comment_id=doc.get("parent_comment_id"),
-                created_at=doc.get("created_at"),
-                updated_at=doc.get("updated_at")
-            )
-            for doc in comments_docs
-        ]
+        all_comments = []
+        for doc in comments_docs:
+            comment_data = doc.to_dict()
+            all_comments.append(CommentResponse(
+                comment_id=comment_data.get("comment_id"),
+                post_id=comment_data.get("post_id"),
+                author_id=comment_data.get("author_id"),
+                author_username=comment_data.get("author_username"),
+                content=comment_data.get("content"),
+                likes=comment_data.get("likes", 0),
+                parent_comment_id=comment_data.get("parent_comment_id"),
+                created_at=comment_data.get("created_at"),
+                updated_at=comment_data.get("updated_at")
+            ))
         
-        logger.info(f"✅ {len(comments)}개 댓글 조회")
-        return comments
+        logger.info(f"✅ {len(all_comments)}개 댓글 조회")
+        return CommentListResponse(
+            comments=all_comments,
+            total_count=len(all_comments)
+        )
         
     except Exception as e:
         logger.error(f"❌ 댓글 조회 실패: {e}")
@@ -607,7 +652,302 @@ async def get_comments(
 
 
 # ============================================
-# 8. 헬스 체크
+# 8. 댓글 수정 (Update Comment)
+# ============================================
+
+@router.put(
+    "/{post_id}/comments/{comment_id}",
+    response_model=CommentResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "수정 성공"},
+        401: {"model": dict, "description": "권한 없음"},
+        404: {"model": dict, "description": "댓글 미발견"},
+    }
+)
+async def update_comment(
+    post_id: str,
+    comment_id: str,
+    comment_data: CommentUpdate,
+    current_user: UserResponse = Depends(get_current_user),
+    db: firestore.client = Depends(get_firestore_db)
+) -> CommentResponse:
+    """
+    댓글 수정 (작성자만 가능)
+    
+    Args:
+        post_id: 게시글 ID
+        comment_id: 댓글 ID
+        comment_data: 수정할 내용
+        current_user: 인증된 사용자
+        db: Firestore 클라이언트
+    
+    Returns:
+        CommentResponse: 수정된 댓글
+    
+    Example:
+        >>> PUT /api/posts/abc123/comments/comment456
+        >>> Authorization: Bearer <token>
+        >>> {
+        >>>   "content": "수정된 댓글 내용"
+        >>> }
+    """
+    try:
+        logger.info(f"✏️ 댓글 수정: {comment_id}")
+        
+        # 댓글 조회
+        comment_doc = db.collection("comments").document(comment_id).get()
+        
+        if not comment_doc.exists:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Comment not found"
+            )
+        
+        comment = comment_doc.to_dict()
+        
+        # 게시글 ID 확인
+        if comment.get("post_id") != post_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Comment does not belong to this post"
+            )
+        
+        # 작성자 확인
+        if comment.get("author_id") != current_user.uid:
+            logger.warning(f"⚠️ 권한 없음: {current_user.uid}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to update this comment"
+            )
+        
+        # 댓글 수정
+        update_dict = {
+            "content": comment_data.content,
+            "updated_at": datetime.now()
+        }
+        
+        db.collection("comments").document(comment_id).update(update_dict)
+        
+        logger.info(f"✅ 댓글 수정 완료: {comment_id}")
+        
+        # 수정된 데이터 반환
+        updated_comment = comment.copy()
+        updated_comment.update(update_dict)
+        
+        return CommentResponse(
+            comment_id=updated_comment.get("comment_id"),
+            post_id=updated_comment.get("post_id"),
+            author_id=updated_comment.get("author_id"),
+            author_username=updated_comment.get("author_username"),
+            content=updated_comment.get("content"),
+            likes=updated_comment.get("likes", 0),
+            parent_comment_id=updated_comment.get("parent_comment_id"),
+            created_at=updated_comment.get("created_at"),
+            updated_at=updated_comment.get("updated_at")
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ 댓글 수정 실패: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update comment"
+        )
+
+
+# ============================================
+# 9. 댓글 삭제 (Delete Comment)
+# ============================================
+
+@router.delete(
+    "/{post_id}/comments/{comment_id}",
+    response_model=MessageResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "삭제 성공"},
+        401: {"model": dict, "description": "권한 없음"},
+        404: {"model": dict, "description": "댓글 미발견"},
+    }
+)
+async def delete_comment(
+    post_id: str,
+    comment_id: str,
+    current_user: UserResponse = Depends(get_current_user),
+    db: firestore.client = Depends(get_firestore_db)
+) -> MessageResponse:
+    """
+    댓글 삭제 (작성자만 가능, 대댓글도 함께 삭제)
+    
+    Args:
+        post_id: 게시글 ID
+        comment_id: 댓글 ID
+        current_user: 인증된 사용자
+        db: Firestore 클라이언트
+    
+    Returns:
+        MessageResponse: 삭제 메시지
+    
+    Example:
+        >>> DELETE /api/posts/abc123/comments/comment456
+        >>> Authorization: Bearer <token>
+    """
+    try:
+        logger.info(f"🗑️ 댓글 삭제: {comment_id}")
+        
+        # 댓글 조회
+        comment_doc = db.collection("comments").document(comment_id).get()
+        
+        if not comment_doc.exists:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Comment not found"
+            )
+        
+        comment = comment_doc.to_dict()
+        
+        # 게시글 ID 확인
+        if comment.get("post_id") != post_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Comment does not belong to this post"
+            )
+        
+        # 작성자 확인
+        if comment.get("author_id") != current_user.uid:
+            logger.warning(f"⚠️ 권한 없음: {current_user.uid}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to delete this comment"
+            )
+        
+        # 대댓글도 함께 삭제
+        replies = list(db.collection("comments").where(
+            "parent_comment_id", "==", comment_id
+        ).stream())
+        
+        reply_count = len(replies)
+        for reply in replies:
+            reply.reference.delete()
+            logger.info(f"🗑️ 대댓글 삭제: {reply.id}")
+        
+        # 댓글 삭제
+        db.collection("comments").document(comment_id).delete()
+        
+        # 게시글의 댓글 수 감소
+        post_doc = db.collection("posts").document(post_id).get()
+        if post_doc.exists:
+            post_data = post_doc.to_dict()
+            # 삭제된 댓글 + 대댓글 개수 계산
+            deleted_count = 1 + reply_count
+            new_count = max(0, post_data.get("comment_count", 0) - deleted_count)
+            db.collection("posts").document(post_id).update({"comment_count": new_count})
+        
+        logger.info(f"✅ 댓글 삭제 완료: {comment_id}")
+        
+        return MessageResponse(message="Comment deleted successfully")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ 댓글 삭제 실패: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete comment"
+        )
+
+
+# ============================================
+# 10. 댓글 좋아요 (Like Comment)
+# ============================================
+
+@router.post(
+    "/{post_id}/comments/{comment_id}/like",
+    response_model=CommentResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "좋아요 성공"},
+        404: {"model": dict, "description": "댓글 미발견"},
+    }
+)
+async def like_comment(
+    post_id: str,
+    comment_id: str,
+    current_user: UserResponse = Depends(get_current_user),
+    db: firestore.client = Depends(get_firestore_db)
+) -> CommentResponse:
+    """
+    댓글 좋아요 (토글)
+    
+    Args:
+        post_id: 게시글 ID
+        comment_id: 댓글 ID
+        current_user: 인증된 사용자
+        db: Firestore 클라이언트
+    
+    Returns:
+        CommentResponse: 업데이트된 댓글
+    
+    Example:
+        >>> POST /api/posts/abc123/comments/comment456/like
+        >>> Authorization: Bearer <token>
+    """
+    try:
+        logger.info(f"👍 댓글 좋아요: {comment_id}")
+        
+        # 댓글 조회
+        comment_doc = db.collection("comments").document(comment_id).get()
+        
+        if not comment_doc.exists:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Comment not found"
+            )
+        
+        comment = comment_doc.to_dict()
+        
+        # 게시글 ID 확인
+        if comment.get("post_id") != post_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Comment does not belong to this post"
+            )
+        
+        # 좋아요 수 증가
+        new_likes = comment.get("likes", 0) + 1
+        db.collection("comments").document(comment_id).update({"likes": new_likes})
+        
+        logger.info(f"✅ 댓글 좋아요 완료: {comment_id} (좋아요: {new_likes})")
+        
+        # 업데이트된 댓글 반환
+        updated_comment = comment.copy()
+        updated_comment["likes"] = new_likes
+        
+        return CommentResponse(
+            comment_id=updated_comment.get("comment_id"),
+            post_id=updated_comment.get("post_id"),
+            author_id=updated_comment.get("author_id"),
+            author_username=updated_comment.get("author_username"),
+            content=updated_comment.get("content"),
+            likes=new_likes,
+            parent_comment_id=updated_comment.get("parent_comment_id"),
+            created_at=updated_comment.get("created_at"),
+            updated_at=updated_comment.get("updated_at")
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ 댓글 좋아요 실패: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to like comment"
+        )
+
+
+# ============================================
+# 11. 헬스 체크
 # ============================================
 
 @router.get("/health", response_model=dict)

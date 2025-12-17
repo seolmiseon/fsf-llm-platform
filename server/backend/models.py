@@ -198,6 +198,32 @@ class CommentCreate(BaseModel):
         }
 
 
+class CommentUpdate(BaseModel):
+    """댓글 수정 요청 모델"""
+    content: str = Field(..., min_length=1, max_length=1000, description="댓글 내용")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "content": "수정된 댓글 내용입니다."
+            }
+        }
+
+
+class CommentListResponse(BaseModel):
+    """댓글 목록 응답 (계층 구조 포함)"""
+    comments: list[CommentResponse] = Field(..., description="댓글 목록")
+    total_count: int = Field(..., description="전체 댓글 수")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "comments": [],
+                "total_count": 10
+            }
+        }
+
+
 class CommentResponse(BaseModel):
     """댓글 응답 모델"""
     comment_id: str = Field(..., description="댓글 ID")

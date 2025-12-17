@@ -142,6 +142,9 @@ START_HERE_NEW_SESSION.md
 PROJECT_STATUS.md
 FSF_프론트엔드_리팩토링_인계.md
 TECH_STACK.md
+DEVELOPMENT_GUIDELINES.md
+PROJECT_HANDBOOK.md
+PORTFOLIO_VERIFICATION_FINAL.md
 latest_logs.json 
 
 # ============================================
@@ -176,6 +179,7 @@ test_data/
 sample_data/
 temp_data/
 portfolio-experiments/
+
 
 
 # ============================================

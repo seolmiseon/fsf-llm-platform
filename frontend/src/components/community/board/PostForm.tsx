@@ -1,16 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import {
-    addDoc,
-    collection,
-    doc,
-    getDoc,
-    serverTimestamp,
-    updateDoc,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase/config';
-import { Post } from '@/types/community/community';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button/Button';
 import { Input } from '@/components/ui/input/Input';
@@ -19,6 +9,7 @@ import { AlertDialog } from '@/components/ui/alert/Alert';
 import { Error, Loading } from '@/components/ui/common';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { BackendApi } from '@/lib/client/api/backend';
 import Image from 'next/image';
 
 // 에러 메시지 타입 정의
@@ -45,6 +36,7 @@ export default function PostForm({ isEdit }: PostFormProps) {
     const [error, setError] = useState<ErrorType>(null);
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
+    const [category, setCategory] = useState('general');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [alertDialog, setAlertDialog] = useState<AlertDialogState>({
         isOpen: false,
@@ -54,24 +46,31 @@ export default function PostForm({ isEdit }: PostFormProps) {
     });
     const router = useRouter();
     const params = useParams();
+    const backendApi = useMemo(() => new BackendApi(), []);
 
     useEffect(() => {
         // 수정 모드일 때 기존 데이터 불러오기
-        if (isEdit) {
+        if (isEdit && params.id) {
             const fetchPost = async () => {
-                if (!db) return;
-                const docRef = doc(db, 'community', params.id as string);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    const post = docSnap.data();
-                    setTitle(post.title);
-                    setContent(post.content);
-                    setImageUrl(post.imageUrl || '');
+                try {
+                    const response = await backendApi.getPost(params.id as string);
+                    if (response.success && response.data) {
+                        setTitle(response.data.title || '');
+                        setContent(response.data.content || '');
+                        setCategory(response.data.category || 'general');
+                        // 백엔드 API에 imageUrl이 없으면 빈 문자열
+                        setImageUrl(response.data.imageUrl || '');
+                    } else {
+                        setError('게시글을 불러올 수 없습니다.');
+                    }
+                } catch (error) {
+                    console.error('Error fetching post:', error);
+                    setError('게시글을 불러오는 중 오류가 발생했습니다.');
                 }
             };
             fetchPost();
         }
-    }, [isEdit, params.id]);
+    }, [isEdit, params.id, backendApi]);
 
     if (authLoading) {
         return <div className="text-center py-4">인증 상태 확인중...</div>;
@@ -146,14 +145,12 @@ export default function PostForm({ isEdit }: PostFormProps) {
         }
 
         try {
-            // Firestore 초기화 체크
-            if (!db) {
+            if (!user) {
                 setAlertDialog({
                     isOpen: true,
-                    message:
-                        '서버 연결에 문제가 있습니다. 잠시 후 다시 시도해주세요.',
+                    message: '로그인이 필요합니다.',
                     variant: 'destructive',
-                    onClose: () => setIsSubmitting(false),
+                    onClose: () => router.push('/signin'),
                 });
                 return;
             }
@@ -172,85 +169,66 @@ export default function PostForm({ isEdit }: PostFormProps) {
                     return;
                 }
 
-                const docRef = doc(db, 'community', params.id as string);
-                await updateDoc(docRef, {
-                    title: sanitizedTitle,
-                    content: sanitizedContent,
-                    imageUrl: imageUrl || null,
-                    updatedAt: serverTimestamp(),
-                });
+                const response = await backendApi.updatePost(
+                    params.id as string,
+                    sanitizedTitle,
+                    sanitizedContent,
+                    category
+                );
 
-                setAlertDialog({
-                    isOpen: true,
-                    message: '게시글이 수정되었습니다',
-                    variant: 'success',
-                    onClose: () => router.push(`/community/${params.id}`),
-                });
-
-                // 딜레이 타이머 설정
-                const timer = setTimeout(() => {
-                    router.push(`/community/${params.id}`);
-                }, 1500);
-
-                // 컴포넌트 언마운트 시 타이머 정리
-                return () => clearTimeout(timer);
-            } else {
-                // 새 글 작성
-                if (!user?.uid) {
+                if (response.success) {
                     setAlertDialog({
                         isOpen: true,
-                        message:
-                            '로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.',
-                        variant: 'destructive',
-                        onClose: () => router.push('/signin'),
+                        message: '게시글이 수정되었습니다',
+                        variant: 'success',
+                        onClose: () => router.push(`/community/${params.id}`),
                     });
-                    return;
+
+                    setTimeout(() => {
+                        router.push(`/community/${params.id}`);
+                    }, 1500);
+                } else {
+                    setAlertDialog({
+                        isOpen: true,
+                        message: response.error || '게시글 수정에 실패했습니다.',
+                        variant: 'destructive',
+                        onClose: () => setIsSubmitting(false),
+                    });
                 }
+            } else {
+                // 새 글 작성
+                const response = await backendApi.createPost(
+                    sanitizedTitle,
+                    sanitizedContent,
+                    category
+                );
 
-                const postData: Post = {
-                    title: sanitizedTitle,
-                    content: sanitizedContent,
-                    authorId: user.uid,
-                    authorName: user.displayName || '익명',
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp(),
-                    likes: 0,
-                    views: 0,
-                    commentCount: 0,
-                    imageUrl: imageUrl || null,
-                };
+                if (response.success && response.data) {
+                    setAlertDialog({
+                        isOpen: true,
+                        message: '게시글이 작성되었습니다',
+                        variant: 'success',
+                        onClose: () => router.push('/community'),
+                    });
 
-                const communityRef = collection(db, 'community');
-                await addDoc(communityRef, postData);
-
-                setAlertDialog({
-                    isOpen: true,
-                    message: '게시글이 작성되었습니다',
-                    variant: 'success',
-                    onClose: () => router.push('/community'),
-                });
+                    setTimeout(() => {
+                        router.push(`/community/${response.data.post_id || ''}`);
+                    }, 1500);
+                } else {
+                    setAlertDialog({
+                        isOpen: true,
+                        message: response.error || '게시글 작성에 실패했습니다.',
+                        variant: 'destructive',
+                        onClose: () => setIsSubmitting(false),
+                    });
+                }
             }
         } catch (error: any) {
             console.error('게시글 처리 중 오류 발생:', error);
 
-            // 사용자에게 보여줄 에러 메시지 구성
-            let errorMessage = '게시글 처리 중 문제가 발생했습니다.';
-            if (error.code) {
-                switch (error.code) {
-                    case 'permission-denied':
-                        errorMessage = '권한이 없습니다.';
-                        break;
-                    case 'not-found':
-                        errorMessage = '게시글을 찾을 수 없습니다.';
-                        break;
-                    default:
-                        errorMessage = '알 수 없는 오류가 발생했습니다.';
-                }
-            }
-
             setAlertDialog({
                 isOpen: true,
-                message: errorMessage,
+                message: error.message || '게시글 처리 중 문제가 발생했습니다.',
                 variant: 'destructive',
                 onClose: () => setIsSubmitting(false),
             });

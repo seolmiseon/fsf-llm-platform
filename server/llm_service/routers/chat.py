@@ -20,67 +20,20 @@ router = APIRouter(prefix="/chat", tags=["AI Chat"])
 # 서비스 초기화
 openai_service = OpenAIService()
 rag_service = RAGService()
-cache_service = CacheService()  # ← 🆕 추가!
 
-# 한글 이름 → 영문 이름 매핑 테이블 (서버 시작 시 로드)
-_ko_to_en_name_map: Dict[str, str] = {}
+# CacheService 초기화 (ChromaDB 오류 시에도 서버 계속 실행)
+try:
+    cache_service = CacheService()
+except Exception as e:
+    logger.warning(f"⚠️ CacheService 초기화 실패 (캐시 기능 비활성화): {e}")
+    cache_service = None
 
-
-def _load_ko_name_mapping() -> Dict[str, str]:
-    """
-    espn_player_ids.json에서 ko_name → name 매핑 테이블 로드
-    
-    Returns:
-        {"손흥민": "Son Heung-Min", "이강인": "Lee Kang-In", ...}
-    """
-    global _ko_to_en_name_map
-    
-    if _ko_to_en_name_map:
-        return _ko_to_en_name_map
-    
-    try:
-        json_file = os.path.join(
-            os.path.dirname(__file__), '../data/espn_player_ids.json'
-        )
-        
-        if not os.path.exists(json_file):
-            logger.warning(f"⚠️ JSON 파일 없음: {json_file}")
-            return {}
-        
-        with open(json_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        
-        mapping = {}
-        for league, players in data.items():
-            for player in players:
-                ko_name = player.get('ko_name')
-                en_name = player.get('name')
-                
-                if ko_name and en_name:
-                    mapping[ko_name] = en_name
-                    # "손흥민", "Son Heung-Min" 같은 변형도 추가
-                    if ' ' in ko_name:
-                        parts = ko_name.split()
-                        if len(parts) == 2:
-                            # "손 흥민" → "Son Heung-Min" (공백 제거 버전도)
-                            mapping[parts[0] + parts[1]] = en_name
-        
-        _ko_to_en_name_map = mapping
-        logger.info(f"✅ 한글 이름 매핑 로드 완료: {len(mapping)}개")
-        return mapping
-        
-    except Exception as e:
-        logger.warning(f"⚠️ 한글 이름 매핑 로드 실패: {e}")
-        return {}
-
-
-# 서버 시작 시 매핑 로드
-_load_ko_name_mapping()
+# 한글 매핑 테이블 제거됨 - JSON에서 ko_name 필드로 직접 검색
 
 
 def _is_stats_question(query: str) -> bool:
     """
-    득점/어시스트 등 통계성 질문인지 간단히 감지
+    득점/어시스트/폼 등 통계성 질문인지 간단히 감지
     (1차 버전: 키워드 기반)
     """
     stats_keywords = [
@@ -88,11 +41,17 @@ def _is_stats_question(query: str) -> bool:
         "골",
         "도움",
         "어시스트",
+        "폼",
+        "통계",
+        "시즌",
         "assist",
         "assists",
         "goals",
         "scorer",
         "top scorer",
+        "form",
+        "stats",
+        "statistics",
     ]
     q = query.lower()
     return any(kw in q or kw in query for kw in stats_keywords)
@@ -102,24 +61,12 @@ def _extract_english_name(query: str) -> Optional[str]:
     """
     질문에서 영문 선수 이름 추출
     - 영문 이름이 직접 포함된 경우: 그대로 반환
-    - 한글 이름이 포함된 경우: ko_name → name 매핑 테이블로 변환
+    - 한글 이름은 _build_stats_context()에서 직접 처리 (JSON의 ko_name 필드로 검색)
     """
-    # 1. 영문 이름 패턴 먼저 확인 (두 단어 이상)
+    # 영문 이름 패턴 확인 (두 단어 이상)
     matches = re.findall(r"[A-Za-z]+(?:\s+[A-Za-z]+)+", query)
     if matches:
         return matches[0].strip()
-    
-    # 2. 한글 이름 매핑 시도
-    ko_map = _load_ko_name_mapping()
-    
-    # 한글 문자 패턴 찾기 (2-4글자 이름 추정)
-    korean_matches = re.findall(r"[가-힣]{2,4}", query)
-    
-    for ko_name in korean_matches:
-        if ko_name in ko_map:
-            en_name = ko_map[ko_name]
-            logger.debug(f"✅ 한글 이름 매핑: '{ko_name}' → '{en_name}'")
-            return en_name
     
     return None
 
@@ -127,19 +74,27 @@ def _extract_english_name(query: str) -> Optional[str]:
 async def _build_stats_context(query: str) -> Optional[str]:
     """
     스탯 관련 질문일 때, 선수 통계 API를 호출해 컨텍스트 텍스트 생성
-    - 1차 버전: 영문 선수 이름 + 개인 스탯만 지원
+    - JSON 캐시에서만 가져옴 (스크래핑 없음)
+    - 한글 이름도 직접 지원
     """
     if not _is_stats_question(query):
         return None
 
-    player_name_en = _extract_english_name(query)
-    if not player_name_en:
-        # 아직 한글 이름 → 영문 매핑은 미구현
+    # 1. 영문 이름 추출 시도
+    player_name = _extract_english_name(query)
+    
+    # 2. 영문 이름이 없으면 한글 이름 추출 시도
+    if not player_name:
+        korean_matches = re.findall(r"[가-힣]{2,4}", query)
+        if korean_matches:
+            player_name = korean_matches[0]  # 첫 번째 한글 이름 사용
+    
+    if not player_name:
         return None
 
     try:
-        # 기존 stats 라우터의 로직을 그대로 재사용
-        stats_response = await get_player_stats(player_name_en)
+        # JSON 캐시에서 통계 가져오기 (스크래핑 없음, 한글/영문 모두 지원)
+        stats_response = await get_player_stats(player_name)
     except HTTPException:
         return None
 
@@ -153,8 +108,8 @@ async def _build_stats_context(query: str) -> Optional[str]:
     team = stats_response.get("team", "Unknown")
 
     return (
-        f"[실시간 선수 통계]\n"
-        f"선수: {stats_response.get('name', player_name_en)}\n"
+        f"[선수 통계 (JSON 캐시)]\n"
+        f"선수: {stats_response.get('name', player_name)}\n"
         f"팀: {team}\n"
         f"경기 수: {matches}\n"
         f"득점: {goals}골\n"
@@ -205,35 +160,47 @@ async def chat(request: ChatRequest) -> ChatResponse:
         logger.info(f"💬 챗봇 요청: {request.query}")
 
         # ============================================
-        # ✅ STEP 1: ChromaDB 캐시 확인 ($0)
+        # ✅ STEP 1: ChromaDB 캐시 확인 ($0) - 통계 질문이 아닐 때만
         # ============================================
-        logger.debug("Step 1️⃣: ChromaDB 캐시 검색 중...")
-        cached_answer = await cache_service.get_cached_answer(request.query)
+        is_stats_q = _is_stats_question(request.query)
+        cached_answer = None
+        
+        # 통계 질문이면 캐시 스킵 (RAG 검색으로 최신 정보 찾기)
+        if not is_stats_q:
+            logger.debug("Step 1️⃣: ChromaDB 캐시 검색 중...")
+            if cache_service:
+                cached_answer = await cache_service.get_cached_answer(request.query)
 
-        if cached_answer:
-            logger.info(f"🎯 캐시된 답변 반환 (비용 $0)")
-            return ChatResponse(
-                answer=cached_answer["answer"],
-                sources=[],  # 캐시 답변은 소스 없음
-                tokens_used=0,  # 캐시 히트 = 토큰 0
-                confidence=cached_answer["confidence"],
-                cache_hit=True,  # ← 🆕
-                cache_source="chromadb",  # ← 🆕
-                cost_saved=0.001,  # ← 🆕 예상 절감 비용
-            )
-
-        logger.debug("⚠️ 캐시 미스 → 새로운 질문으로 처리")
-
-        # ============================================
-        # ✅ STEP 2: (선택) 스탯 API 컨텍스트 구성 ($0.001 미만, 내부 호출)
-        # ============================================
-        logger.debug("Step 2️⃣: 스탯/팀 관련 질문인지 확인 중...")
-        stats_context = await _build_stats_context(request.query)
+            if cached_answer:
+                logger.info(f"🎯 캐시된 답변 반환 (비용 $0)")
+                return ChatResponse(
+                    answer=cached_answer["answer"],
+                    sources=[],  # 캐시 답변은 소스 없음
+                    tokens_used=0,  # 캐시 히트 = 토큰 0
+                    confidence=cached_answer["confidence"],
+                    cache_hit=True,
+                    cache_source="chromadb",
+                    cost_saved=0.001,
+                )
 
         # ============================================
-        # ✅ STEP 3: RAG 검색 ($0)
+        # ✅ STEP 2: 통계 질문인 경우 JSON 캐시에서 통계 가져오기
         # ============================================
-        logger.debug("Step 3️⃣: RAG 검색 중...")
+        stats_context = None
+        if is_stats_q:
+            logger.info("📊 통계 질문 감지 → JSON 캐시에서 통계 확인 중...")
+            stats_context = await _build_stats_context(request.query)
+            if stats_context:
+                logger.info("✅ JSON 캐시에서 통계 데이터 확인")
+            else:
+                logger.debug("⚠️ JSON 캐시에 통계 데이터 없음 → RAG 검색으로 처리")
+
+        logger.debug("⚠️ 캐시 미스 또는 통계 질문 → RAG 검색으로 처리")
+
+        # ============================================
+        # ✅ STEP 3: RAG 검색 ($0) - 임베딩 기반 검색
+        # ============================================
+        logger.debug("Step 3️⃣: RAG 검색 중... (텍스트 임베딩 사용)")
         search_query = request.query
         rag_results = rag_service.search(
             collection_name="default", query=search_query, top_k=request.top_k
@@ -257,7 +224,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         # ============================================
         logger.debug("Step 4️⃣: 컨텍스트 포맷팅 중...")
         rag_context_text = format_chat_context(sources)
-
+        
         if stats_context:
             context_text = f"{stats_context}\n\n{rag_context_text}"
         else:
@@ -297,22 +264,24 @@ async def chat(request: ChatRequest) -> ChatResponse:
         # ✅ STEP 7: ChromaDB에 답변 저장 ($0)
         # ============================================
         logger.debug("Step 7️⃣: ChromaDB에 답변 저장 중...")
-        cache_saved = await cache_service.cache_answer(
-            query=request.query,
-            answer=ai_response,
-            metadata={
-                "rag_sources": [s.get("id") for s in sources],
-                "model": "gpt-4o-mini",
-                "tokens": total_tokens,
-                "input_tokens": input_tokens,
-                "output_tokens": output_tokens,
-            },
-        )
+        cache_saved = False
+        if cache_service:
+            cache_saved = await cache_service.cache_answer(
+                query=request.query,
+                answer=ai_response,
+                metadata={
+                    "rag_sources": [s.get("id") for s in sources],
+                    "model": "gpt-4o-mini",
+                    "tokens": total_tokens,
+                    "input_tokens": input_tokens,
+                    "output_tokens": output_tokens,
+                },
+            )
 
-        if cache_saved:
-            logger.info(f"✅ 답변 캐시 저장 완료")
-        else:
-            logger.warning(f"⚠️ 답변 캐시 저장 실패 (계속 진행)")
+            if cache_saved:
+                logger.info(f"✅ 답변 캐시 저장 완료")
+            else:
+                logger.warning(f"⚠️ 답변 캐시 저장 실패 (계속 진행)")
 
         logger.info(f"✅ 챗봇 응답 생성 & 캐시 저장 완료")
 

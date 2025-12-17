@@ -119,7 +119,7 @@ def load_espn_id_cache() -> Dict[str, int]:
 
     try:
         import json
-        json_file = os.path.join(os.path.dirname(__file__), 'espn_player_ids.json')
+        json_file = os.path.join(os.path.dirname(__file__), '../data/espn_player_ids.json')
 
         if not os.path.exists(json_file):
             print(f"⚠️  {json_file} 파일이 없습니다. 기본 캐시 사용.")

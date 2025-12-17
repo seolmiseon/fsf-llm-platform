@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useFavorite } from '@/hooks/useFavorite';
 import { CheerMessageBoard } from '@/components/FanPickStar/CheerMessageBoard';
 import { useModalStore } from '@/store/useModalStore';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase/config';
+import { BackendApi } from '@/lib/client/api/backend';
 import { TeamResponse } from '@/types/api/responses';
 import { Loading } from '@/components/ui/common';
 import { TeamCard } from '@/components/league/team/teamCard/TeamCard';
@@ -20,6 +19,7 @@ export default function FanPickerPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { open } = useModalStore();
+    const backendApi = useMemo(() => new BackendApi(), []);
 
     // 경쟁 ID (리그 ID)
     const competitionId = 'PL'; // 예: Premier League
@@ -27,39 +27,39 @@ export default function FanPickerPage() {
     // 팀 데이터 가져오기
     useEffect(() => {
         async function fetchTeams() {
-            if (!db) return;
-
             setIsLoading(true);
             setError(null);
 
             try {
-                const teamsRef = collection(db, 'teams');
-                const teamsQuery = query(teamsRef, orderBy('name'));
-                const snapshot = await getDocs(teamsQuery);
+                const response = await backendApi.getTeams(competitionId);
 
-                const fetchedTeams: TeamResponse[] = [];
+                if (response.success && response.data) {
+                    const teamsData = response.data.data || response.data;
+                    const fetchedTeams: TeamResponse[] = Array.isArray(teamsData)
+                        ? teamsData.map((team: any) => ({
+                              id: team.id || parseInt(team.team_id || '0'),
+                              name: team.name || team.shortName || '',
+                              shortName: team.shortName || team.name || '',
+                              crest: team.crest || team.crestUrl || '',
+                              competitionId,
+                          }))
+                        : [];
 
-                snapshot.forEach((doc) => {
-                    const teamData = doc.data() as TeamResponse;
-                    fetchedTeams.push({
-                        ...teamData,
-                        id: parseInt(doc.id),
-                        competitionId,
-                    });
-                });
-
-                setTeams(fetchedTeams);
-                setIsLoading(false);
+                    setTeams(fetchedTeams);
+                } else {
+                    setError(response.error || '팀 데이터를 가져오지 못했습니다.');
+                }
             } catch (err) {
                 const error = err as Error;
                 setError(`데이터를 가져오지 못했습니다: ${error.message}`);
-                setIsLoading(false);
                 console.error('팀 데이터 가져오기 실패:', error);
+            } finally {
+                setIsLoading(false);
             }
         }
 
         fetchTeams();
-    }, []);
+    }, [backendApi, competitionId]);
 
     // 즐겨찾기 처리
     const handleFavoriteClick = async (teamId: string) => {

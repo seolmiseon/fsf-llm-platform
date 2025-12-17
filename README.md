@@ -25,14 +25,14 @@ RAG(검색 증강 생성) 기술로 실시간 경기 데이터를 분석하고, 
 - 📊 **경기 분석**: AI가 경기 통계를 분석하고 인사이트 제공
 - ⚖️ **선수 비교**: 데이터 기반 선수 능력치 비교 분석
 - 📈 **통계 페이지**: 7개 리그 득점왕/어시스트왕 순위 (537명 선수 데이터)
-- 📰 **커뮤니티**: 게시글, 댓글, 좋아요 기능
+- 📰 **커뮤니티**: 게시글, 댓글, 대댓글, 좋아요 기능 (실시간 알림)
 - 🔐 **인증**: Firebase Authentication
 - 📱 **반응형**: Mobile/Desktop 최적화
 
 ### 🏆 기술적 성과
 
 ```
-⚡ 응답 속도 7배 향상     350ms → 50ms (3단계 캐싱)
+⚡ 응답 속도 7배 향상     350ms → 50ms (2단계 캐싱)
 💰 API 비용 40% 절감      $1/월 → $0.60/월
 🎯 캐시 히트율 90%        유사 질문 중복 제거
 📦 5개 LLM API 완성       챗봇, 경기분석, 선수비교
@@ -169,11 +169,16 @@ npm run dev
 | POST | `/api/auth/signup` | 회원가입 |
 | POST | `/api/auth/login` | 로그인 |
 | GET | `/api/auth/me` | 현재 유저 정보 |
-| GET/POST | `/api/posts` | 게시글 목록/작성 |
-| GET/PUT/DELETE | `/api/posts/{id}` | 게시글 상세/수정/삭제 |
+| GET/POST | `/api/posts/posts` | 게시글 목록/작성 |
+| GET/PUT/DELETE | `/api/posts/posts/{id}` | 게시글 상세/수정/삭제 |
+| POST | `/api/posts/posts/{id}/comments` | 댓글 작성 |
+| GET | `/api/posts/posts/{id}/comments` | 댓글 목록 (계층 구조) |
+| PUT | `/api/posts/posts/{id}/comments/{comment_id}` | 댓글 수정 |
+| DELETE | `/api/posts/posts/{id}/comments/{comment_id}` | 댓글 삭제 |
+| POST | `/api/posts/posts/{id}/comments/{comment_id}/like` | 댓글 좋아요 |
 | GET | `/api/football/standings` | 리그 순위표 |
 | GET | `/api/football/matches` | 경기 일정/결과 |
-| GET | `/api/football/teams/{id}` | 팀 정보 |
+| GET | `/api/football/teams/{competition}` | 팀 정보 |
 
 ### LLM API
 | Method | Endpoint | 설명 |
@@ -195,31 +200,32 @@ npm run dev
 
 ## 💡 핵심 기술 구현
 
-### 3단계 캐싱 전략
+### 2단계 캐싱 전략 (실제 구현)
 
 ```python
 async def get_response(query: str):
-    # 1️⃣ Memory Cache (즉시)
-    if query in memory_cache:
-        return memory_cache[query]
+    # 1️⃣ ChromaDB 벡터 캐시 (유사 질문 재사용)
+    cached_answer = await chroma_cache.get_cached_answer(query)
+    if cached_answer:
+        return cached_answer  # 캐시 히트 (약 0.0029초, 비용 $0)
     
-    # 2️⃣ Firestore Cache (1시간)
-    firestore_result = await firestore.get(query)
+    # 2️⃣ Firestore 캐시 (외부 API 응답, 1시간 TTL)
+    firestore_result = await firestore.get_api_cache(query)
     if firestore_result and not expired(firestore_result):
-        return firestore_result
+        return firestore_result  # 캐시 히트 (약 0.1초)
     
-    # 3️⃣ ChromaDB RAG (유사도 90% 이상)
-    similar = chroma.query(query, threshold=0.9)
-    if similar:
-        return similar[0]
+    # 3️⃣ RAG 검색 ($0) - 임베딩 기반 검색
+    rag_results = await rag_service.search(query)
     
     # 4️⃣ OpenAI API (캐시 미스)
-    response = await openai.chat(query)
+    response = await openai.chat(query, context=rag_results)
     
-    # 캐시 저장
-    await save_to_cache(query, response)
+    # ChromaDB에 캐시 저장
+    await chroma_cache.cache_answer(query, response)
     return response
 ```
+
+**참고**: Memory 캐시는 구현되지 않음. ChromaDB + Firestore 2단계만 구현됨.
 
 **성과:**
 - 캐시 히트율: 90%

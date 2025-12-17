@@ -4,22 +4,16 @@ import { CommentForm } from '@/components/community/board/CommentForm';
 import { CommentList } from '@/components/community/board/CommentList';
 import { AlertDialog } from '@/components/ui/alert/Alert';
 import { Button } from '@/components/ui/button/Button';
-import { db } from '@/lib/firebase/config';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Post } from '@/types/community/community';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import {
-    deleteDoc,
-    doc,
-    getDoc,
-    Timestamp,
-    FieldValue,
-} from 'firebase/firestore';
+import { Timestamp, FieldValue } from 'firebase/firestore';
+import { BackendApi } from '@/lib/client/api/backend';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 type AlertDialogState = {
     isOpen: boolean;
@@ -30,6 +24,31 @@ type AlertDialogState = {
 function isTimestamp(value: Timestamp | FieldValue): value is Timestamp {
     return value && typeof value === 'object' && 'toDate' in value;
 }
+// 백엔드 API 응답을 프론트엔드 Post 타입으로 변환
+function mapBackendPostToFrontend(backendPost: any): Post {
+    return {
+        id: backendPost.post_id,
+        title: backendPost.title,
+        content: backendPost.content,
+        authorId: backendPost.author_id,
+        authorName: backendPost.author_username || null,
+        createdAt: backendPost.created_at 
+            ? (typeof backendPost.created_at === 'string' 
+                ? Timestamp.fromDate(new Date(backendPost.created_at))
+                : backendPost.created_at)
+            : Timestamp.now(),
+        updatedAt: backendPost.updated_at 
+            ? (typeof backendPost.updated_at === 'string'
+                ? Timestamp.fromDate(new Date(backendPost.updated_at))
+                : backendPost.updated_at)
+            : Timestamp.now(),
+        likes: backendPost.likes || 0,
+        views: backendPost.views || 0,
+        commentCount: backendPost.comment_count || 0,
+        imageUrl: null,
+    };
+}
+
 export default function PostDetailPage() {
     const { user, loading: authLoading } = useAuthStore();
     const params = useParams();
@@ -43,23 +62,21 @@ export default function PostDetailPage() {
         variant: 'default',
     });
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const backendApi = useMemo(() => new BackendApi(), []);
 
     useEffect(() => {
         const fetchPost = async () => {
-            if (!params.id || !db) return;
+            if (!params.id) return;
 
             try {
-                const docRef = doc(db, 'community', params.id as string);
-                const docSnap = await getDoc(docRef);
+                setLoading(true);
+                const response = await backendApi.getPost(params.id as string);
 
-                if (docSnap.exists()) {
-                    const postData = {
-                        id: docSnap.id,
-                        ...docSnap.data(),
-                    } as Post;
+                if (response.success && response.data) {
+                    const postData = mapBackendPostToFrontend(response.data);
                     setPost(postData);
                 } else {
-                    setError('게시글을 찾을수가 없습니다');
+                    setError(response.error || '게시글을 찾을 수 없습니다');
                 }
             } catch (error) {
                 console.error('Error fetching post:', error);
@@ -70,10 +87,10 @@ export default function PostDetailPage() {
         };
 
         fetchPost();
-    }, [params.id]);
+    }, [params.id, backendApi]);
 
     const handleDelete = async () => {
-        if (!post || !user || user.uid !== post.authorId || !db) {
+        if (!post || !user || user.uid !== post.authorId) {
             setAlertDialog({
                 isOpen: true,
                 message: '삭제 권한이 없습니다.',
@@ -87,15 +104,24 @@ export default function PostDetailPage() {
         }
 
         try {
-            await deleteDoc(doc(db, 'community', post.id as string));
-            setAlertDialog({
-                isOpen: true,
-                message: '게시글이 삭제되었습니다.',
-                variant: 'success',
-            });
-            setTimeout(() => {
-                router.push('/community');
-            }, 1500);
+            const response = await backendApi.deletePost(post.id as string);
+            
+            if (response.success) {
+                setAlertDialog({
+                    isOpen: true,
+                    message: '게시글이 삭제되었습니다.',
+                    variant: 'success',
+                });
+                setTimeout(() => {
+                    router.push('/community');
+                }, 1500);
+            } else {
+                setAlertDialog({
+                    isOpen: true,
+                    message: response.error || '게시글 삭제 중 오류가 발생했습니다.',
+                    variant: 'destructive',
+                });
+            }
         } catch (error) {
             console.error('Error deleting post:', error);
             setAlertDialog({

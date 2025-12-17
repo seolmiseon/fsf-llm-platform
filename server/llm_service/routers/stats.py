@@ -220,12 +220,48 @@ async def get_available_leagues():
         )
 
 
+def get_player_stats_from_cache(player_name: str) -> Optional[Dict]:
+    """
+    JSON 캐시에서 선수 통계 가져오기 (스크래핑 없음)
+    
+    Args:
+        player_name: 선수 이름 (영문 또는 한글)
+    
+    Returns:
+        {"name": str, "team": str, "goals": int, "assists": int, ...} 또는 None
+    """
+    try:
+        json_file = os.path.join(os.path.dirname(__file__), '../data/espn_player_ids.json')
+        
+        if not os.path.exists(json_file):
+            return None
+        
+        with open(json_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # 모든 리그에서 선수 검색
+        for league, players in data.items():
+            for player in players:
+                # 영문 이름 매칭
+                if player.get('name', '').lower() == player_name.lower():
+                    return player
+                # 한글 이름 매칭
+                if player.get('ko_name', '').lower() == player_name.lower():
+                    return player
+        
+        return None
+        
+    except Exception as e:
+        print(f"❌ JSON 로드 실패: {e}")
+        return None
+
+
 @router.get("/player/{player_name}", summary="선수 개인 통계")
 async def get_player_stats(player_name: str):
     """
-    선수 이름으로 통계 조회
+    선수 이름으로 통계 조회 (JSON 캐시에서만, 스크래핑 없음)
 
-    - **player_name**: 선수 이름 (영문, 예: "Erling Haaland")
+    - **player_name**: 선수 이름 (영문 또는 한글, 예: "Erling Haaland" 또는 "손흥민")
 
     Returns:
         {
@@ -238,28 +274,22 @@ async def get_player_stats(player_name: str):
             "matches": 20
         }
     """
-    # 1. 캐시에서 ESPN ID 찾기
-    espn_id = find_espn_id(player_name)
-
-    if not espn_id:
+    # JSON 캐시에서 통계 가져오기 (스크래핑 없음)
+    player_data = get_player_stats_from_cache(player_name)
+    
+    if not player_data:
         raise HTTPException(
             status_code=404,
-            detail=f"'{player_name}' 선수를 찾을 수 없습니다."
+            detail=f"'{player_name}' 선수를 찾을 수 없습니다. (JSON 캐시에 없음)"
         )
-
-    # 2. ESPN에서 최신 통계 스크래핑
-    stats = scrape_espn_stats(espn_id, player_name)
-
-    if not stats:
-        raise HTTPException(
-            status_code=500,
-            detail="통계 수집에 실패했습니다."
-        )
-
+    
     return {
         "success": True,
-        "name": player_name,
-        "espn_id": espn_id,
-        **stats,
+        "name": player_data.get('name', player_name),
+        "espn_id": player_data.get('espn_id', 0),
+        "team": player_data.get('team', 'Unknown'),
+        "goals": player_data.get('goals', 0),
+        "assists": player_data.get('assists', 0),
+        "matches": player_data.get('matches', 0),
         "timestamp": datetime.now().isoformat()
     }
