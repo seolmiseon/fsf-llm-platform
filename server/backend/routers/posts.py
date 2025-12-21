@@ -36,7 +36,7 @@ except Exception as e:
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/posts", tags=["Posts"])
+router = APIRouter(tags=["Posts"])  # prefix는 main.py에서 /api/posts로 등록됨
 
 
 # ============================================
@@ -84,23 +84,45 @@ async def create_post(
         
         # 🔒 콘텐츠 필터링 (제목 + 내용)
         if content_safety_service:
-            text_to_check = f"{post_data.title}\n{post_data.content}"
-            check_result = content_safety_service.check_input(text_to_check)
-            if not check_result.is_safe:
-                logger.warning(
-                    "🚫 게시글 내용에 유해 콘텐츠 감지: "
-                    f"카테고리={check_result.category}, "
-                    f"단어={check_result.detected_words}"
+            try:
+                text_to_check = f"{post_data.title}\n{post_data.content}"
+                check_result = content_safety_service.check_input(text_to_check)
+                if not check_result.is_safe:
+                    logger.warning(
+                        "🚫 게시글 내용에 유해 콘텐츠 감지: "
+                        f"카테고리={check_result.category}, "
+                        f"단어={check_result.detected_words}"
+                    )
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail={
+                            "error": "부적절한 내용이 포함된 게시글입니다.",
+                            "error_code": "INAPPROPRIATE_CONTENT",
+                            "category": check_result.category.value if check_result.category else None,
+                            "reason": check_result.reason,
+                        },
+                    )
+            except HTTPException:
+                raise
+            except Exception as e:
+                logger.error(f"❌ 콘텐츠 필터링 중 오류 발생: {e}", exc_info=True)
+                # 필터링 실패 시에도 게시글 생성은 허용 (로깅만)
+                logger.warning("⚠️ 콘텐츠 필터링 실패로 인해 게시글 생성 진행")
+        
+        # 📂 카테고리 자동 분류 (카테고리가 없거나 "general"인 경우)
+        final_category = post_data.category or "general"
+        if content_safety_service and (final_category == "general" or not post_data.category):
+            try:
+                auto_category = content_safety_service.classify_category(
+                    post_data.title,
+                    post_data.content
                 )
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail={
-                        "error": "부적절한 내용이 포함된 게시글입니다.",
-                        "error_code": "INAPPROPRIATE_CONTENT",
-                        "category": check_result.category.value if check_result.category else None,
-                        "reason": check_result.reason,
-                    },
-                )
+                if auto_category and auto_category != "general":
+                    final_category = auto_category
+                    logger.info(f"📂 카테고리 자동 분류: {final_category}")
+            except Exception as e:
+                logger.warning(f"⚠️ 카테고리 자동 분류 실패 (기본값 사용): {e}")
+                # 카테고리 분류 실패 시 기본값 사용
         
         # 게시글 ID 생성
         post_id = str(uuid.uuid4())[:8]
@@ -113,7 +135,7 @@ async def create_post(
             "author_username": current_user.username,
             "title": post_data.title,
             "content": post_data.content,
-            "category": post_data.category or "general",
+            "category": final_category,
             "views": 0,
             "likes": 0,
             "comment_count": 0,
@@ -130,16 +152,27 @@ async def create_post(
             author_username=current_user.username,
             title=post_data.title,
             content=post_data.content,
-            category=post_data.category or "general",
+            category=final_category,
             views=0,
             likes=0,
             comment_count=0,
             created_at=now
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ 게시글 생성 실패: {e}", exc_info=True)
-        raise handle_firestore_error(e)
+        # Firestore 관련 에러인지 확인
+        error_str = str(e).lower()
+        if "firestore" in error_str or "firebase" in error_str or "database" in error_str:
+            raise handle_firestore_error(e)
+        else:
+            # 기타 에러는 일반 500 에러로 처리
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"게시글 생성 중 오류가 발생했습니다: {str(e)}"
+            )
 
 
 # ============================================
@@ -368,23 +401,29 @@ async def update_post(
 
         # 🔒 콘텐츠 필터링 (수정 후 제목 + 내용)
         if content_safety_service and (post_data.title is not None or post_data.content is not None):
-            text_to_check = f"{new_title}\n{new_content}"
-            check_result = content_safety_service.check_input(text_to_check)
-            if not check_result.is_safe:
-                logger.warning(
-                    "🚫 게시글 수정 내용에 유해 콘텐츠 감지: "
-                    f"카테고리={check_result.category}, "
-                    f"단어={check_result.detected_words}"
-                )
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail={
-                        "error": "부적절한 내용이 포함된 게시글입니다.",
-                        "error_code": "INAPPROPRIATE_CONTENT",
-                        "category": check_result.category.value if check_result.category else None,
-                        "reason": check_result.reason,
-                    },
-                )
+            try:
+                text_to_check = f"{new_title}\n{new_content}"
+                check_result = content_safety_service.check_input(text_to_check)
+                if not check_result.is_safe:
+                    logger.warning(
+                        "🚫 게시글 수정 내용에 유해 콘텐츠 감지: "
+                        f"카테고리={check_result.category}, "
+                        f"단어={check_result.detected_words}"
+                    )
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail={
+                            "error": "부적절한 내용이 포함된 게시글입니다.",
+                            "error_code": "INAPPROPRIATE_CONTENT",
+                            "category": check_result.category.value if check_result.category else None,
+                            "reason": check_result.reason,
+                        },
+                    )
+            except HTTPException:
+                raise
+            except Exception as e:
+                logger.error(f"❌ 콘텐츠 필터링 중 오류 발생: {e}", exc_info=True)
+                logger.warning("⚠️ 콘텐츠 필터링 실패로 인해 게시글 수정 진행")
 
         if post_data.title is not None:
             update_dict["title"] = post_data.title
@@ -550,22 +589,28 @@ async def add_comment(
         
         # 🔒 댓글 콘텐츠 필터링
         if content_safety_service:
-            check_result = content_safety_service.check_input(comment_data.content)
-            if not check_result.is_safe:
-                logger.warning(
-                    "🚫 댓글 내용에 유해 콘텐츠 감지: "
-                    f"카테고리={check_result.category}, "
-                    f"단어={check_result.detected_words}"
-                )
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail={
-                        "error": "부적절한 내용이 포함된 댓글입니다.",
-                        "error_code": "INAPPROPRIATE_CONTENT",
-                        "category": check_result.category.value if check_result.category else None,
-                        "reason": check_result.reason,
-                    },
-                )
+            try:
+                check_result = content_safety_service.check_input(comment_data.content)
+                if not check_result.is_safe:
+                    logger.warning(
+                        "🚫 댓글 내용에 유해 콘텐츠 감지: "
+                        f"카테고리={check_result.category}, "
+                        f"단어={check_result.detected_words}"
+                    )
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail={
+                            "error": "부적절한 내용이 포함된 댓글입니다.",
+                            "error_code": "INAPPROPRIATE_CONTENT",
+                            "category": check_result.category.value if check_result.category else None,
+                            "reason": check_result.reason,
+                        },
+                    )
+            except HTTPException:
+                raise
+            except Exception as e:
+                logger.error(f"❌ 콘텐츠 필터링 중 오류 발생: {e}", exc_info=True)
+                logger.warning("⚠️ 콘텐츠 필터링 실패로 인해 댓글 생성 진행")
         
         # 게시글 존재 확인
         post_doc = db.collection("posts").document(post_id).get()
@@ -797,22 +842,28 @@ async def update_comment(
         
         # 🔒 댓글 수정 내용 필터링
         if content_safety_service:
-            check_result = content_safety_service.check_input(comment_data.content)
-            if not check_result.is_safe:
-                logger.warning(
-                    "🚫 댓글 수정 내용에 유해 콘텐츠 감지: "
-                    f"카테고리={check_result.category}, "
-                    f"단어={check_result.detected_words}"
-                )
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail={
-                        "error": "부적절한 내용이 포함된 댓글입니다.",
-                        "error_code": "INAPPROPRIATE_CONTENT",
-                        "category": check_result.category.value if check_result.category else None,
-                        "reason": check_result.reason,
-                    },
-                )
+            try:
+                check_result = content_safety_service.check_input(comment_data.content)
+                if not check_result.is_safe:
+                    logger.warning(
+                        "🚫 댓글 수정 내용에 유해 콘텐츠 감지: "
+                        f"카테고리={check_result.category}, "
+                        f"단어={check_result.detected_words}"
+                    )
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail={
+                            "error": "부적절한 내용이 포함된 댓글입니다.",
+                            "error_code": "INAPPROPRIATE_CONTENT",
+                            "category": check_result.category.value if check_result.category else None,
+                            "reason": check_result.reason,
+                        },
+                    )
+            except HTTPException:
+                raise
+            except Exception as e:
+                logger.error(f"❌ 콘텐츠 필터링 중 오류 발생: {e}", exc_info=True)
+                logger.warning("⚠️ 콘텐츠 필터링 실패로 인해 댓글 수정 진행")
 
         # 댓글 수정
         update_dict = {

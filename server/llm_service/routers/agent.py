@@ -76,6 +76,7 @@ AGENT_SYSTEM_PROMPT = """당신은 축구 분석 전문 AI 어시스턴트입니
 1. rag_search: 축구 관련 정보 검색 (선수, 팀, 경기, 통계 등)
 2. match_analysis: 경기 분석 (경기 ID 필요)
 3. player_compare: 선수 비교 분석 (2명 이상의 선수 이름 필요)
+4. posts_search: 커뮤니티 게시판에서 키워드와 관련된 게시글을 찾아주는 도구 (예: "손흥민 관련 글", "커뮤니티 글 추천" 등)
 
 한국어로 친절하고 정확하게 답변하세요."""
 
@@ -194,6 +195,8 @@ async def agent_chat(request: AgentRequest) -> AgentResponse:
         # 여기서는 간단하게 질문 내용으로 추정
         tools_used = []
         query_lower = request.query.lower()
+        if "커뮤니티" in query_lower or "게시판" in query_lower or "게시글" in query_lower or "글" in query_lower:
+            tools_used.append("posts_search")
         if "경기" in query_lower or "match" in query_lower:
             tools_used.append("match_analysis")
         if "비교" in query_lower or "compare" in query_lower:

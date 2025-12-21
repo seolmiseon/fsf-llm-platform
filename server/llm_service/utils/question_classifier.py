@@ -68,6 +68,12 @@ def is_complex_question(query: str) -> bool:
         logger.debug("🔍 복잡한 질문 감지: 영상 요청")
         return True
     
+    # 6. 커뮤니티/게시판 관련 질문 (posts_search Tool 필요)
+    community_keywords = ["커뮤니티", "게시판", "게시글", "글", "포스트", "community", "post", "posts"]
+    if any(keyword in query_lower for keyword in community_keywords):
+        logger.debug("🔍 복잡한 질문 감지: 커뮤니티/게시판 요청")
+        return True
+    
     # 단순 질문
     logger.debug("✅ 단순 질문으로 판단")
     return False

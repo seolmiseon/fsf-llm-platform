@@ -31,7 +31,7 @@ from ..dependencies import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
+router = APIRouter(tags=["Auth"])  # prefix는 main.py에서 /api/auth로 등록됨
 
 
 # ============================================

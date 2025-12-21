@@ -25,7 +25,7 @@ def search_posts(keyword: str) -> str:
         db = firestore.client()
         # 최근 글 위주로 최대 50개 조회 후 파이썬에서 필터링
         query = (
-            db.collection("community")
+            db.collection("posts")
             .order_by("created_at", direction=firestore.Query.DESCENDING)
             .limit(50)
         )
@@ -72,6 +72,6 @@ def search_posts(keyword: str) -> str:
 
 PostsSearchTool = Tool(
     name="posts_search",
-    description="커뮤니티 게시판에서 키워드와 관련된 게시글을 찾아 요약해주는 도구입니다.",
+    description="커뮤니티 게시판에서 키워드와 관련된 게시글을 찾아주는 도구입니다. '커뮤니티', '게시판', '게시글', '글' 같은 키워드가 포함된 질문에 사용하세요. 예: '손흥민 관련 커뮤니티 글 찾아줘', '게시판에서 라리가 글 추천해줘'",
     func=search_posts,
 )

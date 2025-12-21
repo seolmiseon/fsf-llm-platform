@@ -24,8 +24,10 @@ RAG(검색 증강 생성) 기술로 실시간 경기 데이터를 분석하고, 
 - 🤖 **AI 챗봇**: 축구 관련 질문에 실시간 답변 (RAG 기반)
 - 📊 **경기 분석**: AI가 경기 통계를 분석하고 인사이트 제공
 - ⚖️ **선수 비교**: 데이터 기반 선수 능력치 비교 분석
-- 📈 **통계 페이지**: 7개 리그 득점왕/어시스트왕 순위 (537명 선수 데이터)
+- 📈 **통계 페이지**: 7개 리그 득점왕/어시스트왕 순위 (580명 선수 데이터)
 - 📰 **커뮤니티**: 게시글, 댓글, 대댓글, 좋아요 기능 (실시간 알림)
+- 🛡️ **콘텐츠 필터링**: 욕설/스팸/유해 내용 자동 감지 및 차단
+- 🏷️ **카테고리 자동 분류**: LLM 기반 게시글 카테고리 자동 분류
 - 🔐 **인증**: Firebase Authentication
 - 📱 **반응형**: Mobile/Desktop 최적화
 
@@ -93,11 +95,13 @@ RAG(검색 증강 생성) 기술로 실시간 경기 데이터를 분석하고, 
 - **LLM**: OpenAI GPT-4o-mini
 - **RAG**: LangChain + ChromaDB
 - **Embeddings**: text-embedding-3-small (1536-dim)
-- **Cache**: 3-tier (Memory → Firestore → ChromaDB)
+- **Cache**: 2-tier (ChromaDB → Firestore)
+- **Content Safety**: 정규식 + LLM 기반 유해 콘텐츠 필터링
+- **Category Classification**: LLM 기반 게시글 카테고리 자동 분류
 
 ### Data Sources
 - **Football-Data.org API**: 실시간 경기/순위 (무료 티어)
-- **ESPN Scraping**: 선수 통계 (537명, 7개 리그)
+- **ESPN Scraping**: 선수 통계 (580명, 7개 리그)
 - **Firestore**: API 응답 캐싱 (1시간)
 - **ChromaDB**: 벡터 검색 (유사도 90% 이상)
 
@@ -169,13 +173,13 @@ npm run dev
 | POST | `/api/auth/signup` | 회원가입 |
 | POST | `/api/auth/login` | 로그인 |
 | GET | `/api/auth/me` | 현재 유저 정보 |
-| GET/POST | `/api/posts/posts` | 게시글 목록/작성 |
-| GET/PUT/DELETE | `/api/posts/posts/{id}` | 게시글 상세/수정/삭제 |
-| POST | `/api/posts/posts/{id}/comments` | 댓글 작성 |
-| GET | `/api/posts/posts/{id}/comments` | 댓글 목록 (계층 구조) |
-| PUT | `/api/posts/posts/{id}/comments/{comment_id}` | 댓글 수정 |
-| DELETE | `/api/posts/posts/{id}/comments/{comment_id}` | 댓글 삭제 |
-| POST | `/api/posts/posts/{id}/comments/{comment_id}/like` | 댓글 좋아요 |
+| GET/POST | `/api/posts` | 게시글 목록/작성 (콘텐츠 필터링 + 카테고리 자동 분류) |
+| GET/PUT/DELETE | `/api/posts/{id}` | 게시글 상세/수정/삭제 |
+| POST | `/api/posts/{id}/comments` | 댓글 작성 (콘텐츠 필터링) |
+| GET | `/api/posts/{id}/comments` | 댓글 목록 (계층 구조) |
+| PUT | `/api/posts/{id}/comments/{comment_id}` | 댓글 수정 (콘텐츠 필터링) |
+| DELETE | `/api/posts/{id}/comments/{comment_id}` | 댓글 삭제 |
+| POST | `/api/posts/{id}/comments/{comment_id}/like` | 댓글 좋아요 |
 | GET | `/api/football/standings` | 리그 순위표 |
 | GET | `/api/football/matches` | 경기 일정/결과 |
 | GET | `/api/football/teams/{competition}` | 팀 정보 |
@@ -281,7 +285,7 @@ fsf-llm-platform/
 │   │   ├── services/           # openai, rag, cache
 │   │   ├── scrapers/           # ESPN 웹 스크래핑 (하이브리드)
 │   │   ├── prompts/            # 프롬프트 템플릿
-│   │   ├── data/               # espn_player_ids.json (537명)
+│   │   ├── data/               # espn_player_ids.json (580명)
 │   │   └── external_apis/      # Football-Data, YouTube
 │   │
 │   ├── portfolio-experiments/  # 실험/테스트 코드
