@@ -19,6 +19,8 @@ requests==2.31.0
 transformers==4.40.0  
 
 openai==1.30.1
+google-generativeai==0.8.3  # Gemini API (Vision 대체용)
+Pillow==10.4.0  # 이미지 처리 (Gemini Vision용)
 langchain==0.2.1
 langchain-openai==0.1.8
 langchain-community==0.2.1

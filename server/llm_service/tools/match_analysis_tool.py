@@ -79,7 +79,7 @@ def analyze_match(match_id: str) -> str:
 # LangChain Tool로 변환
 MatchAnalysisTool = Tool(
     name="match_analysis",
-    description="경기 분석을 수행하는 도구. 경기 ID를 입력받아 두 팀의 최근 전적과 경기 정보를 분석합니다.",
+    description="특정 경기의 상세 분석을 수행하는 도구입니다. 경기 ID가 포함된 경기 분석, 통계, 전술 분석과 관련된 질문에 사용합니다.",
     func=analyze_match
 )
 

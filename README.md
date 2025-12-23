@@ -92,12 +92,13 @@ RAG(검색 증강 생성) 기술로 실시간 경기 데이터를 분석하고, 
 - **Deploy**: Google Cloud Run
 
 ### LLM & AI
-- **LLM**: OpenAI GPT-4o-mini
+- **LLM**: OpenAI GPT-4o-mini (텍스트), Google Gemini 1.5 Flash (Vision)
 - **RAG**: LangChain + ChromaDB
 - **Embeddings**: text-embedding-3-small (1536-dim)
 - **Cache**: 2-tier (ChromaDB → Firestore)
 - **Content Safety**: 정규식 + LLM 기반 유해 콘텐츠 필터링
 - **Category Classification**: LLM 기반 게시글 카테고리 자동 분류
+- **Agent Tools**: 6개 Tool (RAG, 경기 분석, 선수 비교, 커뮤니티 검색, 사용자 선호도, 경기 일정)
 
 ### Data Sources
 - **Football-Data.org API**: 실시간 경기/순위 (무료 티어)
@@ -132,6 +133,7 @@ cp .env.example .env
 `.env` 파일에 API 키 입력:
 ```bash
 OPENAI_API_KEY=sk-proj-...
+GOOGLE_AI_API_KEY=your-gemini-api-key  # Gemini Vision API (선택적, 이미지 분석용)
 FOOTBALL_API_KEY=your-key
 FIREBASE_SERVICE_ACCOUNT_PATH=./serviceAccountKey.json
 ```
@@ -188,6 +190,7 @@ npm run dev
 | Method | Endpoint | 설명 |
 |--------|----------|------|
 | POST | `/api/llm/chat` | AI 챗봇 (RAG) |
+| POST | `/api/llm/agent` | AI Agent (자동 Tool 선택) |
 | POST | `/api/llm/match/{id}/analysis` | 경기 AI 분석 |
 | POST | `/api/llm/match/{id}/predict` | 경기 예측 |
 | POST | `/api/llm/player/compare` | 선수 비교 분석 |
@@ -327,7 +330,8 @@ gcloud run deploy fsf-server \
 
 | 서비스 | 사용량 | 비용 |
 |--------|--------|------|
-| OpenAI API | 챗봇 1,000건 + 분석 500건 | **$5-12** |
+| OpenAI API (텍스트) | 챗봇 1,000건 + 분석 500건 | **$5-12** |
+| Google Gemini (Vision) | 이미지 분석 50건 | **무료** (티어 내) 또는 $0.004 |
 | Firebase | Firestore 읽기/쓰기 | 무료 (티어 내) |
 | Cloud Run | 요청 10,000건/월 | 무료 (티어 내) |
 | Football-Data API | 10 req/min | **무료** |
@@ -336,7 +340,9 @@ gcloud run deploy fsf-server \
 **최적화 전략:**
 - ChromaDB 캐싱으로 API 호출 90% 감소
 - GPT-4o-mini 사용 (GPT-4 대비 1/15 비용)
+- Gemini 1.5 Flash 사용 (Vision, gpt-4-vision-preview 대비 1/133 비용)
 - Firestore 1시간 캐싱으로 중복 요청 제거
+- 하이브리드 방식: 단순 질문은 chat.py (1회 호출), 복잡한 질문만 Agent (2회 호출)
 
 ---
 

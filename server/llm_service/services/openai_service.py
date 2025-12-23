@@ -3,9 +3,20 @@ from typing import List, Dict, Any
 from openai import OpenAI
 from dotenv import load_dotenv
 from .prompt_service import PromptService
+import google.generativeai as genai
+from PIL import Image
+import io
 
 load_dotenv()
 client = OpenAI()
+
+# Gemini API 초기화 (Vision 대체용)
+gemini_api_key = os.getenv("GOOGLE_AI_API_KEY")
+if gemini_api_key:
+    genai.configure(api_key=gemini_api_key)
+    gemini_model = genai.GenerativeModel('gemini-1.5-flash')  # 비용 효율적인 모델
+else:
+    gemini_model = None
 
 
 class OpenAIService:
@@ -82,48 +93,31 @@ class OpenAIService:
             return "응급 상황 판단 중 오류가 발생했습니다. 의심스러우면 즉시 119에 신고하세요."
 
     async def analyze_image_emergency(self, image_data: bytes, context: str) -> str:
-        """응급 상황 이미지 분석"""
+        """응급 상황 이미지 분석 (Gemini Vision) - 비용 절감"""
         try:
-            import base64
+            if not gemini_model:
+                return "Gemini API 키가 설정되지 않았습니다."
 
-            # 이미지를 base64로 인코딩
-            base64_image = base64.b64encode(image_data).decode()
+            # 이미지를 PIL Image로 변환
+            image = Image.open(io.BytesIO(image_data))
 
-            response = self.client.chat.completions.create(
-                model="gpt-4-vision-preview",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": f"응급 상황 이미지를 분석해주세요. 상황: {context}\n\n이미지에서 보이는 증상을 분석하고 응급도를 판단해주세요.",
-                            },
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpeg;base64,{base64_image}"
-                                },
-                            },
-                        ],
-                    }
-                ],
-                temperature=0.3,
-                max_tokens=400,
-            )
-            return response.choices[0].message.content
+            prompt_text = f"응급 상황 이미지를 분석해주세요. 상황: {context}\n\n이미지에서 보이는 증상을 분석하고 응급도를 판단해주세요."
 
+            # Gemini API 호출
+            response = gemini_model.generate_content([prompt_text, image])
+            return response.text
         except Exception as e:
             print(f"응급 이미지 분석 오류: {e}")
             return "이미지 분석 중 오류가 발생했습니다. 응급 상황이 의심되면 즉시 병원에 가세요."
 
     async def analyze_match_chart(self, image_data: bytes, user_question: str = "경기 차트를 분석해주세요") -> str:
-        """경기 차트 이미지 분석 (GPT-4 Vision) - 동적 프롬프트"""
+        """경기 차트 이미지 분석 (Gemini Vision) - 비용 절감"""
         try:
-            import base64
+            if not gemini_model:
+                return "Gemini API 키가 설정되지 않았습니다. GOOGLE_AI_API_KEY 환경변수를 확인해주세요."
 
-            # 이미지를 base64로 인코딩
-            base64_image = base64.b64encode(image_data).decode()
+            # 이미지를 PIL Image로 변환
+            image = Image.open(io.BytesIO(image_data))
 
             # PromptService에서 동적 프롬프트 가져오기
             prompt_text = self.prompt_service.manager.format_prompt(
@@ -132,111 +126,73 @@ class OpenAIService:
                 user_question=user_question
             )
 
-            response = self.client.chat.completions.create(
-                model="gpt-4-vision-preview",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt_text},
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpeg;base64,{base64_image}"
-                                },
-                            },
-                        ],
-                    }
-                ],
-                temperature=0.5,
-                max_tokens=800,
-            )
-            return response.choices[0].message.content
+            # Gemini API 호출
+            response = gemini_model.generate_content([prompt_text, image])
+            return response.text
 
         except Exception as e:
             print(f"경기 차트 분석 오류: {e}")
             return "경기 차트 분석 중 오류가 발생했습니다. 다시 시도해주세요."
 
     async def analyze_injury_photo(self, image_data: bytes) -> str:
-        """부상 사진 분석 (GPT-4 Vision)"""
+        """부상 사진 분석 (Gemini Vision) - 비용 절감"""
         try:
-            import base64
-            base64_image = base64.b64encode(image_data).decode()
+            if not gemini_model:
+                return "Gemini API 키가 설정되지 않았습니다."
+
+            # 이미지를 PIL Image로 변환
+            image = Image.open(io.BytesIO(image_data))
 
             prompt_text = self.prompt_service.manager.get_prompt(
                 'vision_analysis',
                 'INJURY_ANALYSIS_PROMPT'
             )
 
-            response = self.client.chat.completions.create(
-                model="gpt-4-vision-preview",
-                messages=[{
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt_text},
-                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
-                    ]
-                }],
-                temperature=0.3,
-                max_tokens=600
-            )
-            return response.choices[0].message.content
+            # Gemini API 호출
+            response = gemini_model.generate_content([prompt_text, image])
+            return response.text
         except Exception as e:
             print(f"부상 사진 분석 오류: {e}")
             return "부상 사진 분석 중 오류가 발생했습니다."
 
     async def analyze_tactical_board(self, image_data: bytes) -> str:
-        """전술 보드 분석 (GPT-4 Vision)"""
+        """전술 보드 분석 (Gemini Vision) - 비용 절감"""
         try:
-            import base64
-            base64_image = base64.b64encode(image_data).decode()
+            if not gemini_model:
+                return "Gemini API 키가 설정되지 않았습니다."
+
+            # 이미지를 PIL Image로 변환
+            image = Image.open(io.BytesIO(image_data))
 
             prompt_text = self.prompt_service.manager.get_prompt(
                 'vision_analysis',
                 'TACTICAL_BOARD_PROMPT'
             )
 
-            response = self.client.chat.completions.create(
-                model="gpt-4-vision-preview",
-                messages=[{
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt_text},
-                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
-                    ]
-                }],
-                temperature=0.5,
-                max_tokens=800
-            )
-            return response.choices[0].message.content
+            # Gemini API 호출
+            response = gemini_model.generate_content([prompt_text, image])
+            return response.text
         except Exception as e:
             print(f"전술 보드 분석 오류: {e}")
             return "전술 보드 분석 중 오류가 발생했습니다."
 
     async def analyze_player_comparison(self, image_data: bytes) -> str:
-        """선수 비교 차트 분석 (GPT-4 Vision)"""
+        """선수 비교 차트 분석 (Gemini Vision) - 비용 절감"""
         try:
-            import base64
-            base64_image = base64.b64encode(image_data).decode()
+            if not gemini_model:
+                return "Gemini API 키가 설정되지 않았습니다."
+
+            # 이미지를 PIL Image로 변환
+            image = Image.open(io.BytesIO(image_data))
 
             prompt_text = self.prompt_service.manager.get_prompt(
                 'vision_analysis',
                 'PLAYER_COMPARISON_CHART_PROMPT'
             )
 
-            response = self.client.chat.completions.create(
-                model="gpt-4-vision-preview",
-                messages=[{
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt_text},
-                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
-                    ]
-                }],
-                temperature=0.5,
-                max_tokens=800
-            )
-            return response.choices[0].message.content
+            # Gemini API 호출
+            response = gemini_model.generate_content([prompt_text, image])
+            return response.text
         except Exception as e:
             print(f"선수 비교 분석 오류: {e}")
             return "선수 비교 분석 중 오류가 발생했습니다."

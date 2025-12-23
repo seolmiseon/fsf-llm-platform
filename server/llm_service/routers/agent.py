@@ -16,7 +16,11 @@ from ..tools import (
     MatchAnalysisTool,
     PlayerCompareTool,
     PostsSearchTool,
+    create_fan_preference_tool,
+    CalendarTool,
 )
+from ..tools.calendar_tool import calendar_query
+# 비용 최적화: 하이브리드 방식 (단순 질문은 chat.py, 복잡한 질문만 Agent)
 from ..utils.question_classifier import is_complex_question
 from ..routers.chat import chat as chat_endpoint  # 기존 chat 엔드포인트 함수
 from langchain.agents import initialize_agent, AgentType
@@ -50,33 +54,30 @@ llm = ChatOpenAI(
     temperature=0.7
 )
 
-# Tool 리스트
-tools = [
+# Tool 리스트 (기본 - user_id 없이 사용)
+base_tools = [
     RAGSearchTool,
     MatchAnalysisTool,
     PlayerCompareTool,
     PostsSearchTool,
+    CalendarTool,
 ]
 
-# Agent 초기화
-agent = initialize_agent(
-    tools=tools,
+# Agent 초기화 (기본 - user_id 없이 사용)
+base_agent = initialize_agent(
+    tools=base_tools,
     llm=llm,
     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
     verbose=True,
     handle_parsing_errors=True
 )
 
-# Agent 시스템 프롬프트
-AGENT_SYSTEM_PROMPT = """당신은 축구 분석 전문 AI 어시스턴트입니다.
+# Agent 시스템 프롬프트 (기본)
+# Tool description만으로 LLM이 자동 판단하도록 최소한의 프롬프트만 제공
+BASE_AGENT_SYSTEM_PROMPT = """당신은 축구 분석 전문 AI 어시스턴트입니다.
 
-사용자의 질문에 답하기 위해 적절한 도구를 선택하고 사용하세요.
-
-사용 가능한 도구:
-1. rag_search: 축구 관련 정보 검색 (선수, 팀, 경기, 통계 등)
-2. match_analysis: 경기 분석 (경기 ID 필요)
-3. player_compare: 선수 비교 분석 (2명 이상의 선수 이름 필요)
-4. posts_search: 커뮤니티 게시판에서 키워드와 관련된 게시글을 찾아주는 도구 (예: "손흥민 관련 글", "커뮤니티 글 추천" 등)
+사용자의 질문을 이해하고, 사용 가능한 도구 중에서 가장 적절한 도구를 선택하여 사용하세요.
+도구의 description을 참고하여 질문의 의도에 맞는 도구를 선택하세요.
 
 한국어로 친절하고 정확하게 답변하세요."""
 
@@ -132,13 +133,15 @@ async def agent_chat(request: AgentRequest) -> AgentResponse:
             logger.debug("✅ 입력 필터링 통과")
 
         # ============================================
-        # ✅ STEP 2: 단순/복잡 질문 판단 및 분기
+        # ✅ STEP 2: 단순/복잡 질문 판단 (비용 최적화)
         # ============================================
+        # 비용 최적화: 단순 질문은 chat.py (1회 호출), 복잡한 질문만 Agent (2회 호출)
+        # 하드코딩 키워드 분류는 피하되, 패턴 기반으로 빠르게 판단
         is_complex = is_complex_question(request.query)
         
         if not is_complex:
-            # 단순 질문 → 기존 chat.py 로직 사용 (비용 절감)
-            logger.info("💰 단순 질문 감지 → 기존 chat.py 로직 사용 (LLM 1회 호출)")
+            # 단순 질문 → 기존 chat.py 로직 사용 (비용 절감: LLM 1회 호출)
+            logger.info("💰 단순 질문 감지 → chat.py 사용 (비용 최적화: LLM 1회 호출)")
             chat_request = ChatRequest(query=request.query, top_k=5)
             chat_response = await chat_endpoint(chat_request)
             
@@ -150,25 +153,61 @@ async def agent_chat(request: AgentRequest) -> AgentResponse:
                 confidence=chat_response.confidence
             )
         
-        # 복잡한 질문 → Agent 로직 사용
-        logger.info("🤖 복잡한 질문 감지 → Agent 로직 사용 (LLM 2회 이상 호출)")
+        # 복잡한 질문 → Agent 로직 사용 (LLM 2회 호출: Tool 선택 + 답변 생성)
+        logger.info("🤖 복잡한 질문 감지 → Agent 사용 (LLM 2회 호출)")
         
-        # 복잡한 질문은 캐시를 사용하지 않음 (정확도 우선)
+        # Agent는 캐시를 사용하지 않음 (정확도 우선)
         # 단, 명시적으로 캐시 키로 저장된 경우만 확인
-        # (일반 벡터 검색은 유사도가 낮아도 매칭될 수 있어서 위험)
         logger.debug("⚠️ 복잡한 질문은 캐시 스킵 (정확도 우선)")
         
         # ============================================
-        # ✅ STEP 3: Agent 실행
+        # ✅ STEP 3: Agent 실행 (user_id 고려)
         # ============================================
         logger.debug("🤖 Agent 실행 중...")
+        
+        # user_id가 있으면 FanPreferenceTool 및 CalendarTool (user_id 포함) 활성화
+        tools = base_tools.copy()
+        agent = base_agent
+        system_prompt = BASE_AGENT_SYSTEM_PROMPT
+        
+        if request.user_id:
+            logger.info(f"👤 사용자 ID 제공됨: {request.user_id} → FanPreferenceTool 및 CalendarTool (개인화) 활성화")
+            
+            # user_id가 있으면 FanPreferenceTool 추가
+            fan_tool = create_fan_preference_tool(user_id=request.user_id)
+            tools.append(fan_tool)
+            
+            # CalendarTool을 user_id 포함 버전으로 교체
+            from langchain.tools import Tool
+            calendar_tool_with_user = Tool(
+                name="calendar",
+                description="경기 일정을 조회하는 도구입니다. 지원 기능: 1) 특정 날짜 경기 ('오늘 경기', '내일 경기', '12월 25일 경기 일정'), 2) 특정 팀 경기 ('토트넘 경기', '맨유 경기'), 3) 사용자 선호 팀 경기 ('내가 좋아하는 팀 경기', '내 팀 경기'), 4) 주간 요약 ('이번 주 경기', '주간 일정'), 5) 월간 요약 ('이번 달 경기', '월간 일정'). 날짜 형식: '오늘', '내일', '2025-12-25', '12월 25일' 등.",
+                func=lambda query: calendar_query(query.strip(), user_id=request.user_id)
+            )
+            
+            # 기존 CalendarTool 제거하고 새로 추가
+            tools = [t for t in tools if t.name != "calendar"]
+            tools.append(calendar_tool_with_user)
+            
+            # Agent 재초기화 (새로운 Tool 포함)
+            agent = initialize_agent(
+                tools=tools,
+                llm=llm,
+                agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+                verbose=True,
+                handle_parsing_errors=True
+            )
+            
+            # 프롬프트에 user_id 포함
+            system_prompt = BASE_AGENT_SYSTEM_PROMPT + f"\n\n중요: 현재 사용자 ID는 {request.user_id}입니다. fan_preference 도구와 calendar 도구를 사용할 때는 이 ID를 활용하여 개인화된 답변을 제공하세요."
         
         # Agent 실행 (동기 함수이므로 별도 스레드에서 실행)
         import asyncio
         loop = asyncio.get_event_loop()
+        final_prompt = system_prompt + "\n\n사용자 질문: " + request.query
         result = await loop.run_in_executor(
             None,
-            lambda: agent.run(AGENT_SYSTEM_PROMPT + "\n\n사용자 질문: " + request.query)
+            lambda: agent.run(final_prompt)
         )
 
         # ============================================
@@ -201,6 +240,10 @@ async def agent_chat(request: AgentRequest) -> AgentResponse:
             tools_used.append("match_analysis")
         if "비교" in query_lower or "compare" in query_lower:
             tools_used.append("player_compare")
+        if "오늘" in query_lower or "내일" in query_lower or "경기 일정" in query_lower or "일정" in query_lower:
+            tools_used.append("calendar")
+        if "내가 좋아하는" in query_lower or "내 팀" in query_lower or "내 선호도" in query_lower or "fanpicker" in query_lower:
+            tools_used.append("fan_preference")
         if not tools_used:
             tools_used.append("rag_search")  # 기본적으로 RAG 검색 사용
 
@@ -244,8 +287,8 @@ async def agent_health():
     return {
         "status": "healthy",
         "service": "agent",
-        "tools_count": len(tools),
-        "tools": [tool.name for tool in tools],
+        "tools_count": len(base_tools),
+        "tools": [tool.name for tool in base_tools],
         "timestamp": datetime.now().isoformat(),
     }
 

@@ -32,6 +32,8 @@ export const trackLLMRequest = (data: {
   response_time_ms: number;
   cache_hit: boolean;
   error?: string;
+  tools_used?: string[];
+  tokens_used?: number;
 }) => {
   amplitude.track('llm_request', data);
 };

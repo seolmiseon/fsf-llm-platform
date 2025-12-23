@@ -112,6 +112,27 @@ export class BackendApi {
     });
   }
 
+  // Agent API
+  async agent(
+    query: string,
+    context?: string,
+    userId?: string
+  ): Promise<ApiResponse<{
+    answer: string;
+    tools_used: string[];
+    tokens_used: number;
+    confidence: number;
+  }>> {
+    const body: { query: string; context?: string; user_id?: string } = { query };
+    if (context) body.context = context;
+    if (userId) body.user_id = userId;
+
+    return this.fetch('/api/llm/agent', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
   async matchAnalysis(matchId: number): Promise<ApiResponse<{ analysis: string }>> {
     return this.fetch(`/api/llm/match/${matchId}/analysis`, {
       method: 'POST',

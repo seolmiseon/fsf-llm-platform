@@ -272,12 +272,14 @@ class AgentRequest(BaseModel):
     """Agent 요청"""
     query: str = Field(..., description="사용자 질문", example="손흥민 최근 경기 분석해줘")
     context: Optional[str] = Field(default=None, description="추가 컨텍스트")
+    user_id: Optional[str] = Field(default=None, description="사용자 ID (개인화된 답변을 위해 필요)")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "query": "손흥민 vs 홀란드 비교해줘",
-                "context": None
+                "context": None,
+                "user_id": None
             }
         }
 

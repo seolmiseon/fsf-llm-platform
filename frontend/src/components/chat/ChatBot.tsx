@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { BackendApi } from '@/lib/client/api/backend';
-import { trackLLMRequest, trackError } from '@/lib/amplitude';  +3+
-652
+import { useAuthStore } from '@/store/useAuthStore';
+import { trackLLMRequest, trackError } from '@/lib/amplitude';
 
 interface Message {
   id: string;
@@ -11,6 +11,7 @@ interface Message {
   content: string;
   timestamp: Date;
   image?: string; // Base64 data URL or URL
+  toolsUsed?: string[]; // Agent가 사용한 Tool 목록
 }
 
 interface ChatBotProps {
@@ -26,6 +27,7 @@ export default function ChatBot({ onClose }: ChatBotProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const backendApi = new BackendApi();
+  const { user } = useAuthStore();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -106,7 +108,10 @@ export default function ChatBot({ onClose }: ChatBotProps) {
           throw new Error(response.error || 'Failed to analyze image');
         }
       } else {
-        response = await backendApi.chat(currentInput);
+        // Agent API 사용 (하이브리드 방식: 단순 질문은 chat.py, 복잡 질문은 Agent)
+        // user_id 전달 (로그인한 경우에만, 개인화된 답변을 위해)
+        const userId = user?.uid || undefined;
+        response = await backendApi.agent(currentInput, undefined, userId);
         responseTime = Date.now() - startTime;
 
         if (response.success && response.data) {
@@ -115,13 +120,16 @@ export default function ChatBot({ onClose }: ChatBotProps) {
             role: 'assistant',
             content: response.data.answer,
             timestamp: new Date(),
+            toolsUsed: response.data.tools_used || [],
           };
           setMessages((prev) => [...prev, assistantMessage]);
 
           trackLLMRequest({
-            question_type: 'general_chat',
+            question_type: 'agent_chat',
             response_time_ms: responseTime,
-            cache_hit: response.data.cache_hit || false,
+            cache_hit: false,
+            tools_used: response.data.tools_used || [],
+            tokens_used: response.data.tokens_used || 0,
           });
         } else {
           throw new Error(response.error || 'Failed to get response');
@@ -207,6 +215,7 @@ export default function ChatBot({ onClose }: ChatBotProps) {
                 </>
               )}
               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              {/* Tool 뱃지 제거 - 사용자에게 기술적 용어 노출 불필요 */}
               <p
                 className={`text-xs mt-1 ${
                   message.role === 'user' ? 'text-blue-100' : 'text-gray-500'

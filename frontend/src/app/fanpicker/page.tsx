@@ -40,7 +40,14 @@ export default function FanPickerPage() {
                               id: team.id || parseInt(team.team_id || '0'),
                               name: team.name || team.shortName || '',
                               shortName: team.shortName || team.name || '',
+                              tla: team.tla || team.shortName?.substring(0, 3).toUpperCase() || '',
                               crest: team.crest || team.crestUrl || '',
+                              address: team.address || '',
+                              website: team.website || '',
+                              founded: team.founded || 0,
+                              clubColors: team.clubColors || '',
+                              venue: team.venue || '',
+                              squad: team.squad || [],
                               competitionId,
                           }))
                         : [];

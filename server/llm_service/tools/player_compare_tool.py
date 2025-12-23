@@ -67,7 +67,7 @@ def compare_players(player_names: str) -> str:
 # LangChain Tool로 변환
 PlayerCompareTool = Tool(
     name="player_compare",
-    description="두 명 이상의 선수를 비교 분석하는 도구. 선수 이름들을 쉼표로 구분하여 입력합니다 (예: '손흥민, 홀란드').",
+    description="두 명 이상의 선수를 비교 분석하는 도구입니다. 선수 비교, 능력치 비교, 통계 비교와 관련된 질문에 사용합니다.",
     func=compare_players
 )
 

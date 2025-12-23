@@ -63,7 +63,7 @@ def rag_search(query: str, top_k: int = 5) -> str:
 # LangChain Tool로 변환
 RAGSearchTool = Tool(
     name="rag_search",
-    description="축구 관련 정보를 검색하는 도구. 선수, 팀, 경기, 통계 등 축구 관련 질문에 사용합니다.",
+    description="축구 관련 일반 정보를 검색하는 도구입니다. 선수, 팀, 경기, 통계 등 축구 지식과 관련된 질문에 사용합니다. 다른 특수 도구가 적합하지 않은 경우 기본적으로 사용합니다.",
     func=rag_search
 )
 

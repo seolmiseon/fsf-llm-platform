@@ -7,11 +7,16 @@ from .rag_tool import RAGSearchTool
 from .match_analysis_tool import MatchAnalysisTool
 from .player_compare_tool import PlayerCompareTool
 from .posts_search_tool import PostsSearchTool
+from .fan_preference_tool import FanPreferenceTool, create_fan_preference_tool
+from .calendar_tool import CalendarTool
 
 __all__ = [
     "RAGSearchTool",
     "MatchAnalysisTool",
     "PlayerCompareTool",
     "PostsSearchTool",
+    "FanPreferenceTool",
+    "create_fan_preference_tool",
+    "CalendarTool",
 ]
 
