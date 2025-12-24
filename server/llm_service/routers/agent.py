@@ -72,12 +72,39 @@ base_agent = initialize_agent(
     handle_parsing_errors=True
 )
 
-# Agent 시스템 프롬프트 (기본)
-# Tool description만으로 LLM이 자동 판단하도록 최소한의 프롬프트만 제공
+# Agent 시스템 프롬프트 (하이브리드: 복잡한 질문만 ReAct)
+# 제민의 제안 3: ReAct 방식 강제 (하이브리드 최적화: 복잡한 질문만)
+# 단순 질문은 일반 프롬프트, 복잡한 질문만 ReAct 형식
 BASE_AGENT_SYSTEM_PROMPT = """당신은 축구 분석 전문 AI 어시스턴트입니다.
 
 사용자의 질문을 이해하고, 사용 가능한 도구 중에서 가장 적절한 도구를 선택하여 사용하세요.
 도구의 description을 참고하여 질문의 의도에 맞는 도구를 선택하세요.
+
+**도구 사용 원칙:**
+1. 캐시 데이터가 있더라도, 실시간 정보가 필요하면 반드시 API를 호출하세요.
+2. 도구 실행이 실패하면, 다른 도구를 시도하거나 에러를 명확히 보고하세요.
+3. 사용자의 질문에 정확하게 답변하기 위해 필요한 모든 도구를 사용하세요.
+
+한국어로 친절하고 정확하게 답변하세요."""
+
+# 복잡한 질문용 ReAct 프롬프트 (필요할 때만 사용)
+REACT_AGENT_SYSTEM_PROMPT = """당신은 축구 분석 전문 AI 어시스턴트입니다.
+
+**중요: 반드시 다음 형식을 지켜야 합니다:**
+
+[생각] 현재 상황을 분석하고, 필요한 정보를 파악합니다.
+[행동] 적절한 도구를 선택하고 실행합니다.
+[결과] 도구 실행 결과를 확인하고, 다음 단계를 결정합니다.
+
+**도구 사용 원칙:**
+1. 캐시 데이터가 있더라도, 실시간 정보가 필요하면 반드시 API를 호출하세요.
+2. 도구 실행이 실패하면, 다른 도구를 시도하거나 에러를 명확히 보고하세요.
+3. 사용자의 질문에 정확하게 답변하기 위해 필요한 모든 도구를 사용하세요.
+
+**예시 (에러 복구):**
+[생각] 사용자가 "오늘 토트넘 경기 결과"를 물었습니다. 캐시에는 오래된 정보만 있어서 실시간 API 호출이 필요합니다.
+[행동] calendar 도구를 사용하여 오늘 경기 일정을 조회합니다.
+[결과] 경기 일정을 확인했습니다. 이제 match_analysis 도구로 경기 결과를 분석합니다.
 
 한국어로 친절하고 정확하게 답변하세요."""
 
@@ -136,8 +163,8 @@ async def agent_chat(request: AgentRequest) -> AgentResponse:
         # ✅ STEP 2: 단순/복잡 질문 판단 (비용 최적화)
         # ============================================
         # 비용 최적화: 단순 질문은 chat.py (1회 호출), 복잡한 질문만 Agent (2회 호출)
-        # 하드코딩 키워드 분류는 피하되, 패턴 기반으로 빠르게 판단
-        is_complex = is_complex_question(request.query)
+        # 하이브리드 방식: 정규식 먼저 체크 → 애매한 경우만 LLM 호출 → 결과 캐시
+        is_complex = await is_complex_question(request.query, use_llm_fallback=True)
         
         if not is_complex:
             # 단순 질문 → 기존 chat.py 로직 사용 (비용 절감: LLM 1회 호출)
@@ -168,7 +195,9 @@ async def agent_chat(request: AgentRequest) -> AgentResponse:
         # user_id가 있으면 FanPreferenceTool 및 CalendarTool (user_id 포함) 활성화
         tools = base_tools.copy()
         agent = base_agent
-        system_prompt = BASE_AGENT_SYSTEM_PROMPT
+        # 제민의 제안 3: ReAct 프롬프트 사용 (Hallucination 방지, 정확도 향상)
+        # 복잡한 질문이므로 ReAct 형식으로 명시적 사고 과정 유도
+        system_prompt = REACT_AGENT_SYSTEM_PROMPT
         
         if request.user_id:
             logger.info(f"👤 사용자 ID 제공됨: {request.user_id} → FanPreferenceTool 및 CalendarTool (개인화) 활성화")
@@ -198,8 +227,8 @@ async def agent_chat(request: AgentRequest) -> AgentResponse:
                 handle_parsing_errors=True
             )
             
-            # 프롬프트에 user_id 포함
-            system_prompt = BASE_AGENT_SYSTEM_PROMPT + f"\n\n중요: 현재 사용자 ID는 {request.user_id}입니다. fan_preference 도구와 calendar 도구를 사용할 때는 이 ID를 활용하여 개인화된 답변을 제공하세요."
+            # 프롬프트에 user_id 포함 (ReAct 프롬프트 사용)
+            system_prompt = REACT_AGENT_SYSTEM_PROMPT + f"\n\n중요: 현재 사용자 ID는 {request.user_id}입니다. fan_preference 도구와 calendar 도구를 사용할 때는 이 ID를 활용하여 개인화된 답변을 제공하세요."
         
         # Agent 실행 (동기 함수이므로 별도 스레드에서 실행)
         import asyncio

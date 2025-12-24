@@ -13,6 +13,8 @@ from ..services.cache_service import CacheService  # ← 🆕 추가!
 from ..services.content_safety_service import ContentSafetyService  # ← 🆕 콘텐츠 필터링 추가!
 from ..prompts.chat_prompts import SYSTEM_PROMPT, format_chat_context
 from ..routers.stats import get_player_stats
+from ..utils.realtime_router import is_realtime_required, should_skip_cache  # ← 🆕 Router 추가
+from ..utils.cache_judge import CacheJudge  # ← 🆕 Judge 추가
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +37,13 @@ try:
 except Exception as e:
     logger.warning(f"⚠️ ContentSafetyService 초기화 실패 (필터링 기능 비활성화): {e}")
     content_safety_service = None
+
+# CacheJudge 초기화 (캐시 데이터 충분성 판단)
+try:
+    cache_judge = CacheJudge()
+except Exception as e:
+    logger.warning(f"⚠️ CacheJudge 초기화 실패 (Judge 기능 비활성화): {e}")
+    cache_judge = None
 
 # 한글 매핑 테이블 제거됨 - JSON에서 ko_name 필드로 직접 검색
 
@@ -193,28 +202,83 @@ async def chat(request: ChatRequest) -> ChatResponse:
             logger.debug("✅ 입력 필터링 통과")
 
         # ============================================
-        # ✅ STEP 1: ChromaDB 캐시 확인 ($0) - 통계 질문이 아닐 때만
+        # 🚪 입구 (Semantic Router): 실시간 정보 필요 여부 판단
         # ============================================
+        # 제민의 제안 1: Decision Tree (Router 단계 분리)
+        realtime_status = is_realtime_required(request.query)
         is_stats_q = _is_stats_question(request.query)
-        cached_answer = None
         
-        # 통계 질문이면 캐시 스킵 (RAG 검색으로 최신 정보 찾기)
-        if not is_stats_q:
-            logger.debug("Step 1️⃣: ChromaDB 캐시 검색 중...")
-            if cache_service:
+        # 실시간 정보 필수면 캐시 스킵 (API 호출 필수)
+        if realtime_status == "realtime":
+            logger.info("🔴 실시간 정보 필수 → 캐시 스킵, API 호출 필수")
+            # 캐시 스킵하고 바로 RAG 검색으로 진행
+        else:
+            # ============================================
+            # ✅ 1차 검문소 (Cache Lookup): 유사도 0.75 이상 캐시 조회
+            # ============================================
+            cached_answer = None
+            if not is_stats_q and cache_service:
+                logger.debug("Step 1️⃣: ChromaDB 캐시 검색 중... (유사도 0.75 이상)")
                 cached_answer = await cache_service.get_cached_answer(request.query)
 
             if cached_answer:
-                logger.info(f"🎯 캐시된 답변 반환 (비용 $0)")
-                return ChatResponse(
-                    answer=cached_answer["answer"],
-                    sources=[],  # 캐시 답변은 소스 없음
-                    tokens_used=0,  # 캐시 히트 = 토큰 0
-                    confidence=cached_answer["confidence"],
-                    cache_hit=True,
-                    cache_source="chromadb",
-                    cost_saved=0.001,
-                )
+                # ============================================
+                # ⚖️ 2차 검문소 (The Judge): 캐시 데이터 충분성 판단 (하이브리드 최적화)
+                # ============================================
+                # 제민의 제안 1: Judge 노드에서 최종 판단
+                # 하이브리드 최적화: 유사도에 따라 Judge 호출 여부 결정
+                similarity = cached_answer.get("similarity", 0.0)
+                
+                # 유사도 0.9 이상: Judge 스킵 (비용 절감, 바로 캐시 사용)
+                if similarity >= 0.9:
+                    logger.info(f"✅ 높은 유사도 ({similarity:.2f}) → Judge 스킵, 캐시 사용 (비용 $0)")
+                    return ChatResponse(
+                        answer=cached_answer["answer"],
+                        sources=[],
+                        tokens_used=0,
+                        confidence=cached_answer["confidence"],
+                        cache_hit=True,
+                        cache_source="chromadb",
+                        cost_saved=0.001,
+                    )
+                
+                # 유사도 0.7~0.9: Judge 호출 (비용 발생, 하지만 필요할 때만)
+                elif similarity >= 0.7 and cache_judge:
+                    logger.info(f"⚖️ 중간 유사도 ({similarity:.2f}) → Judge 호출 (비용 발생)")
+                    judge_result, judge_reason = await cache_judge.judge(
+                        query=request.query,
+                        cached_answer=cached_answer["answer"],
+                        cache_similarity=similarity
+                    )
+                    
+                    if judge_result == "YES":
+                        # Judge가 YES → 캐시 사용
+                        logger.info(f"✅ Judge 승인: 캐시 사용 (이유: {judge_reason})")
+                        return ChatResponse(
+                            answer=cached_answer["answer"],
+                            sources=[],
+                            tokens_used=0,
+                            confidence=cached_answer["confidence"],
+                            cache_hit=True,
+                            cache_source="chromadb",
+                            cost_saved=0.001,
+                        )
+                    else:
+                        # Judge가 NO/UNCERTAIN → API 호출
+                        logger.info(f"⚠️ Judge 거부: API 호출 필요 (판단: {judge_result}, 이유: {judge_reason})")
+                        # 캐시 무시하고 RAG 검색으로 진행
+                else:
+                    # 유사도 0.7 미만 또는 Judge 없음 → 캐시 사용 (낮은 유사도지만 일단 사용)
+                    logger.info(f"🎯 캐시된 답변 반환 (유사도 {similarity:.2f}, Judge 스킵)")
+                    return ChatResponse(
+                        answer=cached_answer["answer"],
+                        sources=[],
+                        tokens_used=0,
+                        confidence=cached_answer["confidence"],
+                        cache_hit=True,
+                        cache_source="chromadb",
+                        cost_saved=0.001,
+                    )
 
         # ============================================
         # ✅ STEP 2: 통계 질문인 경우 JSON 캐시에서 통계 가져오기

@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 import logging
 import hashlib
+import os
 
 from .rag_service import RAGService
 
@@ -99,8 +100,13 @@ class CacheService:
             distance = results["distances"][0]
             similarity = 1 - distance
 
-            # 유사도 0.3 이상: 캐시 히트!
-            if similarity >= 0.3:
+            # 유사도 임계값 (설정 가능)
+            # 0.85: 엄격한 기준 (제안된 값)
+            # 0.7~0.75: 균형잡힌 기준 (권장)
+            SIMILARITY_THRESHOLD = float(os.getenv("CACHE_SIMILARITY_THRESHOLD", "0.75"))
+            
+            # 유사도 임계값 이상: 캐시 후보 (Judge 노드에서 최종 판단)
+            if similarity >= SIMILARITY_THRESHOLD:
                 # TTL 체크: 만료된 캐시는 무시
                 metadata = results["metadatas"][0] if results.get("metadatas") else {}
                 created_at_str = metadata.get("created_at")
@@ -138,7 +144,7 @@ class CacheService:
                     "source": "chromadb_cache",
                 }
             else:
-                logger.debug(f"⚠️ 유사도 부족: {similarity:.2f} < 0.3")
+                logger.debug(f"⚠️ 유사도 부족: {similarity:.2f} < {SIMILARITY_THRESHOLD}")
                 return None
 
         except Exception as e:
