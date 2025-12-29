@@ -5,6 +5,7 @@ import hashlib
 import os
 
 from .rag_service import RAGService
+from ..utils.keyword_matcher import calculate_keyword_match, should_skip_judge_by_keyword
 
 logger = logging.getLogger(__name__)
 
@@ -133,14 +134,31 @@ class CacheService:
                     except (ValueError, AttributeError, TypeError) as e:
                         logger.debug(f"⚠️ 캐시 날짜 파싱 실패: {e}, 캐시 사용 계속")
 
+                # ============================================
+                # 🆕 Keyword 검색 추가 (제민의 제안 2: 하이브리드 검색)
+                # ============================================
+                cached_answer_text = results["documents"][0]
+                keyword_score = calculate_keyword_match(query, cached_answer_text)
+                
+                # Keyword 점수가 너무 낮으면 Judge 스킵, API 호출
+                KEYWORD_THRESHOLD = float(os.getenv("KEYWORD_MATCH_THRESHOLD", "0.5"))
+                if should_skip_judge_by_keyword(keyword_score, KEYWORD_THRESHOLD):
+                    logger.info(
+                        f"🔍 Keyword 점수 낮음 ({keyword_score:.2f} < {KEYWORD_THRESHOLD}) "
+                        f"→ 캐시 무시, API 호출"
+                    )
+                    return None
+                
                 logger.info(
-                    f"🎯 ChromaDB 캐시 히트: '{query[:50]}...' (유사도 {similarity:.2f})"
+                    f"🎯 ChromaDB 캐시 히트: '{query[:50]}...' "
+                    f"(유사도 {similarity:.2f}, Keyword {keyword_score:.2f})"
                 )
 
                 return {
-                    "answer": results["documents"][0],
+                    "answer": cached_answer_text,
                     "confidence": similarity,
                     "similarity": similarity,
+                    "keyword_score": keyword_score,  # 🆕 Keyword 점수 추가
                     "source": "chromadb_cache",
                 }
             else:

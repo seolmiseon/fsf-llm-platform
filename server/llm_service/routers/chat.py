@@ -263,6 +263,10 @@ async def chat(request: ChatRequest) -> ChatResponse:
                             cache_source="chromadb",
                             cost_saved=0.001,
                         )
+                    elif judge_result == "CALL_API":
+                        # 🆕 Judge가 CALL_API → 강제 API 호출 (Hallucination 방지)
+                        logger.warning(f"🔴 Judge 강제 API 호출 요청: {judge_reason}")
+                        # 캐시 무시하고 RAG 검색으로 진행
                     else:
                         # Judge가 NO/UNCERTAIN → API 호출
                         logger.info(f"⚠️ Judge 거부: API 호출 필요 (판단: {judge_result}, 이유: {judge_reason})")

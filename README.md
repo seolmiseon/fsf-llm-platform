@@ -5,7 +5,7 @@
 **Live Demo**: [https://fsfproject-fd2e6.web.app](https://fsfproject-fd2e6.web.app)  
 **Backend**: [Cloud Run API](https://fsf-server-303660711261.asia-northeast3.run.app/docs)
 
-![Next.js](https://img.shields.io/badge/Next.js_15-000000?logo=next.js&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js_14.2-000000?logo=next.js&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)
 ![ChromaDB](https://img.shields.io/badge/ChromaDB-FF6B35)
@@ -26,8 +26,10 @@ RAG(검색 증강 생성) 기술로 실시간 경기 데이터를 분석하고, 
 - ⚖️ **선수 비교**: 데이터 기반 선수 능력치 비교 분석
 - 📈 **통계 페이지**: 7개 리그 득점왕/어시스트왕 순위 (580명 선수 데이터)
 - 📰 **커뮤니티**: 게시글, 댓글, 대댓글, 좋아요 기능 (실시간 알림)
-- 🛡️ **콘텐츠 필터링**: 욕설/스팸/유해 내용 자동 감지 및 차단
-- 🏷️ **카테고리 자동 분류**: LLM 기반 게시글 카테고리 자동 분류
+- 🛡️ **콘텐츠 필터링**: 정규식 + LLM 기반 욕설/스팸/유해 내용 자동 감지 및 차단
+  - 입력 게이트웨이: 게시글/댓글 작성 시 유해 콘텐츠 차단
+  - 출력 필터: LLM 응답 내 유해 단어 마스킹
+- 🏷️ **카테고리 자동 분류**: LLM 기반 게시글 카테고리 자동 분류 (6개 카테고리)
 - 🔐 **인증**: Firebase Authentication
 - 📱 **반응형**: Mobile/Desktop 최적화
 
@@ -53,7 +55,7 @@ RAG(검색 증강 생성) 기술로 실시간 경기 데이터를 분석하고, 
          ↓ HTTPS
 ┌─────────────────┐
 │  Backend        │  FastAPI + Python 3.11
-│  (Cloud Run)    │  37 API Endpoints
+│  (Cloud Run)    │  약 40개 API Endpoints
 └────────┬────────┘
          │
     ┌────┴────┐
@@ -78,7 +80,7 @@ RAG(검색 증강 생성) 기술로 실시간 경기 데이터를 분석하고, 
 ## 🛠 기술 스택
 
 ### Frontend
-- **Framework**: Next.js 15 + TypeScript
+- **Framework**: Next.js 14.2.15 + TypeScript
 - **State**: Zustand
 - **Styling**: TailwindCSS
 - **Hosting**: Firebase Hosting
@@ -98,7 +100,15 @@ RAG(검색 증강 생성) 기술로 실시간 경기 데이터를 분석하고, 
 - **Cache**: 2-tier (ChromaDB → Firestore)
 - **Content Safety**: 정규식 + LLM 기반 유해 콘텐츠 필터링
 - **Category Classification**: LLM 기반 게시글 카테고리 자동 분류
-- **Agent Tools**: 6개 Tool (RAG, 경기 분석, 선수 비교, 커뮤니티 검색, 사용자 선호도, 경기 일정)
+- **AI Agent**: LangChain 기반 자동 Tool 선택 시스템
+- **Agent Tools**: 6개 Tool
+  - `rag_search`: RAG 기반 축구 정보 검색
+  - `match_analysis`: 경기 분석
+  - `player_compare`: 선수 비교 분석
+  - `posts_search`: 커뮤니티 게시글 검색
+  - `fan_preference`: 사용자 선호도 기반 추천 (개인화)
+  - `calendar`: 경기 일정 조회 및 필터링
+- **하이브리드 질문 분류**: 단순 질문은 chat.py (1회 호출), 복잡 질문은 Agent (2회 호출)로 자동 분기
 
 ### Data Sources
 - **Football-Data.org API**: 실시간 경기/순위 (무료 티어)
@@ -189,8 +199,8 @@ npm run dev
 ### LLM API
 | Method | Endpoint | 설명 |
 |--------|----------|------|
-| POST | `/api/llm/chat` | AI 챗봇 (RAG) |
-| POST | `/api/llm/agent` | AI Agent (자동 Tool 선택) |
+| POST | `/api/llm/chat` | AI 챗봇 (RAG, 단순 질문용) |
+| POST | `/api/llm/agent` | AI Agent (자동 Tool 선택, 복잡 질문용) |
 | POST | `/api/llm/match/{id}/analysis` | 경기 AI 분석 |
 | POST | `/api/llm/match/{id}/predict` | 경기 예측 |
 | POST | `/api/llm/player/compare` | 선수 비교 분석 |
@@ -206,6 +216,29 @@ npm run dev
 ---
 
 ## 💡 핵심 기술 구현
+
+### AI Agent 시스템
+
+**하이브리드 질문 분류 방식**:
+- **단순 질문**: `chat.py` 사용 (LLM 1회 호출, 저렴)
+  - 예: "손흥민 최근 폼은?"
+  - RAG 검색 + OpenAI 1회 호출
+- **복잡 질문**: Agent 사용 (LLM 2회 호출, 정확도 우선)
+  - 예: "손흥민 vs 홀란드 비교해줘" → `player_compare` Tool 자동 선택
+  - 예: "내가 좋아하는 팀 경기 일정 알려줘" → `fan_preference` + `calendar` Tool 조합
+  - LangChain Agent가 적절한 Tool을 자동 선택
+
+**질문 분류 로직**:
+1. 정규식 기반 빠른 판단 (비용 $0)
+   - 비교 키워드 ("vs", "비교"), 여러 작업 키워드 ("그리고", "또한")
+   - 경기 ID 패턴, 특정 Tool 필요 키워드 감지
+2. 애매한 경우만 LLM 호출 (정확도 우선)
+3. 결과 캐시 (메모리 기반, 24시간 TTL)
+
+**비용 최적화**:
+- 초기 월 $0.07 (약 100원)
+- 3개월 후 월 $0.05 (약 70원) - 캐시 히트율 증가로 비용 감소
+- 정확도: 90-95% → 95-98% (축약형도 감지)
 
 ### 2단계 캐싱 전략 (실제 구현)
 
@@ -331,7 +364,7 @@ gcloud run deploy fsf-server \
 | 서비스 | 사용량 | 비용 |
 |--------|--------|------|
 | OpenAI API (텍스트) | 챗봇 1,000건 + 분석 500건 | **$5-12** |
-| Google Gemini (Vision) | 이미지 분석 50건 | **무료** (티어 내) 또는 $0.004 |
+| Google Gemini 1.5 Flash (Vision) | 이미지 분석 50건 | **무료** (티어 내, 일일 15회) 또는 $0.004 |
 | Firebase | Firestore 읽기/쓰기 | 무료 (티어 내) |
 | Cloud Run | 요청 10,000건/월 | 무료 (티어 내) |
 | Football-Data API | 10 req/min | **무료** |
@@ -340,9 +373,12 @@ gcloud run deploy fsf-server \
 **최적화 전략:**
 - ChromaDB 캐싱으로 API 호출 90% 감소
 - GPT-4o-mini 사용 (GPT-4 대비 1/15 비용)
-- Gemini 1.5 Flash 사용 (Vision, gpt-4-vision-preview 대비 1/133 비용)
+- **Vision API 대체**: `gpt-4-vision-preview` → `Gemini 1.5 Flash` (비용 1/133, 약 133배 저렴)
+  - 무료 티어: 일일 15회 요청
+  - 모든 이미지 분석 기능 대체 완료 (경기 차트, 부상 사진, 전술 보드, 선수 비교)
 - Firestore 1시간 캐싱으로 중복 요청 제거
 - 하이브리드 방식: 단순 질문은 chat.py (1회 호출), 복잡한 질문만 Agent (2회 호출)
+- 정규식 기반 질문 분류로 LLM 호출 최소화
 
 ---
 

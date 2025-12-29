@@ -6,21 +6,27 @@
 - 단순 질문: chat.py 사용 (LLM 1회 호출) → 저렴
 - 복잡한 질문: Agent 사용 (LLM 2회 호출) → 비싸지만 정확
 
-하이브리드 방식 (정확도 + 비용 최적화):
-- 정규식으로 먼저 체크 (비용 $0, 빠름)
-- 애매한 경우만 LLM 호출 (비용 발생, 하지만 정확)
-- 결과를 캐시해서 같은 질문 재사용 (시간이 지날수록 비용 감소)
+임베딩 기반 유사도 검색 방식 (RAG 파이프라인 활용):
+- ChromaDB에 분류된 질문들을 저장 (질문 + is_complex 결과)
+- 새로운 질문이 오면 ChromaDB에서 유사 질문 검색
+- 유사도가 높으면 그 분류 결과 재사용
+- 유사도가 낮으면 정규식/LLM fallback
+- 하드코딩 없이 실제 사용자 질문들이 누적되어 학습됨
 """
 import re
 import logging
 from typing import Optional, Literal
 import hashlib
+import os
 
 logger = logging.getLogger(__name__)
 
 # 질문 분류 결과 캐시 (메모리 기반, 간단하게)
 _question_classification_cache: dict[str, tuple[bool, float]] = {}
 CACHE_TTL_SECONDS = 86400  # 24시간
+
+# ChromaDB RAG 서비스 (질문 분류용)
+_classification_rag = None
 
 
 def _get_cache_key(query: str) -> str:
@@ -47,11 +53,98 @@ def _get_cached_result(query: str) -> Optional[bool]:
 
 
 def _cache_result(query: str, result: bool):
-    """결과를 캐시에 저장"""
+    """결과를 메모리 캐시에 저장"""
     import time
     cache_key = _get_cache_key(query)
     _question_classification_cache[cache_key] = (result, time.time())
-    logger.debug(f"💾 질문 분류 결과 캐시 저장: {query[:50]}")
+    logger.debug(f"💾 질문 분류 결과 메모리 캐시 저장: {query[:50]}")
+
+
+async def _cache_and_save_result(query: str, result: bool):
+    """결과를 메모리 캐시와 ChromaDB에 모두 저장"""
+    _cache_result(query, result)
+    await _save_classified_question(query, result)
+
+
+def _get_classification_rag():
+    """ChromaDB RAG 서비스 초기화 (질문 분류용)"""
+    global _classification_rag
+    if _classification_rag is None:
+        try:
+            from ..services.rag_service import RAGService
+            _classification_rag = RAGService(persist_directory="chroma_db_classification")
+            logger.info("✅ 질문 분류용 ChromaDB 초기화 완료")
+        except Exception as e:
+            logger.warning(f"⚠️ 질문 분류용 ChromaDB 초기화 실패: {e}")
+            _classification_rag = None
+    return _classification_rag
+
+
+async def _search_similar_classified_question(query: str) -> Optional[bool]:
+    """
+    ChromaDB에서 유사한 분류된 질문 검색
+    
+    Returns:
+        bool: 분류 결과 (True=복잡, False=단순) 또는 None (검색 실패)
+    """
+    rag = _get_classification_rag()
+    if not rag:
+        return None
+    
+    try:
+        results = rag.search(
+            collection_name="classified_questions",
+            query=query,
+            top_k=1
+        )
+        
+        if not results.get("ids") or len(results["ids"]) == 0:
+            return None
+        
+        # 유사도 계산
+        distance = results.get("distances", [1.0])[0]
+        similarity = 1 - distance
+        
+        # 유사도 임계값 (0.75 이상이면 사용)
+        SIMILARITY_THRESHOLD = float(os.getenv("CLASSIFICATION_SIMILARITY_THRESHOLD", "0.75"))
+        
+        if similarity >= SIMILARITY_THRESHOLD:
+            # metadata에서 is_complex 값 가져오기
+            metadata = results.get("metadatas", [{}])[0]
+            is_complex = metadata.get("is_complex", False)
+            logger.debug(f"🔍 유사 질문 발견 (유사도: {similarity:.2f}): {results.get('documents', [''])[0][:50]} → {'복잡' if is_complex else '단순'}")
+            return is_complex
+        
+        return None
+        
+    except Exception as e:
+        logger.warning(f"⚠️ 유사 질문 검색 실패: {e}")
+        return None
+
+
+async def _save_classified_question(query: str, is_complex: bool):
+    """분류된 질문을 ChromaDB에 저장"""
+    rag = _get_classification_rag()
+    if not rag:
+        return
+    
+    try:
+        query_hash = hashlib.md5(query.lower().strip().encode()).hexdigest()
+        doc_id = f"classification_{query_hash}"
+        
+        rag.add_documents(
+            collection_name="classified_questions",
+            documents=[query],
+            metadatas=[{
+                "is_complex": is_complex,
+                "query": query[:300],
+                "created_at": str(hashlib.md5(query.encode()).hexdigest())
+            }],
+            ids=[doc_id]
+        )
+        logger.debug(f"💾 분류된 질문 저장: {query[:50]} → {'복잡' if is_complex else '단순'}")
+    except Exception as e:
+        logger.warning(f"⚠️ 분류된 질문 저장 실패: {e}")
 
 
 async def is_complex_question(query: str, use_llm_fallback: bool = True) -> bool:
@@ -71,10 +164,16 @@ async def is_complex_question(query: str, use_llm_fallback: bool = True) -> bool
     Returns:
         bool: True면 복잡한 질문 (Agent 사용), False면 단순 질문 (chat.py 사용)
     """
-    # 1단계: 캐시 확인 (비용 $0)
+    # 1단계: 메모리 캐시 확인 (비용 $0)
     cached_result = _get_cached_result(query)
     if cached_result is not None:
         return cached_result
+    
+    # 2단계: ChromaDB에서 유사한 분류된 질문 검색 (비용 $0, 임베딩 검색)
+    similar_result = await _search_similar_classified_question(query)
+    if similar_result is not None:
+        _cache_result(query, similar_result)
+        return similar_result
     
     query_lower = query.lower()
     
@@ -86,8 +185,38 @@ async def is_complex_question(query: str, use_llm_fallback: bool = True) -> bool
     ]
     if any(keyword in query_lower for keyword in multi_action_keywords):
         logger.debug("🔍 복잡한 질문 감지: 여러 작업 요청")
-        _cache_result(query, True)
-        return True
+        result = True
+        _cache_result(query, result)
+        await _save_classified_question(query, result)
+        return result
+    
+    # 1-1. 동사+접속사 패턴 감지 (강화 버전) ⭐
+    # "알려주고 ~도", "보여주고 ~도" 같은 실제 소비자 질문 패턴
+    # 예: "손흥민 정보 알려주고 최근 경기도 보여줘"
+    verb_connector_keywords = ["알려주고", "보여주고", "알려줘", "보여줘", "알려주면서", "보여주면서"]
+    connector_keywords = ["도", "또", "그리고", "또한"]
+    
+    # "알려주고/보여주고" + "도/또/그리고" 조합 감지
+    has_verb_connector = any(keyword in query_lower for keyword in verb_connector_keywords)
+    has_connector = any(keyword in query_lower for keyword in connector_keywords)
+    
+    if has_verb_connector and has_connector:
+        # "알려주고" 뒤에 "도"가 있는지 확인 (순서 무관)
+        # 예: "정보 알려주고 경기도" 또는 "경기도 알려주고"
+        logger.debug("🔍 복잡한 질문 감지: 동사+접속사 패턴 (여러 작업 요청)")
+        result = True
+        _cache_result(query, result)
+        await _save_classified_question(query, result)
+        return result
+    
+    # 추가: "~하고 ~도" 패턴 (더 포괄적으로)
+    # 예: "분석하고 통계도", "비교하고 경기도"
+    if re.search(r'(하고|해주고|해줘).*?(도|또|그리고)', query_lower):
+        logger.debug("🔍 복잡한 질문 감지: ~하고 ~도 패턴")
+        result = True
+        _cache_result(query, result)
+        await _save_classified_question(query, result)
+        return result
     
     # 2. 경기 ID 패턴 (숫자로만 이루어진 경기 ID)
     match_id_pattern = r'\b\d{6,}\b'  # 6자리 이상 숫자
@@ -126,11 +255,20 @@ async def is_complex_question(query: str, use_llm_fallback: bool = True) -> bool
     complex_keywords = [
         "분석하고", "분석 후", "분석해서",
         "보여주고", "보여주면서", "보여줘 그리고",
+        "알려주고", "알려주면서", "알려줘 그리고",  # 추가
         "비교하고", "비교 후", "비교해서",
         "analyze and", "compare and", "show and"
     ]
     if any(keyword in query_lower for keyword in complex_keywords):
         logger.debug("🔍 복잡한 질문 감지: 복합 작업 키워드")
+        _cache_result(query, True)
+        return True
+    
+    # 4-1. "~하고 ~도" 패턴 감지 (정규식으로 더 정교하게)
+    # 예: "정보 알려주고 경기도 보여줘", "분석하고 통계도 알려줘"
+    multi_action_pattern = r'(.+?)(하고|해주고|해줘|후|후에).*?(도|또|그리고).*?(보여줘|알려줘|보여주고|알려주고|분석|비교|통계)'
+    if re.search(multi_action_pattern, query_lower):
+        logger.debug("🔍 복잡한 질문 감지: 여러 작업 요청 패턴")
         _cache_result(query, True)
         return True
     
@@ -197,6 +335,10 @@ async def is_complex_question(query: str, use_llm_fallback: bool = True) -> bool
             
             logger.info(f"🤖 LLM 질문 분류: {query[:50]} → {'복잡' if is_complex else '단순'}")
             _cache_result(query, is_complex)
+            
+            # 분류 결과를 ChromaDB에 저장 (다음에 유사 질문이 오면 재사용)
+            await _save_classified_question(query, is_complex)
+            
             return is_complex
             
         except Exception as e:
@@ -206,5 +348,10 @@ async def is_complex_question(query: str, use_llm_fallback: bool = True) -> bool
     
     # 기본값: 단순 질문
     logger.debug("✅ 단순 질문으로 판단")
-    _cache_result(query, False)
-    return False
+    result = False
+    _cache_result(query, result)
+    
+    # 분류 결과를 ChromaDB에 저장 (다음에 유사 질문이 오면 재사용)
+    await _save_classified_question(query, result)
+    
+    return result
