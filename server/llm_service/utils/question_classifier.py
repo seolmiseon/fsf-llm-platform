@@ -226,6 +226,63 @@ async def is_complex_question(query: str, use_llm_fallback: bool = True) -> bool
         return True
     
     # 3. 비교 질문 감지 (선수/팀/리그 등 모든 비교)
+    # 3-1. 비교 의도 표현 감지 (키워드 없이도 비교 의도 표현)
+    comparison_intent_keywords = [
+        "누가 더", "어느 쪽이", "어느 게", "어느 것이", "어느 팀이",
+        "누가 나아요", "누가 좋아요", "누가 더 나아요", "누가 더 좋아요",
+        "어느 게 나아요", "어느 게 좋아요", "어느 쪽이 나아요", "어느 쪽이 좋아요"
+    ]
+    if any(keyword in query_lower for keyword in comparison_intent_keywords):
+        # 비교 의도 표현이 있고, 두 개 이상의 고유명사/팀명이 있으면 비교 질문
+        entity_pattern = r'[가-힣]{2,6}(?:리그)?|[A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2}'
+        matches = re.findall(entity_pattern, query)
+        unique_matches = [m.strip() for m in matches if m.strip() and len(m.strip()) >= 2]
+        
+        if len(set(unique_matches)) >= 2:
+            logger.debug("🔍 복잡한 질문 감지: 비교 의도 표현 발견")
+            _cache_result(query, True)
+            return True
+    
+    # 3-2. 축약형 비교 질문 감지 ("A B" 형식, vs 키워드 없음)
+    # 예: "맨유 토트넘", "손흥민 홀란드"
+    # ⚠️ 주의: 질문 형식(?, 는, 은 등)이 있으면 비교가 아님
+    # ⚠️ 주의: 일반 단어(최근, 폼, 정보 등)가 있으면 비교가 아님
+    
+    # 질문 형식 감지 (질문 형식이 있으면 비교가 아님)
+    question_markers = ['?', '는', '은', '이', '가', '을', '를', '의', '에', '에서', '에게', '에게서']
+    has_question_marker = any(marker in query for marker in question_markers)
+    
+    # 일반 단어 제외 목록 (비교 질문으로 오인하면 안 되는 단어들)
+    exclude_words = [
+        '최근', '폼', '정보', '순위', '결과', '점수', '경기', '일정', '스케줄',
+        '전적', '통계', '득점', '어시스트', '나이', '소속', '팀', '리그',
+        '우승', '감독', '홈구장', '팬', '횟수', '시즌', '시작일', '날짜',
+        'recent', 'form', 'info', 'rank', 'result', 'score', 'match', 'schedule'
+    ]
+    
+    # 질문 형식이 없고, 일반 단어도 없을 때만 축약형 비교 감지
+    if not has_question_marker:
+        words = query.split()
+        
+        # 연속된 두 단어가 모두 고유명사/팀명인지 확인
+        for i in range(len(words) - 1):
+            word1, word2 = words[i], words[i + 1]
+            
+            # 일반 단어 제외
+            if word1.lower() in exclude_words or word2.lower() in exclude_words:
+                continue
+            
+            # 고유명사/팀명 패턴 (한글 2-4자 또는 영문 대문자 시작)
+            is_entity1 = re.match(r'^[가-힣]{2,4}$', word1) or re.match(r'^[A-Z][a-z]+$', word1)
+            is_entity2 = re.match(r'^[가-힣]{2,4}$', word2) or re.match(r'^[A-Z][a-z]+$', word2)
+            
+            # 두 단어가 모두 고유명사/팀명이고, 비교 키워드가 없으면 축약형 비교 질문
+            if is_entity1 and is_entity2:
+                if not any(kw in query_lower for kw in ["vs", "대", "비교", "compare", "versus", "와", "과", "누가", "어느"]):
+                    logger.debug("🔍 복잡한 질문 감지: 축약형 비교 질문 (A B 형식)")
+                    _cache_result(query, True)
+                    return True
+    
     comparison_keywords = ["vs", "대", "비교", "compare", "versus"]
     if any(keyword in query_lower for keyword in comparison_keywords):
         # 1단계: 비교 패턴 체크 ("A vs B" 형식)
@@ -287,6 +344,13 @@ async def is_complex_question(query: str, use_llm_fallback: bool = True) -> bool
         return True
     
     # 7. 경기 일정/캘린더 관련 질문
+    # 단, "경기 결과", "경기 점수" 같은 키워드가 있으면 단순 질문 (일정이 아닌 결과 조회)
+    result_keywords = ["경기 결과", "경기 점수", "경기 스코어", "경기 승부", "match result", "score"]
+    if any(keyword in query_lower for keyword in result_keywords):
+        logger.debug("✅ 경기 결과 조회 → 단순 질문으로 처리")
+        _cache_result(query, False)
+        return False
+    
     calendar_keywords = [
         "경기 일정", "일정", "스케줄", "schedule", "calendar",
         "오늘 경기", "내일 경기", "이번 주", "이번 달", "주간", "월간",
