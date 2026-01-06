@@ -106,6 +106,8 @@ htmlcov/
 .project
 .classpath
 .settings/
+.cursorrules
+.cursor/
 
 # OS
 Thumbs.db
@@ -120,6 +122,9 @@ Thumbs.db
 *.temp
 .cache/
 build-errors.txt
+
+# HTML 파일들
+*.html
 
 
 
