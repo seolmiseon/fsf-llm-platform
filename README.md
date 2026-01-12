@@ -5,6 +5,32 @@
 **Live Demo**: [https://fsfproject-fd2e6.web.app](https://fsfproject-fd2e6.web.app)  
 **Backend**: [Cloud Run API](https://fsf-server-303660711261.asia-northeast3.run.app/docs)
 
+---
+
+## 🛡️ Legal Notice & Intellectual Property
+
+**Copyright 2025-2026. seolmiseon all rights reserved.**
+
+### 본 프로젝트의 독창성
+본 프로젝트는 단순한 코드의 집합이 아니라, 특정 도메인(축구/스포츠)에 최적화된 독자적인 아키텍처 설계와 AI 프롬프트 체계를 포함하고 있습니다.
+
+### 무단 도용 금지
+본 프로젝트의 다음 요소들을 무단으로 복제하거나 상업적인 SaaS 서비스로 변형하여 사용하는 것을 엄격히 금지합니다:
+- 트리 구조 (`tree.txt`)
+- 서비스 레이어 설계 (`server/llm_service/`)
+- 하이브리드 질문 분류 시스템 (정규식 + LLM 기반 질문 분류)
+- AI Agent + Tool 자동 선택 시스템 (LangChain 기반 6개 Tool 자동 조합)
+- 2단계 캐싱 전략 (ChromaDB 벡터 캐시 + Firestore 캐시)
+- 정규식 + LLM 기반 콘텐츠 필터링 시스템
+- LLM 기반 카테고리 자동 분류 시스템
+
+### 사용 허가
+포트폴리오 열람 및 기술적 참고는 허용되나, 이를 기반으로 한 2차 저작물 제작 시 반드시 원작자의 서면 동의가 필요합니다.
+
+**무단 도용 적발 시 저작권법 및 관련 법령에 따라 민·형사상의 책임을 물을 수 있습니다.**
+
+---
+
 ![Next.js](https://img.shields.io/badge/Next.js_14.2-000000?logo=next.js&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)

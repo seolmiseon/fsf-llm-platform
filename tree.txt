@@ -1,6 +1,10 @@
 .
-├── NEXT_SESSION.md
-├── PROJECT_STATUS.md
+├── API_COMPARISON.md
+├── BUSINESS_PLAN_2026.md
+├── EXPERIMENT_RESULTS.md
+├── FSF_ARCHITECTURE_DIAGRAM.md
+├── PORTFOLIO_VERIFICATION_FINAL.md
+├── PROJECT_HANDBOOK.md
 ├── README.md
 ├── frontend
 │   ├── README.md
@@ -251,9 +255,21 @@
 │   │   │   └── link_lists.bin
 │   │   └── chroma.sqlite3
 │   ├── chroma_db_cache
+│   │   ├── 94424787-7378-4ec3-95ec-395eee517c1e
+│   │   │   ├── data_level0.bin
+│   │   │   ├── header.bin
+│   │   │   ├── length.bin
+│   │   │   └── link_lists.bin
 │   │   └── chroma.sqlite3
 │   ├── chroma_db_cache.old
 │   │   ├── 8ad8ff17-503f-49ca-9a16-6258dde23a62
+│   │   │   ├── data_level0.bin
+│   │   │   ├── header.bin
+│   │   │   ├── length.bin
+│   │   │   └── link_lists.bin
+│   │   └── chroma.sqlite3
+│   ├── chroma_db_classification
+│   │   ├── 5833e0bd-befd-4623-84ae-ab15dd818684
 │   │   │   ├── data_level0.bin
 │   │   │   ├── header.bin
 │   │   │   ├── length.bin
@@ -299,22 +315,39 @@
 │   │   │   └── player_prompts.py
 │   │   ├── routers
 │   │   │   ├── __init__.py
+│   │   │   ├── agent.py
 │   │   │   ├── chat.py
 │   │   │   ├── match_analysis.py
 │   │   │   ├── player_compare.py
 │   │   │   └── stats.py
 │   │   ├── scrapers
 │   │   │   ├── __init__.py
+│   │   │   ├── add_ko_names.py
 │   │   │   ├── espn_id_collector.py
 │   │   │   ├── espn_scraper_dynamic.py
 │   │   │   └── espn_scraper_hybrid.py
-│   │   └── services
+│   │   ├── services
+│   │   │   ├── __init__.py
+│   │   │   ├── cache_service.py
+│   │   │   ├── content_safety_service.py
+│   │   │   ├── data_ingestion.py
+│   │   │   ├── openai_service.py
+│   │   │   ├── prompt_service.py
+│   │   │   └── rag_service.py
+│   │   ├── tools
+│   │   │   ├── __init__.py
+│   │   │   ├── calendar_tool.py
+│   │   │   ├── fan_preference_tool.py
+│   │   │   ├── match_analysis_tool.py
+│   │   │   ├── player_compare_tool.py
+│   │   │   ├── posts_search_tool.py
+│   │   │   └── rag_tool.py
+│   │   └── utils
 │   │       ├── __init__.py
-│   │       ├── cache_service.py
-│   │       ├── data_ingestion.py
-│   │       ├── openai_service.py
-│   │       ├── prompt_service.py
-│   │       └── rag_service.py
+│   │       ├── cache_judge.py
+│   │       ├── keyword_matcher.py
+│   │       ├── question_classifier.py
+│   │       └── realtime_router.py
 │   ├── main.py
 │   ├── portfolio-experiments
 │   │   ├── add_rag_documents_to_chromadb.py
@@ -362,11 +395,23 @@
 │   │   │       └── link_lists.bin
 │   │   ├── generate_rag_documents_with_llm.py
 │   │   ├── lora-training
+│   │   │   ├── COLAB_NOTEBOOK_INFO.md
+│   │   │   ├── DOWNLOAD_GUIDE.md
+│   │   │   ├── IMPORT_FROM_DRIVE.md
+│   │   │   ├── README.md
+│   │   │   ├── check_drive_files.py
 │   │   │   ├── dataset
 │   │   │   │   └── fsf_qa_dataset.json
+│   │   │   ├── download_from_drive.sh
 │   │   │   ├── generate_dataset.py
 │   │   │   ├── notebooks
-│   │   │   └── results
+│   │   │   ├── results
+│   │   │   │   ├── ADAPTER_MODEL_INFO.md
+│   │   │   │   ├── FILES_COMPLETE.md
+│   │   │   │   ├── QLORA_CONFIG_SUMMARY.md
+│   │   │   │   ├── adapter_config.json
+│   │   │   │   └── adapter_model.safetensors
+│   │   │   └── train_qlora_template.py
 │   │   ├── rag-optimization
 │   │   │   ├── benchmark.py
 │   │   │   ├── results
@@ -380,8 +425,13 @@
 │   │   ├── simulate_users.py
 │   │   └── test_api_performance.py
 │   ├── requirements.txt
-│   └── serviceAccountKey.json
+│   ├── serviceAccountKey.json
+│   ├── test_agent_frontend_integration.md
+│   ├── test_agent_tools.py
+│   ├── test_content_safety.py
+│   └── test_question_classifier.py
 ├── tree.txt
-└── update_tree.sh
+├── update_tree.sh
+└── 크리스틴컴퍼니_실험결과_테이블.html
 
-115 directories, 269 files
+120 directories, 314 files
