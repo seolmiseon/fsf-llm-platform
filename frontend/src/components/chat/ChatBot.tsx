@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { X } from 'lucide-react';
 import { BackendApi } from '@/lib/client/api/backend';
 import { useAuthStore } from '@/store/useAuthStore';
 import { trackLLMRequest, trackError } from '@/lib/amplitude';
@@ -108,32 +109,81 @@ export default function ChatBot({ onClose }: ChatBotProps) {
           throw new Error(response.error || 'Failed to analyze image');
         }
       } else {
-        // Agent API 사용 (하이브리드 방식: 단순 질문은 chat.py, 복잡 질문은 Agent)
-        // user_id 전달 (로그인한 경우에만, 개인화된 답변을 위해)
+        // Agent API 스트리밍 사용 (중간 상태 메시지 표시)
         const userId = user?.uid || undefined;
-        response = await backendApi.agent(currentInput, undefined, userId);
+        
+        // 스트리밍 메시지용 임시 메시지 ID
+        const streamingMessageId = (Date.now() + 1).toString();
+        let streamingContent = '';
+        let streamingToolsUsed: string[] = [];
+        
+        // 임시 메시지 추가 (상태 표시용)
+        const tempMessage: Message = {
+          id: streamingMessageId,
+          role: 'assistant',
+          content: '처리 중...',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, tempMessage]);
+
+        await backendApi.agentStream(
+          currentInput,
+          userId,
+          // 상태 메시지 업데이트
+          (statusMessage: string) => {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === streamingMessageId
+                  ? { ...msg, content: statusMessage }
+                  : msg
+              )
+            );
+          },
+          // 답변 업데이트 (타이핑 효과)
+          (chunk: string, toolsUsed: string[], isChunk?: boolean) => {
+            if (toolsUsed.length > 0) {
+              // answer_start: tools_used 설정
+              streamingToolsUsed = toolsUsed;
+            }
+            
+            if (chunk === '' && toolsUsed.length > 0) {
+              // answer_start: 초기화만 하고 내용은 비움
+              streamingContent = '';
+            } else {
+              // answer_chunk: 청크를 누적
+              streamingContent += chunk;
+            }
+            
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === streamingMessageId
+                  ? { ...msg, content: streamingContent, toolsUsed: streamingToolsUsed }
+                  : msg
+              )
+            );
+          },
+          // 에러 처리
+          (error: string) => {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === streamingMessageId
+                  ? { ...msg, content: `오류: ${error}` }
+                  : msg
+              )
+            );
+            throw new Error(error);
+          }
+        );
+
         responseTime = Date.now() - startTime;
 
-        if (response.success && response.data) {
-          const assistantMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            role: 'assistant',
-            content: response.data.answer,
-            timestamp: new Date(),
-            toolsUsed: response.data.tools_used || [],
-          };
-          setMessages((prev) => [...prev, assistantMessage]);
-
-          trackLLMRequest({
-            question_type: 'agent_chat',
-            response_time_ms: responseTime,
-            cache_hit: false,
-            tools_used: response.data.tools_used || [],
-            tokens_used: response.data.tokens_used || 0,
-          });
-        } else {
-          throw new Error(response.error || 'Failed to get response');
-        }
+        trackLLMRequest({
+          question_type: 'agent_chat',
+          response_time_ms: responseTime,
+          cache_hit: false,
+          tools_used: streamingToolsUsed,
+          tokens_used: 0, // 스트리밍에서는 정확한 토큰 수를 알기 어려움
+        });
       }
     } catch (error) {
       console.error('Chat error:', error);
@@ -174,8 +224,9 @@ export default function ChatBot({ onClose }: ChatBotProps) {
           onClick={onClose}
           className="text-white hover:bg-blue-600 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
           aria-label="닫기"
+          title="닫기"
         >
-          ✕
+          <X className="w-5 h-5" />
         </button>
       </div>
 

@@ -1,33 +1,61 @@
 # FSF 프로젝트 아키텍처 다이어그램
 
+## 🎨 색상 변경 가이드 (Mermaid Live Editor 사용)
+
+1. **Mermaid Live Editor 열기**: https://mermaid.live/
+2. **다이어그램 코드 복사**: 아래 원하는 다이어그램의 코드 블록 전체 복사
+3. **Live Editor에 붙여넣기**: 왼쪽 편집기에 붙여넣기
+4. **색상 변경**: `style` 태그의 색상 코드 변경
+   - 예: `style Frontend fill:#e1f5ff` → `style Frontend fill:#원하는색상코드`
+   - 색상 코드 형식: `#RRGGBB` (예: `#ffffff` = 흰색, `#000000` = 검은색)
+5. **PNG/SVG 다운로드**: 우측 상단 다운로드 버튼 클릭
+
+### 출력용 색상 팔레트 (흰색 배경에 최적화)
+- **Frontend (파란색 계열)**: `#64B5F6` → 출력 가능한 파란색
+- **Backend (주황색 계열)**: `#FFB74D` → 출력 가능한 주황색
+- **LLM Service (보라색 계열)**: `#BA68C8` → 출력 가능한 보라색
+- **Tools (초록색 계열)**: `#81C784` → 출력 가능한 초록색
+- **Cache (노란색 계열)**: `#FFD54F` → 출력 가능한 노란색
+- **External (분홍색 계열)**: `#F06292` → 출력 가능한 분홍색
+
+### 더 진한 색상이 필요하다면
+- **Frontend**: `#2196F3` (진한 파란색)
+- **Backend**: `#FF9800` (진한 주황색)
+- **LLM Service**: `#9C27B0` (진한 보라색)
+- **Tools**: `#4CAF50` (진한 초록색)
+- **Cache**: `#FFC107` (진한 노란색)
+- **External**: `#E91E63` (진한 분홍색)
+
+---
+
 ## 1. 전체 시스템 아키텍처
 
 ```mermaid
-graph TB
-    subgraph Frontend["🌐 Frontend (Next.js 14 + TypeScript)"]
+graph LR
+    subgraph Frontend[Frontend]
         UI[사용자 인터페이스]
         ChatBot[챗봇 컴포넌트]
         Stats[통계 페이지]
         Community[커뮤니티]
     end
 
-    subgraph Backend["⚙️ Backend (FastAPI + Python 3.11)"]
+    subgraph Backend[Backend]
         API[FastAPI Router]
-        ChatRouter["/api/llm/chat"]
-        AgentRouter["/api/llm/agent"]
-        StatsRouter["/api/stats"]
-        CommunityRouter["/api/community"]
+        ChatRouter[api/llm/chat]
+        AgentRouter[api/llm/agent]
+        StatsRouter[api/stats]
+        CommunityRouter[api/community]
     end
 
-    subgraph LLMService["🤖 LLM Service"]
-        QuestionClassifier[질문 분류기<br/>정규식 + LLM]
-        ContentSafety[콘텐츠 필터링<br/>정규식 + LLM]
-        RAGService[RAG Service<br/>ChromaDB]
-        OpenAIService[OpenAI Service<br/>GPT-4o-mini]
-        Agent[LangChain Agent<br/>ReAct 프롬프트]
+    subgraph LLMService[LLM Service]
+        QuestionClassifier[질문 분류기]
+        ContentSafety[콘텐츠 필터링]
+        RAGService[RAG Service]
+        OpenAIService[OpenAI Service]
+        Agent[LangChain Agent]
     end
 
-    subgraph Tools["🛠️ Agent Tools (6개)"]
+    subgraph ToolsGroup[Agent Tools]
         RAGTool[RAG Search Tool]
         MatchTool[Match Analysis Tool]
         PlayerTool[Player Compare Tool]
@@ -36,16 +64,16 @@ graph TB
         CalendarTool[Calendar Tool]
     end
 
-    subgraph Cache["💾 2단계 캐싱"]
-        ChromaDBCache[ChromaDB<br/>벡터 캐시<br/>유사도 0.75+]
-        FirestoreCache[Firestore<br/>API 응답 캐시<br/>TTL 1시간]
-        CacheJudge[Judge 노드<br/>캐시 충분성 판단]
+    subgraph CacheGroup[2단계 캐싱]
+        ChromaDBCache[ChromaDB]
+        FirestoreCache[Firestore]
+        CacheJudge[Judge 노드]
     end
 
-    subgraph External["🌍 External Services"]
-        Firebase[Firebase<br/>Auth + Firestore]
-        FootballAPI[Football Data API<br/>실시간 경기 데이터]
-        OpenAI[OpenAI API<br/>GPT-4o-mini]
+    subgraph External[External Services]
+        Firebase[Firebase]
+        FootballAPI[Football Data API]
+        OpenAI[OpenAI API]
     end
 
     UI --> ChatBot
@@ -66,26 +94,20 @@ graph TB
     QuestionClassifier -->|단순 질문| ChatRouter
     QuestionClassifier -->|복잡 질문| AgentRouter
 
-    ChatRouter --> Cache
-    AgentRouter --> Agent
-
-    Cache --> ChromaDBCache
-    Cache --> FirestoreCache
-    Cache --> CacheJudge
-
-    ChromaDBCache --> RAGService
-    CacheJudge --> OpenAIService
-
+    ChatRouter --> ChromaDBCache
     ChatRouter --> RAGService
     ChatRouter --> OpenAIService
 
-    Agent --> Tools
-    Tools --> RAGTool
-    Tools --> MatchTool
-    Tools --> PlayerTool
-    Tools --> PostsTool
-    Tools --> FanTool
-    Tools --> CalendarTool
+    AgentRouter --> Agent
+    Agent --> RAGTool
+    Agent --> MatchTool
+    Agent --> PlayerTool
+    Agent --> PostsTool
+    Agent --> FanTool
+    Agent --> CalendarTool
+
+    ChromaDBCache --> RAGService
+    CacheJudge --> OpenAIService
 
     RAGTool --> RAGService
     MatchTool --> FootballAPI
@@ -98,12 +120,12 @@ graph TB
     OpenAIService --> OpenAI
     Firebase --> FirestoreCache
 
-    style Frontend fill:#e1f5ff
-    style Backend fill:#fff4e1
-    style LLMService fill:#f0f4ff
-    style Tools fill:#e8f5e9
-    style Cache fill:#fff9c4
-    style External fill:#fce4ec
+    style Frontend fill:#64B5F6
+    style Backend fill:#FFB74D
+    style LLMService fill:#BA68C8
+    style ToolsGroup fill:#81C784
+    style CacheGroup fill:#FFD54F
+    style External fill:#F06292
 ```
 
 ## 2. 질문 처리 플로우 (단순 vs 복잡)
@@ -148,11 +170,11 @@ flowchart TD
 
     Response --> End([사용자에게<br/>응답 전달])
 
-    style SimpleFlow fill:#c8e6c9
-    style ComplexFlow fill:#ffccbc
-    style UseCache fill:#fff9c4
-    style Judge fill:#e1bee7
-    style AgentExec fill:#b3e5fc
+    style SimpleFlow fill:#81C784
+    style ComplexFlow fill:#FF8A65
+    style UseCache fill:#FFD54F
+    style Judge fill:#BA68C8
+    style AgentExec fill:#64B5F6
 ```
 
 ## 3. 캐싱 전략 상세 플로우
@@ -203,12 +225,12 @@ flowchart TD
     UseFirestore --> Response
     ForceAPI --> API
 
-    style Step1 fill:#fff9c4
-    style Step2 fill:#e1f5ff
-    style Judge fill:#e1bee7
-    style UseCache1 fill:#c8e6c9
-    style UseCache2 fill:#c8e6c9
-    style UseFirestore fill:#c8e6c9
+    style Step1 fill:#FFD54F
+    style Step2 fill:#64B5F6
+    style Judge fill:#BA68C8
+    style UseCache1 fill:#81C784
+    style UseCache2 fill:#81C784
+    style UseFirestore fill:#81C784
 ```
 
 ## 4. Agent Tool 선택 플로우
@@ -248,11 +270,11 @@ flowchart TD
 
     Answer --> End([사용자에게<br/>응답 전달])
 
-    style Agent fill:#b3e5fc
-    style Thought fill:#e1bee7
-    style Action fill:#fff9c4
-    style Observation fill:#c8e6c9
-    style Answer fill:#ffccbc
+    style Agent fill:#64B5F6
+    style Thought fill:#BA68C8
+    style Action fill:#FFD54F
+    style Observation fill:#81C784
+    style Answer fill:#FF8A65
 ```
 
 ## 5. 데이터베이스 및 저장소 구조
@@ -353,8 +375,8 @@ graph LR
     E --> H
     E --> I
 
-    style Optimization fill:#e8f5e9
-    style Results fill:#fff9c4
+    style Optimization fill:#81C784
+    style Results fill:#FFD54F
 ```
 
 ## 주요 구성요소 설명

@@ -133,6 +133,80 @@ export class BackendApi {
     });
   }
 
+  // Agent API 스트리밍 버전
+  async agentStream(
+    query: string,
+    userId: string | undefined,
+    onStatus: (message: string) => void,
+    onAnswer: (content: string, toolsUsed: string[], isChunk?: boolean) => void,
+    onError: (error: string) => void
+  ): Promise<void> {
+    const body: { query: string; user_id?: string } = { query };
+    if (userId) body.user_id = userId;
+
+    try {
+      const response = await fetch(`${this.baseUrl}/api/llm/agent/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error('Response body is not readable');
+      }
+
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.type === 'status') {
+                onStatus(data.message);
+              } else if (data.type === 'answer_start') {
+                // 답변 시작 - 초기화
+                onAnswer('', data.tools_used || []);
+              } else if (data.type === 'answer_chunk') {
+                // 답변 청크 - 타이핑 효과
+                onAnswer(data.content, []);
+              } else if (data.type === 'answer_complete') {
+                // 답변 완료 (추가 처리 없음)
+              } else if (data.type === 'error') {
+                onError(data.message);
+                return;
+              } else if (data.type === 'done') {
+                return;
+              }
+            } catch (e) {
+              console.error('Failed to parse SSE data:', e);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      onError(error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+
   async matchAnalysis(matchId: number): Promise<ApiResponse<{ analysis: string }>> {
     return this.fetch(`/api/llm/match/${matchId}/analysis`, {
       method: 'POST',

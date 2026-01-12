@@ -1,11 +1,14 @@
 """
 Agent 엔드포인트
 POST /api/llm/agent
+POST /api/llm/agent/stream (스트리밍 버전)
 """
 from fastapi import APIRouter, HTTPException
-from typing import List
+from fastapi.responses import StreamingResponse
+from typing import List, AsyncGenerator
 import logging
 from datetime import datetime
+import json
 
 from ..models import AgentRequest, AgentResponse, ErrorResponse, ChatRequest, ChatResponse
 from ..services.openai_service import OpenAIService
@@ -69,7 +72,9 @@ base_agent = initialize_agent(
     llm=llm,
     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
     verbose=True,
-    handle_parsing_errors=True
+    handle_parsing_errors=True,
+    max_iterations=10,  # 최대 반복 횟수 제한
+    max_execution_time=60  # 최대 실행 시간 60초
 )
 
 # Agent 시스템 프롬프트 (하이브리드: 복잡한 질문만 ReAct)
@@ -98,15 +103,22 @@ REACT_AGENT_SYSTEM_PROMPT = """당신은 축구 분석 전문 AI 어시스턴트
 
 **도구 사용 원칙:**
 1. 캐시 데이터가 있더라도, 실시간 정보가 필요하면 반드시 API를 호출하세요.
-2. 도구 실행이 실패하면, 다른 도구를 시도하거나 에러를 명확히 보고하세요.
-3. 사용자의 질문에 정확하게 답변하기 위해 필요한 모든 도구를 사용하세요.
+2. **도구 실행이 실패하면 (API 제한, 무료티어 초과, 네트워크 오류 등):**
+   - 같은 도구를 다시 시도하지 마세요 (최대 1회만 시도)
+   - 즉시 다른 도구를 시도하거나, RAG 검색으로 대체하세요
+   - 사용자에게 "현재 API 제한으로 인해 실시간 정보를 불러올 수 없습니다. 대신 저장된 정보를 바탕으로 답변드리겠습니다"라고 명확히 설명하세요
+3. 도구가 2번 연속 실패하면, RAG 검색으로 대체하고 사용 가능한 정보로 답변하세요.
+4. 무한 루프를 방지하기 위해 같은 도구를 2번 이상 반복 사용하지 마세요.
 
-**예시 (에러 복구):**
-[생각] 사용자가 "오늘 토트넘 경기 결과"를 물었습니다. 캐시에는 오래된 정보만 있어서 실시간 API 호출이 필요합니다.
+**에러 처리 예시:**
+[생각] 사용자가 "오늘 토트넘 경기 일정"을 물었습니다. calendar 도구를 사용해야 합니다.
 [행동] calendar 도구를 사용하여 오늘 경기 일정을 조회합니다.
-[결과] 경기 일정을 확인했습니다. 이제 match_analysis 도구로 경기 결과를 분석합니다.
+[결과] API 제한 오류 발생 (무료티어 초과 또는 Rate Limit). calendar 도구는 더 이상 사용하지 않고, RAG 검색으로 대체합니다.
+[생각] API 실패했으므로 RAG 검색으로 저장된 경기 일정 정보를 찾겠습니다.
+[행동] rag_search 도구를 사용하여 토트넘 경기 일정 정보를 검색합니다.
+[결과] RAG 검색으로 관련 정보를 찾았습니다. 이 정보를 바탕으로 답변을 생성하겠습니다.
 
-한국어로 친절하고 정확하게 답변하세요."""
+한국어로 친절하고 정확하게 답변하세요. API 제한으로 인한 제약이 있다면 솔직하게 설명하세요."""
 
 
 @router.post(
@@ -224,7 +236,9 @@ async def agent_chat(request: AgentRequest) -> AgentResponse:
                 llm=llm,
                 agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
                 verbose=True,
-                handle_parsing_errors=True
+                handle_parsing_errors=True,
+                max_iterations=10,  # 최대 반복 횟수 제한
+                max_execution_time=60  # 최대 실행 시간 60초
             )
             
             # 프롬프트에 user_id 포함 (ReAct 프롬프트 사용)
@@ -308,6 +322,177 @@ async def agent_chat(request: AgentRequest) -> AgentResponse:
     except Exception as e:
         logger.error(f"❌ Agent 오류: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Agent 처리 실패: {str(e)}")
+
+
+@router.post("/stream", summary="Agent 스트리밍 응답")
+async def agent_chat_stream(request: AgentRequest):
+    """
+    AI Agent 스트리밍 엔드포인트
+    
+    Server-Sent Events (SSE)를 사용하여 실시간으로 중간 상태와 최종 답변을 전송합니다.
+    사용자는 "경기 일정을 조회하는 중...", "분석 중..." 등의 메시지를 실시간으로 볼 수 있습니다.
+    """
+    async def generate_stream() -> AsyncGenerator[str, None]:
+        try:
+            logger.info(f"🤖 Agent 스트리밍 요청: {request.query}")
+            
+            # 입력 필터링
+            if content_safety_service:
+                input_check = content_safety_service.check_input(request.query)
+                if not input_check.is_safe:
+                    error_msg = json.dumps({
+                        "type": "error",
+                        "message": "부적절한 내용이 포함된 요청입니다."
+                    })
+                    yield f"data: {error_msg}\n\n"
+                    return
+            
+            # 질문 분류
+            yield f"data: {json.dumps({'type': 'status', 'message': '질문을 분석하는 중...'})}\n\n"
+            is_complex = await is_complex_question(request.query, use_llm_fallback=True)
+            
+            if not is_complex:
+                # 단순 질문은 chat.py로 처리 (타이핑 효과로 스트리밍)
+                yield f"data: {json.dumps({'type': 'status', 'message': '답변을 생성하는 중...'})}\n\n"
+                chat_request = ChatRequest(query=request.query, top_k=5)
+                chat_response = await chat_endpoint(chat_request)
+                
+                # 답변을 타이핑 효과로 스트리밍
+                yield f"data: {json.dumps({'type': 'answer_start', 'tools_used': ['rag_search']})}\n\n"
+                
+                chunk_size = 3
+                for i in range(0, len(chat_response.answer), chunk_size):
+                    chunk = chat_response.answer[i:i + chunk_size]
+                    yield f"data: {json.dumps({'type': 'answer_chunk', 'content': chunk})}\n\n"
+                
+                yield f"data: {json.dumps({'type': 'answer_complete'})}\n\n"
+                yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                return
+            
+            # 복잡 질문 - Agent 사용
+            yield f"data: {json.dumps({'type': 'status', 'message': '복잡한 질문이 감지되었습니다. 적절한 도구를 선택하는 중...'})}\n\n"
+            
+            # Agent 설정
+            tools = base_tools.copy()
+            system_prompt = REACT_AGENT_SYSTEM_PROMPT
+            
+            # 기본 Agent 초기화
+            agent = initialize_agent(
+                tools=tools,
+                llm=llm,
+                agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+                verbose=True,
+                handle_parsing_errors=True,
+                max_iterations=10,  # 최대 반복 횟수 제한
+                max_execution_time=60  # 최대 실행 시간 60초
+            )
+            
+            if request.user_id:
+                fan_tool = create_fan_preference_tool(user_id=request.user_id)
+                tools.append(fan_tool)
+                from langchain.tools import Tool
+                calendar_tool_with_user = Tool(
+                    name="calendar",
+                    description="경기 일정을 조회하는 도구입니다...",
+                    func=lambda query: calendar_query(query.strip(), user_id=request.user_id)
+                )
+                tools = [t for t in tools if t.name != "calendar"]
+                tools.append(calendar_tool_with_user)
+                
+                agent = initialize_agent(
+                    tools=tools,
+                    llm=llm,
+                    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+                    verbose=True,
+                    handle_parsing_errors=True
+                )
+                system_prompt = REACT_AGENT_SYSTEM_PROMPT + f"\n\n중요: 현재 사용자 ID는 {request.user_id}입니다."
+            
+            # Tool 실행 추적을 위한 콜백
+            tools_used = []
+            tool_messages = {
+                "calendar": "경기 일정을 조회하는 중...",
+                "match_analysis": "경기 데이터를 분석하는 중...",
+                "player_compare": "선수 정보를 비교하는 중...",
+                "posts_search": "커뮤니티 게시글을 검색하는 중...",
+                "fan_preference": "사용자 선호도를 확인하는 중...",
+                "rag_search": "관련 정보를 검색하는 중...",
+            }
+            
+            # 질문 내용으로 예상 Tool 추정
+            query_lower = request.query.lower()
+            if "경기 일정" in query_lower or "일정" in query_lower or "오늘" in query_lower or "내일" in query_lower:
+                yield f"data: {json.dumps({'type': 'status', 'message': tool_messages.get('calendar', '도구를 실행하는 중...')})}\n\n"
+            elif "비교" in query_lower:
+                yield f"data: {json.dumps({'type': 'status', 'message': tool_messages.get('player_compare', '도구를 실행하는 중...')})}\n\n"
+            elif "경기" in query_lower and "분석" in query_lower:
+                yield f"data: {json.dumps({'type': 'status', 'message': tool_messages.get('match_analysis', '도구를 실행하는 중...')})}\n\n"
+            elif "커뮤니티" in query_lower or "게시글" in query_lower:
+                yield f"data: {json.dumps({'type': 'status', 'message': tool_messages.get('posts_search', '도구를 실행하는 중...')})}\n\n"
+            else:
+                yield f"data: {json.dumps({'type': 'status', 'message': '관련 정보를 검색하는 중...'})}\n\n"
+            
+            # Agent 실행
+            import asyncio
+            loop = asyncio.get_event_loop()
+            final_prompt = system_prompt + "\n\n사용자 질문: " + request.query
+            
+            yield f"data: {json.dumps({'type': 'status', 'message': 'AI가 답변을 생성하는 중...'})}\n\n"
+            
+            result = await loop.run_in_executor(
+                None,
+                lambda: agent.run(final_prompt)
+            )
+            
+            # Tool 추정
+            if "경기 일정" in query_lower or "일정" in query_lower:
+                tools_used.append("calendar")
+            if "비교" in query_lower:
+                tools_used.append("player_compare")
+            if "경기" in query_lower and "분석" in query_lower:
+                tools_used.append("match_analysis")
+            if "커뮤니티" in query_lower or "게시글" in query_lower:
+                tools_used.append("posts_search")
+            if "내가 좋아하는" in query_lower or "내 팀" in query_lower:
+                tools_used.append("fan_preference")
+            if not tools_used:
+                tools_used.append("rag_search")
+            
+            # 출력 필터링
+            if content_safety_service:
+                output_check = content_safety_service.check_output(result)
+                if not output_check.is_safe:
+                    result = content_safety_service.filter_text(result)
+            
+            # 최종 답변을 타이핑 효과로 스트리밍 (토큰 단위)
+            yield f"data: {json.dumps({'type': 'answer_start', 'tools_used': tools_used})}\n\n"
+            
+            # 답변을 한 글자씩 전송 (타이핑 효과)
+            chunk_size = 3  # 한 번에 3글자씩 전송 (더 자연스러운 효과)
+            for i in range(0, len(result), chunk_size):
+                chunk = result[i:i + chunk_size]
+                yield f"data: {json.dumps({'type': 'answer_chunk', 'content': chunk})}\n\n"
+            
+            yield f"data: {json.dumps({'type': 'answer_complete'})}\n\n"
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+            
+        except Exception as e:
+            logger.error(f"❌ Agent 스트리밍 오류: {str(e)}", exc_info=True)
+            error_msg = json.dumps({
+                "type": "error",
+                "message": f"처리 중 오류가 발생했습니다: {str(e)}"
+            })
+            yield f"data: {error_msg}\n\n"
+    
+    return StreamingResponse(
+        generate_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        }
+    )
 
 
 @router.get("/health", response_model=dict, summary="Agent 서비스 헬스 체크")
