@@ -7,7 +7,7 @@ import json
 import sys
 import time
 
-BASE_URL = "http://localhost:8081"
+BASE_URL = "http://localhost:8080"
 
 def test_agent_stream(query: str, user_id: str = None):
     """Agent 스트리밍 테스트"""
@@ -96,7 +96,7 @@ def test_agent_stream(query: str, user_id: str = None):
         
     except requests.exceptions.ConnectionError:
         print(f"❌ 연결 실패: 서버가 실행 중인지 확인하세요 ({BASE_URL})")
-        print("서버 실행: cd server && source venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port 8081 --reload")
+        print("서버 실행: cd server && source venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port 8080 --reload")
     except requests.exceptions.Timeout:
         print("❌ 타임아웃: 응답이 60초를 초과했습니다")
     except Exception as e:

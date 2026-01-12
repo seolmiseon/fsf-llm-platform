@@ -135,10 +135,13 @@ export default function MatchCalendar() {
     const handleDayCellMouseLeave = () => {
         // 약간의 딜레이를 주어 팝오버로 이동할 시간을 줌
         setTimeout(() => {
-            if (!popoverOpen) {
-                setHoveredDate(null);
-                setHoveredMatches([]);
-            }
+            setPopoverOpen((prev) => {
+                if (!prev) {
+                    setHoveredDate(null);
+                    setHoveredMatches([]);
+                }
+                return prev;
+            });
         }, 300);
     };
 
@@ -155,9 +158,13 @@ export default function MatchCalendar() {
         const mouseLeaveHandler = () => {
             setPopoverOpen(false);
             setTimeout(() => {
-                if (!popoverOpen) {
-                    handleDayCellMouseLeave();
-                }
+                setPopoverOpen((prev) => {
+                    if (!prev) {
+                        setHoveredDate(null);
+                        setHoveredMatches([]);
+                    }
+                    return prev;
+                });
             }, 200);
         };
 

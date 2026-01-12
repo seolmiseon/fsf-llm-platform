@@ -8,9 +8,10 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { BackendApi } from '@/lib/client/api/backend';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const { setUser, setLoading, updateActivityTime, startInactivityTimer, user } = useAuthStore();
+    const { setUser, setLoading, updateActivityTime, startInactivityTimer, checkSessionExpiry, user } = useAuthStore();
     const backendApi = useRef(new BackendApi()).current;
     const activityIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const sessionCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // 활동 추적 핸들러
     const handleActivity = useCallback(() => {
@@ -42,6 +43,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (!auth) return;
         
+        // 초기 로드 시 세션 만료 체크
+        checkSessionExpiry();
+        
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             console.log('Auth 상태 변경:', user);
             setUser(user);
@@ -55,11 +59,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 activityIntervalRef.current = setInterval(() => {
                     updateServerActivity();
                 }, 5 * 60 * 1000); // 5분
+                
+                // 세션 만료 체크 (1시간마다)
+                sessionCheckIntervalRef.current = setInterval(() => {
+                    checkSessionExpiry();
+                }, 60 * 60 * 1000); // 1시간
             } else {
                 // 로그아웃 시 인터벌 정리
                 if (activityIntervalRef.current) {
                     clearInterval(activityIntervalRef.current);
                     activityIntervalRef.current = null;
+                }
+                if (sessionCheckIntervalRef.current) {
+                    clearInterval(sessionCheckIntervalRef.current);
+                    sessionCheckIntervalRef.current = null;
                 }
             }
         });
@@ -69,8 +82,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (activityIntervalRef.current) {
                 clearInterval(activityIntervalRef.current);
             }
+            if (sessionCheckIntervalRef.current) {
+                clearInterval(sessionCheckIntervalRef.current);
+            }
         };
-    }, [setUser, setLoading, startInactivityTimer, updateServerActivity]);
+    }, [setUser, setLoading, startInactivityTimer, updateServerActivity, checkSessionExpiry]);
+    
+    // 페이지 로드 시 세션 만료 체크
+    useEffect(() => {
+        if (user) {
+            checkSessionExpiry();
+        }
+    }, [user, checkSessionExpiry]);
 
     // 사용자 활동 추적 (이벤트 리스너)
     useEffect(() => {
