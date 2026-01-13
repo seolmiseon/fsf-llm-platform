@@ -18,7 +18,12 @@ export function LeagueGrid() {
                 const result = await footballApi.getCompetitions();
 
                 if (!result.success) {
-                    setError(result.error);
+                    setError(result.error || '리그 목록을 불러오는데 실패했습니다.');
+                    return;
+                }
+
+                if (!result.data || !Array.isArray(result.data)) {
+                    setError('리그 데이터 형식이 올바르지 않습니다.');
                     return;
                 }
 

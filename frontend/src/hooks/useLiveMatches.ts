@@ -22,7 +22,7 @@ export const useLiveMatches = () => {
             const result = await api.getLiveMatches();
 
             if (!result.success) {
-                setError(result.error);
+                setError(result.error || '라이브 매치를 불러오는데 실패했습니다.');
                 return;
             }
 
