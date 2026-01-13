@@ -6,14 +6,20 @@ const productionBackendUrl = 'https://fsf-server-303660711261.asia-northeast3.ru
 
 // 프로덕션에서는 절대 localhost를 사용하지 않도록 강제
 // NEXT_PUBLIC_BACKEND_URL 우선, 없으면 NEXT_PUBLIC_API_URL 사용
-let BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL;
-if (!BACKEND_URL) {
-  BACKEND_URL = productionBackendUrl;
-} else if (BACKEND_URL.includes('localhost')) {
-  // localhost가 설정되어 있으면 Cloud Run URL로 강제 변경
-  console.warn('⚠️ localhost URL이 감지되었습니다. Cloud Run URL로 변경합니다.');
-  BACKEND_URL = productionBackendUrl;
+function getBackendUrl(): string {
+  const envUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL;
+  if (!envUrl) {
+    return productionBackendUrl;
+  }
+  if (envUrl.includes('localhost')) {
+    // localhost가 설정되어 있으면 Cloud Run URL로 강제 변경
+    console.warn('⚠️ localhost URL이 감지되었습니다. Cloud Run URL로 변경합니다.');
+    return productionBackendUrl;
+  }
+  return envUrl;
 }
+
+const BACKEND_URL = getBackendUrl();
 
 interface ApiResponse<T> {
   success: boolean;
