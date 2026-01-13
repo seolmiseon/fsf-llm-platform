@@ -116,7 +116,7 @@ export class FootballDataApi {
     }
 
     async getLiveMatches(): Promise<ApiResponse<MatchResponse[]>> {
-        return this.fetchApi<MatchResponse[]>('/matches');
+        return this.fetchApi<MatchResponse[]>('/matches/live');
     }
 
     async getStandings(

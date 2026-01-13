@@ -34,7 +34,8 @@ export default function FanPickerPage() {
                 const response = await backendApi.getTeams(competitionId);
 
                 if (response.success && response.data) {
-                    const teamsData = response.data.data || response.data;
+                    // BackendApi.fetch()가 이미 data를 추출하므로 response.data를 직접 사용
+                    const teamsData = response.data;
                     const fetchedTeams: TeamResponse[] = Array.isArray(teamsData)
                         ? teamsData.map((team: any) => ({
                               id: team.id || parseInt(team.team_id || '0'),

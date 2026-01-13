@@ -55,6 +55,15 @@ export class BackendApi {
       }
 
       const data = await response.json();
+      
+      // 백엔드가 {success: true, data: ...} 형식으로 반환하는 경우 data 추출
+      if (data && typeof data === 'object' && 'success' in data && 'data' in data) {
+        return {
+          success: data.success,
+          data: data.data,
+        };
+      }
+      
       return {
         success: true,
         data,

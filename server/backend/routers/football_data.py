@@ -328,6 +328,105 @@ async def get_matches(
         )
 
 
+@router.get(
+    "/matches/live",
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "라이브 경기 조회 성공"},
+        503: {"description": "Football-Data API 오류"},
+    },
+)
+async def get_live_matches(
+    force_refresh: bool = Query(False, description="캐시 무시"),
+    db: firestore.client = Depends(get_optional_firestore_db),
+):
+    """
+    진행 중인 라이브 경기 조회 (모든 리그)
+
+    캐시 전략:
+    - 10분 캐싱 (실시간 정보이므로 짧게)
+
+    Args:
+        force_refresh: 캐시 무시
+        db: Firestore 클라이언트
+
+    Returns:
+        라이브 경기 목록
+
+    Example:
+        >>> GET /api/football/matches/live
+    """
+    if not football_client:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Football-Data API client not available",
+        )
+
+    try:
+        cache_key = "matches_live_all"
+        cache_duration = 10  # 10분 캐싱
+
+        logger.info(f"🎮 라이브 경기 조회 (force_refresh={force_refresh})")
+
+        # 1. 캐시 확인
+        if db and not force_refresh:
+            cached_data = get_cache(db, cache_key)
+            if cached_data:
+                return {
+                    "success": True,
+                    "data": cached_data,
+                    "source": "cache",
+                    "cached": True,
+                    "cache_duration_minutes": cache_duration,
+                    "timestamp": datetime.now().isoformat(),
+                }
+
+        # 2. API에서 데이터 가져오기
+        logger.info(f"🔄 Football-Data API 호출: 라이브 경기")
+        matches = football_client.get_live_matches()
+
+        if not matches:
+            # 라이브 경기가 없을 수도 있으므로 빈 배열 반환
+            return {
+                "success": True,
+                "data": [],
+                "source": "api",
+                "cached": False,
+                "cache_duration_minutes": cache_duration,
+                "timestamp": datetime.now().isoformat(),
+            }
+
+        # 3. 캐시에 저장
+        if db:
+            set_cache(
+                db,
+                cache_key,
+                matches,
+                metadata={
+                    "status": "LIVE",
+                    "cache_duration_minutes": cache_duration,
+                },
+            )
+
+        return {
+            "success": True,
+            "data": matches,
+            "source": "api",
+            "cached": False,
+            "cache_duration_minutes": cache_duration,
+            "timestamp": datetime.now().isoformat(),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ 라이브 경기 조회 실패: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Failed to fetch live matches",
+        )
+
+
 # ============================================
 # 4. 팀 정보 API (Teams)
 # ============================================

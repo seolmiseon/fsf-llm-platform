@@ -151,6 +151,17 @@ RAG(검색 증강 생성) 기술로 실시간 경기 데이터를 분석하고, 
 
 ## 🚀 빠른 시작
 
+### ⚠️ 중요: 서버 포트 정보
+
+FSF 프로젝트는 다음 포트를 사용합니다:
+- **Backend (FastAPI)**: `8080` (환경변수 `PORT`로 변경 가능, 기본값: 8080)
+- **Frontend (Next.js)**: `3000` (Next.js 기본 포트)
+
+**포트 충돌 방지:**
+- 다른 프로젝트와 포트가 겹치면 환경변수로 변경 가능
+- Backend: `PORT=8081 uvicorn main:app --reload --port 8081`
+- Frontend: `PORT=3001 npm run dev` (또는 `next dev -p 3001`)
+
 ### 1. 저장소 클론
 
 ```bash
@@ -172,6 +183,7 @@ OPENAI_API_KEY=sk-proj-...
 GOOGLE_AI_API_KEY=your-gemini-api-key  # Gemini Vision API (선택적, 이미지 분석용)
 FOOTBALL_API_KEY=your-key
 FIREBASE_SERVICE_ACCOUNT_PATH=./serviceAccountKey.json
+PORT=8080  # Backend 서버 포트 (기본값: 8080, 다른 프로젝트와 충돌 시 변경)
 ```
 
 ### 3. Backend 실행
@@ -184,8 +196,11 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 # 패키지 설치
 pip install -r requirements.txt
 
-# 서버 실행
+# 서버 실행 (포트 8080)
 uvicorn main:app --reload --port 8080
+
+# 또는 환경변수로 포트 지정
+PORT=8080 uvicorn main:app --reload --port 8080
 ```
 
 **확인:**
@@ -198,7 +213,12 @@ uvicorn main:app --reload --port 8080
 cd frontend
 npm install
 npm run dev
-# http://localhost:3000
+# http://localhost:3000 (기본 포트)
+
+# 다른 포트로 실행하려면:
+PORT=3001 npm run dev
+# 또는
+next dev -p 3001
 ```
 
 ---
