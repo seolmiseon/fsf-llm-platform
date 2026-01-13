@@ -2,24 +2,39 @@
 
 import { useAuthStore } from '@/store/useAuthStore';
 
+// FSF 프로젝트 백엔드 서버 URL (Cloud Run)
 const productionBackendUrl = 'https://fsf-server-303660711261.asia-northeast3.run.app';
 
-// 프로덕션에서는 절대 localhost를 사용하지 않도록 강제
-// NEXT_PUBLIC_BACKEND_URL 우선, 없으면 NEXT_PUBLIC_API_URL 사용
+// 백엔드 URL 결정 로직
+// 프로덕션 빌드에서는 localhost를 무시하고 production URL만 사용
+// 로컬 개발 환경에서는 localhost 허용
 function getBackendUrl(): string {
   const envUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL;
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  // 환경변수가 없으면 production URL 사용
   if (!envUrl) {
     return productionBackendUrl;
   }
-  if (envUrl.includes('localhost')) {
-    // localhost가 설정되어 있으면 Cloud Run URL로 강제 변경
-    console.warn('⚠️ localhost URL이 감지되었습니다. Cloud Run URL로 변경합니다.');
+  
+  // 프로덕션 빌드에서 localhost가 포함되어 있으면 무시하고 production URL 사용
+  if (isProduction && envUrl.includes('localhost')) {
+    console.warn('⚠️ 프로덕션 빌드에서 localhost가 감지되었습니다. Production URL을 사용합니다.');
     return productionBackendUrl;
   }
+  
+  // 로컬 개발 환경이거나 프로덕션 URL이면 그대로 사용
   return envUrl;
 }
 
+// BackendApi 클래스가 사용하는 백엔드 서버 기본 URL
+// 값: https://fsf-server-303660711261.asia-northeast3.run.app (또는 환경변수에서 설정한 값)
 const BACKEND_URL = getBackendUrl();
+
+// 디버깅: 빌드 시점 URL 확인
+if (typeof window !== 'undefined') {
+  console.log('🔍 BackendApi - BACKEND_URL:', BACKEND_URL);
+}
 
 interface ApiResponse<T> {
   success: boolean;
@@ -46,7 +61,18 @@ export class BackendApi {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = BACKEND_URL;
+    // getBackendUrl에서 이미 localhost를 필터링했지만, 혹시 모를 경우를 대비한 안전장치
+    let url = BACKEND_URL;
+    if (url.includes('localhost')) {
+      console.error('❌ 생성자에서 localhost가 감지되었습니다. 이는 getBackendUrl 로직 오류입니다.');
+      url = productionBackendUrl;
+    }
+    this.baseUrl = url;
+    
+    // 디버깅: 생성자에서 설정된 baseUrl 확인
+    if (typeof window !== 'undefined') {
+      console.log('🔍 BackendApi constructor - baseUrl:', this.baseUrl);
+    }
   }
 
   private async fetch<T>(
@@ -54,11 +80,14 @@ export class BackendApi {
     options?: RequestInit
   ): Promise<ApiResponse<T>> {
     try {
-      // 런타임에서도 localhost 체크 (빌드 시점 환경변수 문제 대비)
+      // getBackendUrl과 생성자에서 이미 localhost를 필터링했지만, 최종 안전장치
       let finalUrl = `${this.baseUrl}${endpoint}`;
-      if (finalUrl.includes('localhost:8000') || finalUrl.includes('localhost:8080')) {
-        console.warn('⚠️ 런타임에서 localhost URL이 감지되었습니다. Cloud Run URL로 변경합니다.');
-        finalUrl = finalUrl.replace(/http:\/\/localhost:\d+/, 'https://fsf-server-303660711261.asia-northeast3.run.app');
+      
+      if (finalUrl.includes('localhost')) {
+        console.error('❌ 런타임에서 localhost가 감지되었습니다. 이는 심각한 오류입니다.');
+        const pathMatch = finalUrl.match(/\/api\/.*$/);
+        const path = pathMatch ? pathMatch[0] : endpoint;
+        finalUrl = `${productionBackendUrl}${path}`;
       }
       
       const response = await fetch(finalUrl, {

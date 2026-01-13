@@ -12,16 +12,16 @@ export async function GET(request: Request) {
             );
         }
 
-        // 백엔드 URL (NEXT_PUBLIC_BACKEND_URL 우선, 기존 변수는 폴백)
-        // 프로덕션에서는 절대 localhost를 사용하지 않도록 강제
+        // 백엔드 URL 결정: 환경변수에 localhost가 포함되어 있으면 무시하고 production URL만 사용
         const productionBackendUrl = 'https://fsf-server-303660711261.asia-northeast3.run.app';
         
         let backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL;
-        if (!backendUrl) {
-            backendUrl = productionBackendUrl;
-        } else if (backendUrl.includes('localhost')) {
-            // localhost가 설정되어 있으면 Cloud Run URL로 강제 변경
-            console.warn('⚠️ localhost URL이 감지되었습니다. Cloud Run URL로 변경합니다.');
+        
+        // 환경변수가 없거나 localhost가 포함되어 있으면 production URL 사용
+        if (!backendUrl || backendUrl.includes('localhost')) {
+            if (backendUrl && backendUrl.includes('localhost')) {
+                console.warn('⚠️ 환경변수에서 localhost가 감지되었습니다. Production URL을 사용합니다.');
+            }
             backendUrl = productionBackendUrl;
         }
         
