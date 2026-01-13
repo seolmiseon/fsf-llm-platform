@@ -54,7 +54,14 @@ export class BackendApi {
     options?: RequestInit
   ): Promise<ApiResponse<T>> {
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      // 런타임에서도 localhost 체크 (빌드 시점 환경변수 문제 대비)
+      let finalUrl = `${this.baseUrl}${endpoint}`;
+      if (finalUrl.includes('localhost:8000') || finalUrl.includes('localhost:8080')) {
+        console.warn('⚠️ 런타임에서 localhost URL이 감지되었습니다. Cloud Run URL로 변경합니다.');
+        finalUrl = finalUrl.replace(/http:\/\/localhost:\d+/, 'https://fsf-server-303660711261.asia-northeast3.run.app');
+      }
+      
+      const response = await fetch(finalUrl, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
