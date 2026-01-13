@@ -2,18 +2,8 @@ import { NextResponse } from 'next/server';
 import { auth } from 'firebase-admin';
 import { SearchResponse } from '@/types/ui/search';
 
-// 프로덕션 빌드에서 localhost를 무시하고 production URL만 사용
-const productionBackendUrl = 'https://fsf-server-303660711261.asia-northeast3.run.app';
-const isProduction = process.env.NODE_ENV === 'production';
-
-let BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL;
-if (!BACKEND_URL) {
-  BACKEND_URL = productionBackendUrl;
-} else if (isProduction && BACKEND_URL.includes('localhost')) {
-  // 프로덕션 빌드에서 localhost가 설정되어 있으면 Cloud Run URL로 강제 변경
-  console.warn('⚠️ 프로덕션 빌드에서 localhost가 감지되었습니다. Cloud Run URL로 변경합니다.');
-  BACKEND_URL = productionBackendUrl;
-}
+// 백엔드 URL: 환경변수 무시하고 항상 production URL만 사용
+const BACKEND_URL = 'https://fsf-server-303660711261.asia-northeast3.run.app';
 
 export async function GET(request: Request) {
     try {

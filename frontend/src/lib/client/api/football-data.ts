@@ -11,24 +11,8 @@ const productionBackendUrl = 'https://fsf-server-303660711261.asia-northeast3.ru
 
 // FootballDataApi 클래스가 사용하는 백엔드 서버 기본 URL
 // 프로덕션 배포에서는 항상 production URL만 사용
-// 로컬 개발 환경에서만 환경변수 확인 (런타임에만)
-const DEFAULT_BACKEND_URL = (() => {
-  // 빌드 시점(서버 사이드)이면 무조건 production URL
-  if (typeof window === 'undefined') {
-    return productionBackendUrl;
-  }
-  
-  // 런타임(브라우저)에서만 환경변수 확인
-  const envUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL;
-  
-  // 환경변수가 없거나 localhost면 production URL 사용
-  if (!envUrl || envUrl.includes('localhost')) {
-    return productionBackendUrl;
-  }
-  
-  // 프로덕션 URL이면 사용
-  return envUrl;
-})();
+// 환경변수는 무시하고 항상 production URL 사용 (빌드 시점 localhost 포함 방지)
+const DEFAULT_BACKEND_URL = productionBackendUrl;
 
 // 디버깅: 빌드 시점 URL 확인
 if (typeof window !== 'undefined') {
