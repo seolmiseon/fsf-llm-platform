@@ -61,8 +61,17 @@ export const TeamCard: React.FC<TeamCardProps> = ({
         loadTeamCrest();
     }, [team.id, team.crest]);
 
-    // 캡처 단계에서 버튼 클릭 확인 (가장 먼저 실행)
-    const handleClickCapture = (e: React.MouseEvent) => {
+    // StarButton 렌더링 디버깅
+    useEffect(() => {
+        console.log('🎴 [Card] StarButton 렌더링 체크:', { 
+            hasOnFavoriteClick: !!onFavoriteClick, 
+            isFavorite,
+            willRender: !!(onFavoriteClick && isFavorite !== undefined)
+        });
+    }, [onFavoriteClick, isFavorite]);
+
+    const handleClick = (e: React.MouseEvent) => {
+        // 버튼 클릭인지 먼저 확인 (가장 먼저!)
         const target = e.target as HTMLElement;
         const isStarButton = 
             target.closest('[data-star-button="true"]') !== null ||
@@ -70,32 +79,14 @@ export const TeamCard: React.FC<TeamCardProps> = ({
             target.closest('button') !== null;
         
         if (isStarButton) {
-            console.log('🛑 [Card] 캡처 단계에서 StarButton 감지됨 (하지만 전파는 차단하지 않음 - 버튼 onClick 실행을 위해)');
-            // 주의: stopPropagation을 하면 버튼의 onClick이 실행되지 않음!
-            // 여기서는 감지만 하고 차단은 버블링 단계에서 함
+            console.log('🛑 [Card] 버튼 클릭 감지 - Card 클릭 차단');
+            // 버튼 클릭이면 Card 클릭을 차단하지만, 버튼의 이벤트는 실행되도록 함
+            return; // stopPropagation 없이 그냥 return
         }
-    };
 
-    const handleClick = (e: React.MouseEvent) => {
         // 전역 store에서 최근 StarButton 클릭 확인
         if (isRecentButtonClick(100)) {
             console.log('🛑 [Card] Card click prevented - StarButton clicked (전역 store 확인)');
-            e.stopPropagation();
-            e.preventDefault();
-            return;
-        }
-        
-        // 버튼 클릭일 경우 Card 클릭 방지 (로컬 확인 - 이중 방어)
-        const target = e.target as HTMLElement;
-        const isStarButton = 
-            target.closest('[data-star-button="true"]') !== null ||
-            target.tagName === 'BUTTON' || 
-            target.closest('button') !== null;
-        
-        if (isStarButton) {
-            console.log('🛑 [Card] Card click prevented - StarButton clicked (로컬 확인)');
-            e.stopPropagation();
-            e.preventDefault();
             return;
         }
 
@@ -110,7 +101,6 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     return (
         <Card
             onClick={handleClick}
-            onClickCapture={handleClickCapture}
             className={`
             p-4 rounded-lg bg-white shadow-md cursor-pointer
             ${styles.cardWrapper}

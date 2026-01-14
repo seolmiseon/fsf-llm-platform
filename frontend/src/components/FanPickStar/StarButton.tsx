@@ -37,11 +37,15 @@ export function StarButton({
 
     // 컴포넌트 마운트 시 로그
     useEffect(() => {
-        console.log('⭐ [StarButton] 컴포넌트 마운트됨', { isFavorite, hasOnClick: !!onClick });
+        console.log('⭐ [StarButton] 컴포넌트 마운트됨', { isFavorite, hasOnClick: !!onClick, disabled });
         if (buttonRef.current) {
             console.log('⭐ [StarButton] 버튼 DOM 요소 확인됨:', buttonRef.current);
+            console.log('⭐ [StarButton] 버튼 스타일:', window.getComputedStyle(buttonRef.current));
+            console.log('⭐ [StarButton] 버튼 pointer-events:', window.getComputedStyle(buttonRef.current).pointerEvents);
+        } else {
+            console.error('⭐ [StarButton] ❌ 버튼 ref가 null입니다!');
         }
-    }, [isFavorite, onClick]);
+    }, [isFavorite, onClick, disabled]);
 
     // 직접 DOM 이벤트 리스너 추가 (React 이벤트 시스템을 우회)
     // 모든 이벤트를 감지하여 디버깅
@@ -115,26 +119,47 @@ export function StarButton({
     };
 
     return (
-        <button
-            ref={buttonRef}
-            data-star-button="true" // Card에서 버튼을 확실히 식별하기 위한 속성
-            onClick={handleClick}
-            onMouseDown={handleMouseDown}
-            disabled={disabled}
-            type="button" // 기본 submit 동작 방지
-            className={`mt-2 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
-                isFavorite
-                    ? 'bg-red-500 text-white hover:bg-red-600'
-                    : 'bg-blue-500 text-white hover:bg-blue-600'
-            } ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
-            style={{
+        <div 
+            style={{ 
                 position: 'relative',
-                zIndex: 9999, // 매우 높은 z-index
+                zIndex: 99999,
                 pointerEvents: 'auto',
-                cursor: 'pointer',
+            }}
+            onClick={(e) => {
+                console.log('⭐ [StarButton Wrapper] div 클릭됨!');
+                e.stopPropagation(); // Card로 전파 차단
             }}
         >
-            {isFavorite ? '❤️ Remove from Favorites' : '⭐ Add to Favorites'}
-        </button>
+            <button
+                ref={buttonRef}
+                data-star-button="true" // Card에서 버튼을 확실히 식별하기 위한 속성
+                onClick={(e) => {
+                    console.log('⭐ [StarButton] 버튼 onClick 시작!');
+                    e.stopPropagation(); // 가장 먼저 전파 차단
+                    e.preventDefault();
+                    handleClick(e);
+                }}
+                onMouseDown={(e) => {
+                    console.log('⭐ [StarButton] 버튼 onMouseDown!');
+                    e.stopPropagation();
+                    handleMouseDown(e);
+                }}
+                disabled={disabled}
+                type="button" // 기본 submit 동작 방지
+                className={`mt-2 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
+                    isFavorite
+                        ? 'bg-red-500 text-white hover:bg-red-600'
+                        : 'bg-blue-500 text-white hover:bg-blue-600'
+                } ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+                style={{
+                    position: 'relative',
+                    zIndex: 99999,
+                    pointerEvents: 'auto',
+                    cursor: 'pointer',
+                }}
+            >
+                {isFavorite ? '❤️ Remove from Favorites' : '⭐ Add to Favorites'}
+            </button>
+        </div>
     );
 }
