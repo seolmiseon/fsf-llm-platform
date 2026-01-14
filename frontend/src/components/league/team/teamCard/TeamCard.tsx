@@ -28,6 +28,17 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
+    // 디버깅: props 확인
+    useEffect(() => {
+        console.log('🎴 [TeamCard] 렌더링됨', {
+            teamId: team.id,
+            teamName: team.name,
+            hasOnFavoriteClick: !!onFavoriteClick,
+            isFavorite,
+            buttonWillRender: !!(onFavoriteClick && isFavorite !== undefined)
+        });
+    }, [team.id, team.name, onFavoriteClick, isFavorite]);
+
     useEffect(() => {
         const loadTeamCrest = async () => {
             if (team.crest) {
@@ -97,18 +108,40 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                     <h3 className="text-lg font-semibold">{team.name}</h3>
                     <p className="text-sm text-gray-600">{team.tla}</p>
                 </div>
-                {onFavoriteClick && isFavorite !== undefined && (
+                {/* 디버깅: 버튼 렌더링 조건 확인 */}
+                {(() => {
+                    console.log('🔘 [TeamCard] 버튼 렌더링 체크:', {
+                        onFavoriteClick: !!onFavoriteClick,
+                        isFavorite,
+                        condition: onFavoriteClick && isFavorite !== undefined
+                    });
+                    return null;
+                })()}
+                {onFavoriteClick && isFavorite !== undefined ? (
                     <button
                         type="button"
-                        onClick={handleFavoriteClick}
+                        onClick={(e) => {
+                            console.log('🔘🔘🔘 [TeamCard] 버튼 onClick 직접 실행됨! 🔘🔘🔘');
+                            e.stopPropagation();
+                            onFavoriteClick();
+                        }}
+                        onMouseDown={(e) => {
+                            console.log('🔘 [TeamCard] 버튼 onMouseDown!');
+                            e.stopPropagation();
+                        }}
                         className={`mt-2 px-4 py-2 rounded-lg transition-colors ${
                             isFavorite
                                 ? 'bg-red-500 text-white hover:bg-red-600'
                                 : 'bg-blue-500 text-white hover:bg-blue-600'
                         }`}
+                        style={{ position: 'relative', zIndex: 100 }}
                     >
                         {isFavorite ? '❤️ Remove from Favorites' : '⭐ Add to Favorites'}
                     </button>
+                ) : (
+                    <div style={{ color: 'red', fontSize: '10px' }}>
+                        버튼 미렌더링: onFavoriteClick={String(!!onFavoriteClick)}, isFavorite={String(isFavorite)}
+                    </div>
                 )}
             </CardContent>
         </Card>
