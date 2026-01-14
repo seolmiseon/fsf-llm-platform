@@ -71,7 +71,12 @@ export default function FanPickerPage() {
 
     // 즐겨찾기 처리
     const handleFavoriteClick = async (teamId: string) => {
-        console.log('🔍 handleFavoriteClick called', { teamId, user: !!user });
+        console.log('🔍 [FanPicker] handleFavoriteClick 호출됨!', { 
+            teamId, 
+            user: !!user,
+            userId: user?.uid,
+            timestamp: new Date().toISOString()
+        });
 
         if (!user) {
             console.warn('❌ User not logged in');

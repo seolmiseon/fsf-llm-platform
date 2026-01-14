@@ -85,14 +85,15 @@ export const TeamCard: React.FC<TeamCardProps> = ({
         });
     };
 
-    // 캡처 단계에서도 버튼 클릭 감지 및 차단
+    // 캡처 단계에서도 버튼 클릭 감지 (하지만 전파는 차단하지 않음)
+    // 전파를 차단하면 버튼의 onClick이 실행되지 않음
     const handleClickCapture = (e: React.MouseEvent) => {
         const target = e.target as HTMLElement;
         const isStarButton = target.closest('[data-star-button="true"]') !== null;
         
         if (isStarButton) {
-            console.log('🛑 Card click prevented at capture phase - StarButton clicked');
-            e.stopPropagation();
+            console.log('🛑 [Card] 캡처 단계에서 StarButton 감지됨 (버튼 onClick 실행을 위해 전파는 차단하지 않음)');
+            // 주의: 여기서 stopPropagation을 하면 버튼의 onClick이 실행되지 않음!
         }
     };
     return (

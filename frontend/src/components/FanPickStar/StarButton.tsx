@@ -32,7 +32,7 @@ export function StarButton({
     className = '',
 }: StarButtonProps) {
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-        console.log('⭐ StarButton clicked!', { isFavorite });
+        console.log('⭐ [StarButton] handleClick 실행됨!', { isFavorite, timestamp: new Date().toISOString() });
         
         // 이벤트 전파 완전 차단
         e.stopPropagation();
@@ -43,10 +43,17 @@ export function StarButton({
             e.nativeEvent.stopImmediatePropagation();
         }
         
-        onClick();
+        console.log('⭐ [StarButton] onClick 콜백 호출 전', { isFavorite });
+        try {
+            onClick();
+            console.log('⭐ [StarButton] onClick 콜백 호출 완료');
+        } catch (error) {
+            console.error('⭐ [StarButton] onClick 콜백 실행 중 오류:', error);
+        }
     };
 
     const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
+        console.log('⭐ [StarButton] handleMouseDown 실행됨');
         // 마우스 다운 이벤트도 전파 차단
         e.stopPropagation();
     };
@@ -57,8 +64,9 @@ export function StarButton({
             onClick={handleClick}
             onMouseDown={handleMouseDown}
             onClickCapture={(e) => {
-                // 캡처 단계에서도 이벤트 전파 차단
-                e.stopPropagation();
+                // 캡처 단계에서는 로그만 남기고 전파는 차단하지 않음
+                // (전파를 차단하면 버튼의 onClick이 실행되지 않음)
+                console.log('⭐ [StarButton] onClickCapture 실행됨 (전파 차단 안함)');
             }}
             disabled={disabled}
             className={`mt-2 px-4 py-2 rounded-lg transition-colors ${
