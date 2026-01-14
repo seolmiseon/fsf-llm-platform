@@ -88,7 +88,8 @@
 │   │   │   │   ├── CheerMessageList.tsx
 │   │   │   │   ├── EventList.tsx
 │   │   │   │   ├── MessageItem.tsx
-│   │   │   │   └── PlayerVoteCard.tsx
+│   │   │   │   ├── PlayerVoteCard.tsx
+│   │   │   │   └── StarButton.tsx
 │   │   │   ├── auth
 │   │   │   │   ├── ProfileContent.tsx
 │   │   │   │   ├── SigninForm.tsx
@@ -196,6 +197,7 @@
 │   │   │   ├── useModalStore.ts
 │   │   │   ├── useSearchStore.ts
 │   │   │   ├── useSettingsStore.ts
+│   │   │   ├── useStarButtonEventStore.ts
 │   │   │   ├── useThemeStore.ts
 │   │   │   └── useToastStore.ts
 │   │   ├── styles
@@ -224,7 +226,8 @@
 │   │       ├── imageUtils.ts
 │   │       └── storage.ts
 │   ├── tailwind.config.ts
-│   └── tsconfig.json
+│   ├── tsconfig.json
+│   └── tsconfig.tsbuildinfo
 ├── server
 │   ├── Dockerfile
 │   ├── README.md
@@ -430,8 +433,8 @@
 │   ├── test_agent_tools.py
 │   ├── test_content_safety.py
 │   └── test_question_classifier.py
+├── test_agent_stream.py
 ├── tree.txt
-├── update_tree.sh
-└── 크리스틴컴퍼니_실험결과_테이블.html
+└── update_tree.sh
 
-120 directories, 314 files
+120 directories, 317 files
