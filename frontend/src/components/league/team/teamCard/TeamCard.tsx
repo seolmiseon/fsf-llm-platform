@@ -24,6 +24,13 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     onFavoriteClick,
     isFavorite,
 }) => {
+    console.log('🎴 TeamCard rendered', {
+        teamId: team.id,
+        teamName: team.name,
+        hasOnFavoriteClick: !!onFavoriteClick,
+        isFavorite
+    });
+
     const { open } = useModalStore();
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -51,7 +58,18 @@ export const TeamCard: React.FC<TeamCardProps> = ({
         loadTeamCrest();
     }, [team.id, team.crest]);
 
-    const handleClick = () => {
+    const handleClick = (e: React.MouseEvent) => {
+        // 버튼 클릭일 경우 Card 클릭 방지
+        const target = e.target as HTMLElement;
+        // 버튼 자체 또는 버튼 내부 요소 클릭 시 이벤트 전파 중단
+        if (target.tagName === 'BUTTON' || target.closest('button')) {
+            console.log('🛑 Card click prevented - button clicked');
+            e.stopPropagation();
+            e.preventDefault();
+            return;
+        }
+
+        console.log('🎴 Card clicked');
         onClick();
         open('teamDetail', {
             kind: 'team',
@@ -63,7 +81,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
         <Card
             onClick={handleClick}
             className={`
-            p-4 rounded-lg bg-white shadow-md
+            p-4 rounded-lg bg-white shadow-md cursor-pointer
             ${styles.cardWrapper}
         `}
         >
@@ -96,19 +114,35 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                 </div>
                 {onFavoriteClick && isFavorite !== undefined && (
                     <button
-                        onClick={(e) => {
+                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                            console.log('🔘 Button clicked in TeamCard!', { teamId: team.id, isFavorite });
+                            // 이벤트 전파 완전 차단
                             e.stopPropagation();
+                            e.preventDefault();
+                            // 이벤트 버블링 방지를 위한 추가 처리
+                            if (e.nativeEvent) {
+                                e.nativeEvent.stopImmediatePropagation();
+                            }
                             onFavoriteClick();
                         }}
-                        className={`mt-2 px-4 py-2 rounded-lg ${
+                        onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => {
+                            // 마우스 다운 이벤트도 전파 차단
+                            e.stopPropagation();
+                        }}
+                        className={`mt-2 px-4 py-2 rounded-lg transition-colors ${
                             isFavorite
-                                ? 'bg-red-500 text-white'
-                                : 'bg-gray-200 text-gray-800'
+                                ? 'bg-red-500 text-white hover:bg-red-600'
+                                : 'bg-blue-500 text-white hover:bg-blue-600'
                         }`}
+                        style={{ 
+                            zIndex: 100, 
+                            position: 'relative',
+                            pointerEvents: 'auto' // 포인터 이벤트 명시적 설정
+                        }}
                     >
                         {isFavorite
-                            ? 'Remove from Favorites'
-                            : 'Add to Favorites'}
+                            ? '❤️ Remove from Favorites'
+                            : '⭐ Add to Favorites'}
                     </button>
                 )}
             </CardContent>

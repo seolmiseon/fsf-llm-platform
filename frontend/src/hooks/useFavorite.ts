@@ -14,6 +14,7 @@ import {
     updateDoc,
     getDoc,
     arrayRemove,
+    setDoc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 
@@ -75,27 +76,55 @@ export function useFavorite(userId: string) {
 
     // 즐겨찾기 추가
     const addFavorite = async (data: NewFavorite) => {
-        if (!db || !userId) return false;
-        if (isLoading) return false;
+        console.log('🔍 addFavorite called', { data, db: !!db, userId, isLoading });
+
+        if (!db) {
+            console.error('❌ Firestore db is not initialized');
+            setError('Firestore가 초기화되지 않았습니다.');
+            return false;
+        }
+
+        if (!userId) {
+            console.error('❌ userId is missing');
+            setError('사용자 ID가 없습니다.');
+            return false;
+        }
+
+        if (isLoading) {
+            console.warn('⚠️ Already loading, skipping');
+            return false;
+        }
 
         setIsLoading(true);
         setError(null);
 
         try {
+            console.log('📝 Adding favorite to Firestore...');
             const favoritesRef = collection(db, 'favorites');
-            await addDoc(favoritesRef, {
+            const docRef = await addDoc(favoritesRef, {
                 ...data,
                 userId,
                 createdAt: serverTimestamp(),
             });
+            console.log('✅ Favorite document created:', docRef.id);
 
+            console.log('📝 Updating user document...');
             const userRef = doc(db, 'users', userId);
-            await updateDoc(userRef, { teams: arrayUnion(data.playerId) });
+
+            // 문서가 없을 수도 있으므로 setDoc with merge 사용
+            await setDoc(userRef, {
+                teams: arrayUnion(data.playerId)
+            }, { merge: true });
+            console.log('✅ User document updated');
+
             return true;
         } catch (err) {
             const error = err as Error;
-            setError(`Add favorite error: ${error.message}`);
-            console.error('Add favorite error:', error);
+            const errorMessage = `Add favorite error: ${error.message}`;
+            setError(errorMessage);
+            console.error('❌ Add favorite error:', error);
+            console.error('Error code:', (error as any).code);
+            console.error('Error stack:', error.stack);
             return false;
         } finally {
             setIsLoading(false);

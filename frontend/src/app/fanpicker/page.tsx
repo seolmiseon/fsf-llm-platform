@@ -71,21 +71,46 @@ export default function FanPickerPage() {
 
     // 즐겨찾기 처리
     const handleFavoriteClick = async (teamId: string) => {
-        if (!user) return;
+        console.log('🔍 handleFavoriteClick called', { teamId, user: !!user });
 
-        if (isFavorite(teamId)) {
-            const favoriteToRemove = favorites.find(
-                (f) => f.playerId === teamId
-            );
-            if (favoriteToRemove) {
-                await removeFavorite(favoriteToRemove.id);
+        if (!user) {
+            console.warn('❌ User not logged in');
+            alert('로그인이 필요합니다.');
+            return;
+        }
+
+        try {
+            if (isFavorite(teamId)) {
+                console.log('🗑️ Removing favorite:', teamId);
+                const favoriteToRemove = favorites.find(
+                    (f) => f.playerId === teamId
+                );
+                if (favoriteToRemove) {
+                    const success = await removeFavorite(favoriteToRemove.id);
+                    if (success) {
+                        console.log('✅ Favorite removed successfully');
+                    } else {
+                        console.error('❌ Failed to remove favorite');
+                        alert('즐겨찾기 제거에 실패했습니다.');
+                    }
+                }
+            } else {
+                console.log('⭐ Adding favorite:', teamId);
+                const success = await addFavorite({
+                    userId: user.uid,
+                    playerId: teamId,
+                    type: 'favorite',
+                });
+                if (success) {
+                    console.log('✅ Favorite added successfully');
+                } else {
+                    console.error('❌ Failed to add favorite');
+                    alert('즐겨찾기 추가에 실패했습니다.');
+                }
             }
-        } else {
-            await addFavorite({
-                userId: user.uid,
-                playerId: teamId,
-                type: 'favorite',
-            });
+        } catch (error) {
+            console.error('❌ handleFavoriteClick error:', error);
+            alert('오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
         }
     };
 
