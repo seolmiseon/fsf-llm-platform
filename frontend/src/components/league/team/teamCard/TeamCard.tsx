@@ -61,9 +61,24 @@ export const TeamCard: React.FC<TeamCardProps> = ({
         loadTeamCrest();
     }, [team.id, team.crest]);
 
+    // 캡처 단계에서 버튼 클릭 확인 (가장 먼저 실행)
+    const handleClickCapture = (e: React.MouseEvent) => {
+        const target = e.target as HTMLElement;
+        const isStarButton = 
+            target.closest('[data-star-button="true"]') !== null ||
+            target.tagName === 'BUTTON' || 
+            target.closest('button') !== null;
+        
+        if (isStarButton) {
+            console.log('🛑 [Card] 캡처 단계에서 StarButton 감지 - Card 클릭 차단');
+            e.stopPropagation();
+            // 주의: 여기서 preventDefault를 하면 버튼의 onClick이 실행되지 않을 수 있음
+        }
+    };
+
     const handleClick = (e: React.MouseEvent) => {
         // 전역 store에서 최근 StarButton 클릭 확인
-        if (isRecentButtonClick()) {
+        if (isRecentButtonClick(100)) {
             console.log('🛑 [Card] Card click prevented - StarButton clicked (전역 store 확인)');
             e.stopPropagation();
             e.preventDefault();
@@ -95,6 +110,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     return (
         <Card
             onClick={handleClick}
+            onClickCapture={handleClickCapture}
             className={`
             p-4 rounded-lg bg-white shadow-md cursor-pointer
             ${styles.cardWrapper}

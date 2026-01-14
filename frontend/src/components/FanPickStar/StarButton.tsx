@@ -36,30 +36,23 @@ export function StarButton({
     const registerButtonClick = useStarButtonEventStore((state) => state.registerButtonClick);
 
     // 직접 DOM 이벤트 리스너 추가 (React 이벤트 시스템을 우회)
+    // 마우스다운 단계에서 미리 store에 등록하여 Card가 확인할 수 있도록 함
     useEffect(() => {
         const button = buttonRef.current;
         if (!button) return;
 
-        const handleNativeClick = (e: MouseEvent) => {
-            console.log('⭐ [StarButton] Native click 이벤트 발생!', { isFavorite });
-            
-            // 전역 store에 버튼 클릭 등록 (Card가 이를 확인하여 onClick 차단)
+        const handleMouseDown = (e: MouseEvent) => {
+            console.log('⭐ [StarButton] Native mousedown 이벤트 발생!');
+            // 마우스다운 단계에서 미리 등록 (Card의 onClick보다 먼저)
             registerButtonClick();
-            
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            e.preventDefault();
-            
-            console.log('⭐ [StarButton] onClick 콜백 호출');
-            onClick();
         };
 
-        button.addEventListener('click', handleNativeClick, true); // 캡처 단계에서 실행
+        button.addEventListener('mousedown', handleMouseDown, true); // 캡처 단계에서 실행
 
         return () => {
-            button.removeEventListener('click', handleNativeClick, true);
+            button.removeEventListener('mousedown', handleMouseDown, true);
         };
-    }, [onClick, isFavorite]);
+    }, [registerButtonClick]);
 
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         console.log('⭐ [StarButton] React handleClick 실행됨!', { isFavorite, timestamp: new Date().toISOString() });
@@ -86,10 +79,12 @@ export function StarButton({
     };
 
     const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
-        console.log('⭐ [StarButton] handleMouseDown 실행됨');
+        console.log('⭐ [StarButton] React handleMouseDown 실행됨');
+        // 전역 store에 버튼 클릭 등록 (Card가 이를 확인하여 onClick 차단)
+        registerButtonClick();
         // 마우스 다운 이벤트도 전파 차단
         e.stopPropagation();
-        e.preventDefault();
+        // preventDefault는 하지 않음 (버튼의 onClick이 실행되어야 함)
     };
 
     return (
