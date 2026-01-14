@@ -38,37 +38,35 @@ export function usePosts() {
     const [sortBy, setSortBy] = useState<SortOption>('latest');
     const [page, setPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
-    const { user, loading: authLoading } = useAuthStore();
+    const { user } = useAuthStore();
     
     const backendApi = useMemo(() => new BackendApi(), []);
 
     const fetchPosts = useCallback(async () => {
-        if (authLoading) return;
-
         try {
             setLoading(true);
             setError(null);
-            
+
             const response = await backendApi.getPosts(page, 10);
-            
+
             if (response.success && response.data) {
                 const fetchedPosts = response.data.posts.map(mapBackendPostToFrontend);
-                
+
                 // 정렬 (백엔드에서 이미 정렬되어 오지만, 클라이언트에서도 정렬)
                 const sortedPosts = [...fetchedPosts].sort((a, b) => {
                     if (sortBy === 'latest') {
-                        const aTime = a.createdAt instanceof Timestamp 
-                            ? a.createdAt.toMillis() 
+                        const aTime = a.createdAt instanceof Timestamp
+                            ? a.createdAt.toMillis()
                             : 0;
-                        const bTime = b.createdAt instanceof Timestamp 
-                            ? b.createdAt.toMillis() 
+                        const bTime = b.createdAt instanceof Timestamp
+                            ? b.createdAt.toMillis()
                             : 0;
                         return bTime - aTime;
                     } else {
                         return b.views - a.views;
                     }
                 });
-                
+
                 setPosts(sortedPosts);
                 setTotalCount(response.data.total_count || 0);
             } else {
@@ -82,11 +80,10 @@ export function usePosts() {
         } finally {
             setLoading(false);
         }
-    }, [backendApi, page, sortBy, authLoading]);
+    }, [backendApi, page, sortBy]);
 
     const incrementViews = useCallback(
         async (id: string) => {
-            if (authLoading) return;
             if (!user) {
                 console.error('로그인이 필요합니다');
                 return;
@@ -106,7 +103,7 @@ export function usePosts() {
                 console.error('Error incrementing views:', error);
             }
         },
-        [authLoading, user]
+        [user]
     );
 
     // 좋아요 토글 함수 (백엔드 API에 좋아요 엔드포인트가 없으면 로컬 상태만 업데이트)

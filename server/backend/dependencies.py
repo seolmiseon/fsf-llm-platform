@@ -22,6 +22,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24시간
 
 security = HTTPBearer()
+security_optional = HTTPBearer(auto_error=False)  # 선택적 인증용
 
 
 # ============================================
@@ -172,7 +173,7 @@ async def get_current_user(
 
 
 async def get_optional_user(
-    credentials = Depends(security),
+    credentials = Depends(security_optional),
 ) -> Optional[UserResponse]:
     """
     선택적 사용자 조회 (토큰 없어도 됨)

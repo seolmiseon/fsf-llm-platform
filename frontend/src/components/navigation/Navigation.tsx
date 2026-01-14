@@ -107,69 +107,29 @@ export default function Navigation({ match }: NavigationProps) {
                             />
                         )}
 
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="relative rounded-full"
-                                    aria-label="사용자 메뉴"
-                                >
-                                    {user.image && !imageError ? (
-                                        <Image
-                                            src={user.image}
-                                            alt={`${
-                                                user.name || 'User'
-                                            }'s profile`}
-                                            fill
-                                            className="rounded-full object-cover"
-                                            sizes="32px"
-                                            loading="eager"
-                                            onError={() => setImageError(true)}
-                                        />
-                                    ) : (
-                                        <User
-                                            className="w-5 h-5"
-                                            aria-hidden="true"
-                                        />
-                                    )}
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56">
-                                <DropdownMenuItem asChild>
-                                    <Link
-                                        href="/auth/profile"
-                                        className="flex items-center"
-                                    >
-                                        <User className="mr-2 h-4 w-4" />
-                                        프로필
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                    <Link
-                                        href="/my-teams"
-                                        className="flex items-center"
-                                    >
-                                        내 팀
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                    <Link
-                                        href="/settings"
-                                        className="flex items-center"
-                                    >
-                                        설정
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    className="text-red-600"
-                                    onClick={handleLogout}
-                                >
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    로그아웃
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        {/* 사용자 아이콘 클릭 시 바로 프로필 페이지로 이동 */}
+                        <Link href="/auth/profile">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="relative rounded-full w-8 h-8"
+                                aria-label="프로필 페이지로 이동"
+                            >
+                                {user.image && !imageError ? (
+                                    <Image
+                                        src={user.image}
+                                        alt={`${user.name || 'User'}'s profile`}
+                                        fill
+                                        className="rounded-full object-cover"
+                                        sizes="32px"
+                                        loading="eager"
+                                        onError={() => setImageError(true)}
+                                    />
+                                ) : (
+                                    <span className="text-lg" aria-label="로그인됨">😊</span>
+                                )}
+                            </Button>
+                        </Link>
                     </div>
                 </>
             );

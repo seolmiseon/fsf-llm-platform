@@ -4,17 +4,9 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button/Button';
 import { usePosts } from '@/hooks/usePosts';
 import { PostItem } from './PostItem';
-import { useAuthStore } from '@/store/useAuthStore';
 
-interface PostListProps {}
-
-export default function PostList({}: PostListProps) {
-    const { loading: authLoading } = useAuthStore();
+export default function PostList() {
     const { posts, loading, error, incrementViews, toggleLike } = usePosts();
-
-    if (authLoading) {
-        return <div className="text-center py-10">인증 상태 확인 중...</div>;
-    }
 
     if (loading) {
         return <div className="text-center py-10">로딩 중...</div>;

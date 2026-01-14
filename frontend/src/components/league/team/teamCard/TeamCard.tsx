@@ -51,7 +51,6 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     }, [team.id, team.crest]);
 
     const handleCardClick = () => {
-        console.log('🟥 [DEBUG] 카드 본문 영역 클릭됨');
         onClick();
         open('teamDetail', {
             kind: 'team',
@@ -61,28 +60,19 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     };
 
     return (
-        <Card 
-            className={`p-4 rounded-lg bg-white shadow-md ${styles.cardWrapper}`}
-            // 전체 캡쳐링 로그: 어디를 누르든 여기서 먼저 감지합니다.
-            onClickCapture={(e) => {
-                console.log('🕵️ [DEBUG] Click Capture:', (e.target as HTMLElement).tagName, (e.target as HTMLElement).className);
-            }}
-        >
-            <CardContent className="flex flex-col items-center gap-3" style={{ position: 'relative' }}>
+        <Card className={`p-4 rounded-lg bg-white shadow-md ${styles.cardWrapper}`}>
+            <CardContent className="flex flex-col items-center gap-3">
                 
-                {/* 🟥 본문 영역 (빨간 테두리) */}
+                {/* 1. 본문 영역 (클릭 시 상세 모달) */}
                 <div 
                     onClick={handleCardClick}
                     className="w-full flex flex-col items-center gap-3 cursor-pointer"
-                    style={{ border: '2px solid red', padding: '5px' }} // 디버깅용 테두리
                 >
-                    {/* 🟦 이미지 영역 (파란 테두리) */}
-                    <div 
-                        className={styles.badgeContainer} 
-                        style={{ border: '2px solid blue', position: 'relative', overflow: 'hidden' }}
-                    >
+                    <div className={styles.badgeContainer}>
                         {loading ? (
-                            <div className="w-full h-full flex items-center justify-center">...</div>
+                            <div className="w-full h-full flex items-center justify-center">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+                            </div>
                         ) : imageUrl ? (
                             <Image
                                 src={imageUrl}
@@ -94,28 +84,27 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                             />
                         ) : (
                             <div className="w-full h-full bg-gradient-to-br from-gray-600 to-gray-800 rounded-full flex items-center justify-center">
-                                <span>{team.name.slice(0, 2)}</span>
+                                <span className="text-xl font-bold text-white">
+                                    {team.name.slice(0, 2)}
+                                </span>
                             </div>
                         )}
                     </div>
 
                     <div className={`text-center ${styles.teamInfo}`}>
                         <h3 className="text-lg font-semibold">{team.name}</h3>
+                        <p className="text-sm text-gray-600">{team.tla}</p>
                     </div>
                 </div>
 
-                {/* 🟩 버튼 영역 (초록 테두리) */}
+                {/* 2. 버튼 영역 (클릭 시 즐겨찾기) */}
+                {/* z-10과 relative는 혹시 모를 상황을 대비해 안전하게 남겨둡니다 */}
                 {onFavoriteClick && isFavorite !== undefined && (
-                    <div style={{ border: '2px solid green', width: '100%', position: 'relative', zIndex: 99999 }}>
-                        <StarButton
-                            isFavorite={isFavorite}
-                            onClick={() => {
-                                console.log('🟢 [DEBUG] 버튼 클릭 핸들러 진입!');
-                                onFavoriteClick();
-                            }}
-                            className="w-full relative pointer-events-auto"
-                        />
-                    </div>
+                    <StarButton
+                        isFavorite={isFavorite}
+                        onClick={onFavoriteClick}
+                        className="w-full relative z-10 pointer-events-auto"
+                    />
                 )}
             </CardContent>
         </Card>

@@ -347,7 +347,7 @@ export class BackendApi {
     page: number;
     page_size: number;
   }>> {
-    let url = `/api/posts/posts?page=${page}&page_size=${pageSize}`;
+    let url = `/api/posts?page=${page}&page_size=${pageSize}`;
     if (category) {
       url += `&category=${encodeURIComponent(category)}`;
     }
@@ -355,7 +355,7 @@ export class BackendApi {
   }
 
   async getPost(postId: string): Promise<ApiResponse<any>> {
-    return this.fetch(`/api/posts/posts/${postId}`);
+    return this.fetch(`/api/posts/${postId}`);
   }
 
   async createPost(
@@ -363,7 +363,7 @@ export class BackendApi {
     content: string,
     category?: string
   ): Promise<ApiResponse<any>> {
-    return this.fetchWithAuth('/api/posts/posts', {
+    return this.fetchWithAuth('/api/posts', {
       method: 'POST',
       body: JSON.stringify({ title, content, category }),
     });
@@ -375,14 +375,14 @@ export class BackendApi {
     content: string,
     category?: string
   ): Promise<ApiResponse<any>> {
-    return this.fetchWithAuth(`/api/posts/posts/${postId}`, {
+    return this.fetchWithAuth(`/api/posts/${postId}`, {
       method: 'PUT',
       body: JSON.stringify({ title, content, category }),
     });
   }
 
   async deletePost(postId: string): Promise<ApiResponse<void>> {
-    return this.fetchWithAuth(`/api/posts/posts/${postId}`, {
+    return this.fetchWithAuth(`/api/posts/${postId}`, {
       method: 'DELETE',
     });
   }
@@ -468,7 +468,7 @@ export class BackendApi {
     };
   }>> {
     return this.fetchWithAuth(
-      `/api/posts/posts?search=${encodeURIComponent(query)}&page=${page}`
+      `/api/posts?search=${encodeURIComponent(query)}&page=${page}`
     );
   }
 }

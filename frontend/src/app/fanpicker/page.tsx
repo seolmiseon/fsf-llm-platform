@@ -69,13 +69,13 @@ export default function FanPickerPage() {
         fetchTeams();
     }, [backendApi, competitionId]);
 
-    // 즐겨찾기 처리
-    const handleFavoriteClick = async (teamId: string) => {
-        console.log('🔍 [FanPicker] handleFavoriteClick 호출됨!', { 
-            teamId, 
+    // 즐겨찾기 처리 - team 객체를 받아서 팀 정보도 함께 저장
+    const handleFavoriteClick = async (team: TeamResponse) => {
+        console.log('🔍 [FanPicker] handleFavoriteClick 호출됨!', {
+            teamId: team.id,
+            teamName: team.name,
             user: !!user,
             userId: user?.uid,
-            timestamp: new Date().toISOString()
         });
 
         if (!user) {
@@ -83,6 +83,8 @@ export default function FanPickerPage() {
             alert('로그인이 필요합니다.');
             return;
         }
+
+        const teamId = team.id.toString();
 
         try {
             if (isFavorite(teamId)) {
@@ -100,10 +102,13 @@ export default function FanPickerPage() {
                     }
                 }
             } else {
-                console.log('⭐ Adding favorite:', teamId);
+                console.log('⭐ Adding favorite:', teamId, team.name);
                 const success = await addFavorite({
                     userId: user.uid,
                     playerId: teamId,
+                    teamName: team.name,        // 팀 이름 추가
+                    teamTla: team.tla,          // 팀 약어 추가
+                    teamCrest: team.crest,      // 팀 로고 추가
                     type: 'favorite',
                 });
                 if (success) {
@@ -162,10 +167,8 @@ export default function FanPickerPage() {
                             team={team}
                             onClick={() => handleTeamClick(team.id)}
                             competitionId={competitionId}
-                            onFavoriteClick={() =>
-                                handleFavoriteClick(team.id.toString())
-                            } // 추가된 부분
-                            isFavorite={isFavorite(team.id.toString())} // 추가된 부분
+                            onFavoriteClick={() => handleFavoriteClick(team)}
+                            isFavorite={isFavorite(team.id.toString())}
                         />
                     ))}
                 </div>
@@ -188,10 +191,8 @@ export default function FanPickerPage() {
                                     team={team}
                                     onClick={() => handleTeamClick(team.id)}
                                     competitionId={competitionId}
-                                    onFavoriteClick={() =>
-                                        handleFavoriteClick(team.id.toString())
-                                    } // 추가된 부분
-                                    isFavorite={isFavorite(team.id.toString())} // 추가된 부분
+                                    onFavoriteClick={() => handleFavoriteClick(team)}
+                                    isFavorite={isFavorite(team.id.toString())}
                                 />
                             );
                         })}

@@ -1,12 +1,15 @@
 'use client';
-
+import { useFavorite } from '@/hooks/useFavorite';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Error, Loading } from '../ui/common';
 import { TeamResponse } from '@/types/api/responses';
 import { Card } from '../ui/common/card';
 import Image from 'next/image';
 import { getPlaceholderImageUrl } from '@/utils/imageUtils';
-import { Star, User, MessageCircle } from 'lucide-react';
+import { User, MessageCircle, LogOut, Settings } from 'lucide-react';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase/config';
+import { useRouter } from 'next/navigation';
 import { TeamCard } from '../league/team/teamCard/TeamCard';
 import {
     collection,
@@ -22,45 +25,80 @@ import { db } from '@/lib/firebase/config';
 
 interface FavoriteTeam {
     id: string;
-    teamId: string;
+    playerId?: string;      // teamId 대신 playerId 사용
+    teamName?: string;      // 팀 이름
+    teamTla?: string;       // 팀 약어
+    teamCrest?: string;     // 팀 로고
     userId: string;
+    type?: 'favorite' | 'vote';
     createdAt: Timestamp;
 }
 
-type TabType = 'info' | 'teams' | 'favorites' | 'cheers' | 'community';
+type TabType = 'info' | 'teams' | 'cheers' | 'community';
 
 export default function ProfileContent() {
     const { user, loading } = useAuthStore();
     const [activeTab, setActiveTab] = useState<TabType>('info');
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        try {
+            if (auth) {
+                await signOut(auth);
+                router.push('/');
+            }
+        } catch (error) {
+            console.error('로그아웃 실패:', error);
+        }
+    };
 
     if (loading) return <Loading />;
     if (!user) return <Error message="로그인이 필요합니다." />;
 
     return (
         <div className="space-y-6">
-            {/* 프로필 정보 */}
+            {/* 프로필 정보 + 액션 버튼 */}
             <Card className="p-6">
-                <div className="flex items-center space-x-4">
-                    {user?.image ? (
-                        <Image
-                            src={user.image || getPlaceholderImageUrl('league')}
-                            alt="Profile"
-                            width={64}
-                            height={64}
-                            className="rounded-full"
-                            onError={(e) => {
-                                const img = e.target as HTMLImageElement;
-                                img.src = getPlaceholderImageUrl('league');
-                            }}
-                        />
-                    ) : (
-                        <User className="w-16 h-16" />
-                    )}
-                    <div>
-                        <h2 className="text-xl font-semibold">
-                            {user?.name || '사용자'}
-                        </h2>
-                        <p className="text-gray-600">{user?.email}</p>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                        {user?.image ? (
+                            <Image
+                                src={user.image || getPlaceholderImageUrl('league')}
+                                alt="Profile"
+                                width={64}
+                                height={64}
+                                className="rounded-full"
+                                onError={(e) => {
+                                    const img = e.target as HTMLImageElement;
+                                    img.src = getPlaceholderImageUrl('league');
+                                }}
+                            />
+                        ) : (
+                            <User className="w-16 h-16" />
+                        )}
+                        <div>
+                            <h2 className="text-xl font-semibold">
+                                {user?.name || '사용자'}
+                            </h2>
+                            <p className="text-gray-600">{user?.email}</p>
+                        </div>
+                    </div>
+                    {/* 설정 & 로그아웃 버튼 */}
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => router.push('/settings')}
+                            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition"
+                            title="설정"
+                        >
+                            <Settings className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                        >
+                            <LogOut className="w-4 h-4" />
+                            <span className="text-sm font-medium">로그아웃</span>
+                        </button>
                     </div>
                 </div>
             </Card>
@@ -78,13 +116,7 @@ export default function ProfileContent() {
                         active={activeTab === 'teams'}
                         onClick={() => setActiveTab('teams')}
                     >
-                        내 팀
-                    </TabButton>
-                    <TabButton
-                        active={activeTab === 'favorites'}
-                        onClick={() => setActiveTab('favorites')}
-                    >
-                        즐겨찾기
+                        ⭐ 내 팀
                     </TabButton>
                     <TabButton
                         active={activeTab === 'cheers'}
@@ -105,12 +137,9 @@ export default function ProfileContent() {
             <div className="mt-6">
                 {activeTab === 'info' && <UserInfoTab user={user} />}
                 {activeTab === 'teams' && <UserTeamsTab />}
-                {activeTab === 'favorites' && (
-                    <UserFavoritesTab userId={user.id} />
-                )}
-                {activeTab === 'cheers' && <UserCheersTab userId={user.id} />}
+                {activeTab === 'cheers' && <UserCheersTab userId={user.uid} />}
                 {activeTab === 'community' && (
-                    <UserCommunityTab userId={user.id} />
+                    <UserCommunityTab userId={user.uid} />
                 )}
             </div>
         </div>
@@ -163,121 +192,60 @@ function UserInfoTab({ user }: UserTabProps) {
 }
 
 function UserTeamsTab() {
-    const { user } = useAuthStore(); // 또는 props로 user 객체 전체를 전달할 수도 있습니다
-    const userTeams = (user?.teams as TeamResponse[]) || [];
+    const { user } = useAuthStore();
+    // ✅ useFavorite 훅을 사용해서 DB에 저장된 '즐겨찾기 목록'을 직접 가져옵니다.
+    const { favorites, removeFavorite } = useFavorite(user?.uid || '');
+
+    // 'favorite' 타입인 항목만 필터링 (순수 즐겨찾기만 보여줌)
+    const myTeams = favorites.filter(f => f.type === 'favorite');
 
     return (
         <div className="space-y-4">
             <h2 className="text-xl font-semibold">내 팀</h2>
-            <div className="grid gap-4">
-                {userTeams.length > 0 ? (
-                    userTeams.map((team) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {myTeams.length > 0 ? (
+                    myTeams.map((fav) => (
                         <TeamCard
-                            key={team.id}
-                            team={team}
-                            onClick={() => {
-                                // 팀 선택 시 처리할 로직
-                                console.log('Team selected:', team.id);
+                            key={fav.id}
+                            // ✅ 저장된 상세 정보(이름, 로고 등)를 꺼내서 TeamCard에 전달
+                            team={{
+                                id: parseInt(fav.playerId || '0'),
+                                name: fav.teamName || '팀 이름 없음',
+                                shortName: fav.teamName || '',
+                                tla: fav.teamTla || '',
+                                crest: fav.teamCrest || '',
+                                // 필수값 채우기 (빈 값)
+                                address: '',
+                                website: '',
+                                founded: 0,
+                                clubColors: '',
+                                venue: '',
+                                squad: [],
+                                competitionId: 'PL' // 기본값 혹은 저장된 값
                             }}
-                            competitionId={team.competitionId}
+                            onClick={() => {
+                                console.log('Team selected:', fav.playerId);
+                            }}
+                            competitionId="PL" 
+                            isFavorite={true} // '내 팀' 탭이니까 하트는 항상 채워져 있음
+                            onFavoriteClick={() => removeFavorite(fav.id)} // 여기서 하트 누르면 삭제됨
                         />
                     ))
                 ) : (
-                    <Card className="p-4 text-center">
-                        <p className="text-gray-500">등록된 팀이 없습니다.</p>
-                    </Card>
+                    <div className="col-span-full">
+                        <Card className="p-8 text-center">
+                            <p className="text-gray-500 mb-2">아직 선택한 팀이 없습니다.</p>
+                            <p className="text-sm text-gray-400">FanPicker에서 좋아하는 팀을 추가해보세요!</p>
+                        </Card>
+                    </div>
                 )}
             </div>
         </div>
     );
 }
+
 interface UserIdTabProps {
     userId: string;
-}
-
-function UserFavoritesTab({ userId }: UserIdTabProps) {
-    const [favoriteTeams, setFavoriteTeams] = useState<FavoriteTeam[]>([]);
-    const [favoritesLoading, setFavoritesLoading] = useState(true);
-
-    // 사용자의 즐겨찾기 팀 불러오기
-    useEffect(() => {
-        const fetchFavoriteTeams = async () => {
-            if (!db || !userId) return;
-
-            try {
-                // 'favorites' 컬렉션에서 현재 사용자의 즐겨찾기 팀 조회
-                const favoritesRef = collection(db, 'favorites');
-                const q = query(favoritesRef, where('userId', '==', userId));
-                const querySnapshot = await getDocs(q);
-
-                const teams: FavoriteTeam[] = [];
-                querySnapshot.forEach((doc) => {
-                    teams.push({ id: doc.id, ...doc.data() } as FavoriteTeam);
-                });
-
-                setFavoriteTeams(teams);
-            } catch (error) {
-                console.error('Error fetching favorite teams:', error);
-            } finally {
-                setFavoritesLoading(false);
-            }
-        };
-
-        fetchFavoriteTeams();
-    }, [userId]);
-
-    if (favoritesLoading) return <Loading />;
-
-    return (
-        <div className="space-y-4">
-            <h2 className="text-xl font-semibold flex items-center">
-                <Star className="w-5 h-5 mr-2 text-yellow-500" />
-                즐겨찾기한 팀
-            </h2>
-            <div className="grid gap-4">
-                {favoriteTeams.length > 0 ? (
-                    favoriteTeams.map((team) => (
-                        <Card
-                            key={team.id}
-                            className="p-4 hover:shadow-md transition-shadow"
-                        >
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h3 className="font-medium">
-                                        {team.teamId}
-                                    </h3>
-                                    <p className="text-sm text-gray-500">
-                                        {team.createdAt
-                                            ?.toDate()
-                                            .toLocaleDateString() ||
-                                            '날짜 정보 없음'}
-                                        에 추가됨
-                                    </p>
-                                </div>
-                                <button
-                                    className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition"
-                                    onClick={() => {
-                                        console.log(
-                                            '팀 상세보기:',
-                                            team.teamId
-                                        );
-                                    }}
-                                >
-                                    상세보기
-                                </button>
-                            </div>
-                        </Card>
-                    ))
-                ) : (
-                    <Card className="p-4 text-center">
-                        <p className="text-gray-500">
-                            즐겨찾기한 팀이 없습니다.
-                        </p>
-                    </Card>
-                )}
-            </div>
-        </div>
-    );
 }
 
 function UserCheersTab({ userId }: UserIdTabProps) {
