@@ -9,6 +9,7 @@ import { TeamResponse } from '@/types/api/responses';
 import { storage } from '@/lib/firebase/config';
 import { getDownloadURL, ref } from 'firebase/storage';
 import { StarButton } from '@/components/FanPickStar/StarButton';
+import { useStarButtonEventStore } from '@/store/useStarButtonEventStore';
 
 interface TeamCardProps {
     team: TeamResponse;
@@ -33,6 +34,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     });
 
     const { open } = useModalStore();
+    const isRecentButtonClick = useStarButtonEventStore((state) => state.isRecentButtonClick);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -60,23 +62,29 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     }, [team.id, team.crest]);
 
     const handleClick = (e: React.MouseEvent) => {
-        // 버튼 클릭일 경우 Card 클릭 방지
-        const target = e.target as HTMLElement;
+        // 전역 store에서 최근 StarButton 클릭 확인
+        if (isRecentButtonClick()) {
+            console.log('🛑 [Card] Card click prevented - StarButton clicked (전역 store 확인)');
+            e.stopPropagation();
+            e.preventDefault();
+            return;
+        }
         
-        // StarButton 식별: data-star-button 속성 또는 버튼 요소 확인
+        // 버튼 클릭일 경우 Card 클릭 방지 (로컬 확인 - 이중 방어)
+        const target = e.target as HTMLElement;
         const isStarButton = 
             target.closest('[data-star-button="true"]') !== null ||
             target.tagName === 'BUTTON' || 
             target.closest('button') !== null;
         
         if (isStarButton) {
-            console.log('🛑 Card click prevented - StarButton clicked');
+            console.log('🛑 [Card] Card click prevented - StarButton clicked (로컬 확인)');
             e.stopPropagation();
             e.preventDefault();
             return;
         }
 
-        console.log('🎴 Card clicked');
+        console.log('🎴 [Card] Card clicked');
         onClick();
         open('teamDetail', {
             kind: 'team',
@@ -84,28 +92,15 @@ export const TeamCard: React.FC<TeamCardProps> = ({
             competitionId,
         });
     };
-
-    // 캡처 단계에서도 버튼 클릭 감지 (하지만 전파는 차단하지 않음)
-    // 전파를 차단하면 버튼의 onClick이 실행되지 않음
-    const handleClickCapture = (e: React.MouseEvent) => {
-        const target = e.target as HTMLElement;
-        const isStarButton = target.closest('[data-star-button="true"]') !== null;
-        
-        if (isStarButton) {
-            console.log('🛑 [Card] 캡처 단계에서 StarButton 감지됨 (버튼 onClick 실행을 위해 전파는 차단하지 않음)');
-            // 주의: 여기서 stopPropagation을 하면 버튼의 onClick이 실행되지 않음!
-        }
-    };
     return (
         <Card
             onClick={handleClick}
-            onClickCapture={handleClickCapture}
             className={`
             p-4 rounded-lg bg-white shadow-md cursor-pointer
             ${styles.cardWrapper}
         `}
         >
-            <CardContent className="flex flex-col items-center gap-3">
+            <CardContent className="flex flex-col items-center gap-3" style={{ position: 'relative' }}>
                 <div className={styles.badgeContainer}>
                     {loading ? (
                         <div className="w-full h-full flex items-center justify-center">

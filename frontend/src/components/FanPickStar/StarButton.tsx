@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { useStarButtonEventStore } from '@/store/useStarButtonEventStore';
 
 interface StarButtonProps {
     /**
@@ -31,10 +32,42 @@ export function StarButton({
     disabled = false,
     className = '',
 }: StarButtonProps) {
+    const buttonRef = useRef<HTMLButtonElement>(null);
+    const registerButtonClick = useStarButtonEventStore((state) => state.registerButtonClick);
+
+    // 직접 DOM 이벤트 리스너 추가 (React 이벤트 시스템을 우회)
+    useEffect(() => {
+        const button = buttonRef.current;
+        if (!button) return;
+
+        const handleNativeClick = (e: MouseEvent) => {
+            console.log('⭐ [StarButton] Native click 이벤트 발생!', { isFavorite });
+            
+            // 전역 store에 버튼 클릭 등록 (Card가 이를 확인하여 onClick 차단)
+            registerButtonClick();
+            
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            e.preventDefault();
+            
+            console.log('⭐ [StarButton] onClick 콜백 호출');
+            onClick();
+        };
+
+        button.addEventListener('click', handleNativeClick, true); // 캡처 단계에서 실행
+
+        return () => {
+            button.removeEventListener('click', handleNativeClick, true);
+        };
+    }, [onClick, isFavorite]);
+
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-        console.log('⭐ [StarButton] handleClick 실행됨!', { isFavorite, timestamp: new Date().toISOString() });
+        console.log('⭐ [StarButton] React handleClick 실행됨!', { isFavorite, timestamp: new Date().toISOString() });
         
-        // 이벤트 전파 완전 차단
+        // 전역 store에 버튼 클릭 등록 (Card가 이를 확인하여 onClick 차단)
+        registerButtonClick();
+        
+        // 이벤트 전파 완전 차단 (가장 먼저 실행)
         e.stopPropagation();
         e.preventDefault();
         
@@ -56,28 +89,27 @@ export function StarButton({
         console.log('⭐ [StarButton] handleMouseDown 실행됨');
         // 마우스 다운 이벤트도 전파 차단
         e.stopPropagation();
+        e.preventDefault();
     };
 
     return (
         <button
+            ref={buttonRef}
             data-star-button="true" // Card에서 버튼을 확실히 식별하기 위한 속성
             onClick={handleClick}
             onMouseDown={handleMouseDown}
-            onClickCapture={(e) => {
-                // 캡처 단계에서는 로그만 남기고 전파는 차단하지 않음
-                // (전파를 차단하면 버튼의 onClick이 실행되지 않음)
-                console.log('⭐ [StarButton] onClickCapture 실행됨 (전파 차단 안함)');
-            }}
             disabled={disabled}
-            className={`mt-2 px-4 py-2 rounded-lg transition-colors ${
+            type="button" // 기본 submit 동작 방지
+            className={`mt-2 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
                 isFavorite
                     ? 'bg-red-500 text-white hover:bg-red-600'
                     : 'bg-blue-500 text-white hover:bg-blue-600'
             } ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
             style={{
-                zIndex: 100,
                 position: 'relative',
-                pointerEvents: 'auto', // 포인터 이벤트 명시적 설정
+                zIndex: 9999, // 매우 높은 z-index
+                pointerEvents: 'auto',
+                cursor: 'pointer',
             }}
         >
             {isFavorite ? '❤️ Remove from Favorites' : '⭐ Add to Favorites'}
