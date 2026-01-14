@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/common/card';
-import { StarButton } from '@/components/FanPickStar/StarButton'; // 👈 경로 확인 필요
+import { StarButton } from '@/components/FanPickStar/StarButton';
 import styles from './TeamCard.module.css';
 import { useModalStore } from '@/store/useModalStore';
 import { TeamResponse } from '@/types/api/responses';
@@ -29,14 +29,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // 디버깅: props 확인 (유지)
-    useEffect(() => {
-        // 불필요한 리렌더링 로그를 줄이기 위해 로딩 완료 시에만 찍히도록 하거나 유지
-        if (!loading) {
-             console.log('🎴 [TeamCard] Ready:', { teamName: team.name, isFavorite });
-        }
-    }, [team.name, isFavorite, loading]);
-
+    // 이미지 로딩 로직
     useEffect(() => {
         const loadTeamCrest = async () => {
             if (team.crest) {
@@ -55,12 +48,11 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                 setLoading(false);
             }
         };
-
         loadTeamCrest();
     }, [team.id, team.crest]);
 
     const handleCardClick = () => {
-        console.log('🃏 카드 본문 클릭됨 -> 상세 모달 오픈');
+        // console.log('🃏 카드 본문 클릭'); // 필요시 주석 해제
         onClick();
         open('teamDetail', {
             kind: 'team',
@@ -70,18 +62,21 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     };
 
     return (
-        <Card
-            // ❌ 제거됨: onClick={handleCardClick} 
-            // 이유: 여기서 onClick을 잡으면 자식 버튼 클릭까지 먹어버릴 수 있음
-            className={`p-4 rounded-lg bg-white shadow-md ${styles.cardWrapper}`}
-        >
+        <Card className={`p-4 rounded-lg bg-white shadow-md ${styles.cardWrapper}`}>
             <CardContent className="flex flex-col items-center gap-3">
                 
-                {/* ✅ 1. 클릭 가능한 본문 영역 (버튼 제외) */}
+                {/* ✅ [핵심 1] 클릭 영역 분리
+                  Card 자체의 onClick을 제거하고, 버튼을 제외한 '카드 내용'만 div로 감싸서 클릭 이벤트를 줍니다.
+                  이렇게 하면 버튼 클릭 시 Card의 onClick이 발동될 염려가 0%가 됩니다.
+                */}
                 <div 
                     onClick={handleCardClick}
                     className="w-full flex flex-col items-center gap-3 cursor-pointer"
                 >
+                    {/* ✅ [핵심 2] CSS 수정 확인 완료 
+                      badgeContainer에 relative + overflow:hidden이 적용되어
+                      이미지 영역이 버튼을 덮는 현상이 해결되었습니다.
+                    */}
                     <div className={styles.badgeContainer}>
                         {loading ? (
                             <div className="w-full h-full flex items-center justify-center">
@@ -110,12 +105,15 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                     </div>
                 </div>
 
-                {/* ✅ 2. 독립된 버튼 영역 (본문 div와 형제 관계) */}
+                {/* ✅ [핵심 3] 버튼 독립 배치 및 안전장치
+                  StarButton을 위 div 밖으로 꺼내 형제 요소로 만들었습니다.
+                  z-10과 relative를 추가하여 CSS 이슈가 재발해도 버튼이 위에 뜨도록 강제했습니다.
+                */}
                 {onFavoriteClick && isFavorite !== undefined && (
                     <StarButton
                         isFavorite={isFavorite}
                         onClick={onFavoriteClick}
-                        className="w-full z-10" // z-index 명시
+                        className="w-full relative z-10 pointer-events-auto"
                     />
                 )}
             </CardContent>
