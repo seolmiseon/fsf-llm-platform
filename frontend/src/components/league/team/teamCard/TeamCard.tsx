@@ -8,6 +8,7 @@ import { useModalStore } from '@/store/useModalStore';
 import { TeamResponse } from '@/types/api/responses';
 import { storage } from '@/lib/firebase/config';
 import { getDownloadURL, ref } from 'firebase/storage';
+import { StarButton } from '@/components/FanPickStar/StarButton';
 
 interface TeamCardProps {
     team: TeamResponse;
@@ -61,9 +62,15 @@ export const TeamCard: React.FC<TeamCardProps> = ({
     const handleClick = (e: React.MouseEvent) => {
         // 버튼 클릭일 경우 Card 클릭 방지
         const target = e.target as HTMLElement;
-        // 버튼 자체 또는 버튼 내부 요소 클릭 시 이벤트 전파 중단
-        if (target.tagName === 'BUTTON' || target.closest('button')) {
-            console.log('🛑 Card click prevented - button clicked');
+        
+        // StarButton 식별: data-star-button 속성 또는 버튼 요소 확인
+        const isStarButton = 
+            target.closest('[data-star-button="true"]') !== null ||
+            target.tagName === 'BUTTON' || 
+            target.closest('button') !== null;
+        
+        if (isStarButton) {
+            console.log('🛑 Card click prevented - StarButton clicked');
             e.stopPropagation();
             e.preventDefault();
             return;
@@ -77,9 +84,21 @@ export const TeamCard: React.FC<TeamCardProps> = ({
             competitionId,
         });
     };
+
+    // 캡처 단계에서도 버튼 클릭 감지 및 차단
+    const handleClickCapture = (e: React.MouseEvent) => {
+        const target = e.target as HTMLElement;
+        const isStarButton = target.closest('[data-star-button="true"]') !== null;
+        
+        if (isStarButton) {
+            console.log('🛑 Card click prevented at capture phase - StarButton clicked');
+            e.stopPropagation();
+        }
+    };
     return (
         <Card
             onClick={handleClick}
+            onClickCapture={handleClickCapture}
             className={`
             p-4 rounded-lg bg-white shadow-md cursor-pointer
             ${styles.cardWrapper}
@@ -113,37 +132,10 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                     <p className="text-sm text-gray-600">{team.tla}</p>
                 </div>
                 {onFavoriteClick && isFavorite !== undefined && (
-                    <button
-                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                            console.log('🔘 Button clicked in TeamCard!', { teamId: team.id, isFavorite });
-                            // 이벤트 전파 완전 차단
-                            e.stopPropagation();
-                            e.preventDefault();
-                            // 이벤트 버블링 방지를 위한 추가 처리
-                            if (e.nativeEvent) {
-                                e.nativeEvent.stopImmediatePropagation();
-                            }
-                            onFavoriteClick();
-                        }}
-                        onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => {
-                            // 마우스 다운 이벤트도 전파 차단
-                            e.stopPropagation();
-                        }}
-                        className={`mt-2 px-4 py-2 rounded-lg transition-colors ${
-                            isFavorite
-                                ? 'bg-red-500 text-white hover:bg-red-600'
-                                : 'bg-blue-500 text-white hover:bg-blue-600'
-                        }`}
-                        style={{ 
-                            zIndex: 100, 
-                            position: 'relative',
-                            pointerEvents: 'auto' // 포인터 이벤트 명시적 설정
-                        }}
-                    >
-                        {isFavorite
-                            ? '❤️ Remove from Favorites'
-                            : '⭐ Add to Favorites'}
-                    </button>
+                    <StarButton
+                        isFavorite={isFavorite}
+                        onClick={onFavoriteClick}
+                    />
                 )}
             </CardContent>
         </Card>
