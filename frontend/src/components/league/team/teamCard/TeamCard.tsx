@@ -70,9 +70,9 @@ export const TeamCard: React.FC<TeamCardProps> = ({
             target.closest('button') !== null;
         
         if (isStarButton) {
-            console.log('🛑 [Card] 캡처 단계에서 StarButton 감지 - Card 클릭 차단');
-            e.stopPropagation();
-            // 주의: 여기서 preventDefault를 하면 버튼의 onClick이 실행되지 않을 수 있음
+            console.log('🛑 [Card] 캡처 단계에서 StarButton 감지됨 (하지만 전파는 차단하지 않음 - 버튼 onClick 실행을 위해)');
+            // 주의: stopPropagation을 하면 버튼의 onClick이 실행되지 않음!
+            // 여기서는 감지만 하고 차단은 버블링 단계에서 함
         }
     };
 

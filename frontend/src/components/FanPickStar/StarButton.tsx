@@ -35,24 +35,51 @@ export function StarButton({
     const buttonRef = useRef<HTMLButtonElement>(null);
     const registerButtonClick = useStarButtonEventStore((state) => state.registerButtonClick);
 
+    // 컴포넌트 마운트 시 로그
+    useEffect(() => {
+        console.log('⭐ [StarButton] 컴포넌트 마운트됨', { isFavorite, hasOnClick: !!onClick });
+        if (buttonRef.current) {
+            console.log('⭐ [StarButton] 버튼 DOM 요소 확인됨:', buttonRef.current);
+        }
+    }, [isFavorite, onClick]);
+
     // 직접 DOM 이벤트 리스너 추가 (React 이벤트 시스템을 우회)
-    // 마우스다운 단계에서 미리 store에 등록하여 Card가 확인할 수 있도록 함
+    // 모든 이벤트를 감지하여 디버깅
     useEffect(() => {
         const button = buttonRef.current;
-        if (!button) return;
+        if (!button) {
+            console.warn('⭐ [StarButton] 버튼 ref가 null입니다!');
+            return;
+        }
+
+        console.log('⭐ [StarButton] 네이티브 이벤트 리스너 등록됨');
+
+        const handleClick = (e: MouseEvent) => {
+            console.log('⭐ [StarButton] ⚡⚡⚡ 네이티브 CLICK 이벤트 발생! ⚡⚡⚡', { 
+                target: e.target,
+                currentTarget: e.currentTarget,
+                button: button
+            });
+            registerButtonClick();
+            onClick();
+        };
 
         const handleMouseDown = (e: MouseEvent) => {
-            console.log('⭐ [StarButton] Native mousedown 이벤트 발생!');
-            // 마우스다운 단계에서 미리 등록 (Card의 onClick보다 먼저)
+            console.log('⭐ [StarButton] ⚡ 네이티브 MOUSEDOWN 이벤트 발생! ⚡');
             registerButtonClick();
         };
 
-        button.addEventListener('mousedown', handleMouseDown, true); // 캡처 단계에서 실행
+        // 캡처와 버블링 모두 등록
+        button.addEventListener('click', handleClick, true); // 캡처
+        button.addEventListener('click', handleClick, false); // 버블링
+        button.addEventListener('mousedown', handleMouseDown, true);
 
         return () => {
+            button.removeEventListener('click', handleClick, true);
+            button.removeEventListener('click', handleClick, false);
             button.removeEventListener('mousedown', handleMouseDown, true);
         };
-    }, [registerButtonClick]);
+    }, [registerButtonClick, onClick]);
 
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         console.log('⭐ [StarButton] React handleClick 실행됨!', { isFavorite, timestamp: new Date().toISOString() });
