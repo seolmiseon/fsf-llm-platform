@@ -20,6 +20,7 @@
     width: 80px;
     height: 80px;
     aspect-ratio: 1 / 1;
+    overflow: hidden; /* Next.js Image의 absolute span이 밖으로 나가지 못하게 함 */
 }
 
 .teamInfo {

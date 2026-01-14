@@ -70,12 +70,6 @@ export const TeamCard: React.FC<TeamCardProps> = ({
         });
     };
 
-    const handleFavoriteClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        console.log('⭐ [TeamCard] 즐겨찾기 버튼 클릭됨', { teamId: team.id, isFavorite });
-        onFavoriteClick?.();
-    };
-
     return (
         <Card
             onClick={handleCardClick}
@@ -117,7 +111,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                     });
                     return null;
                 })()}
-                {onFavoriteClick && isFavorite !== undefined ? (
+                {onFavoriteClick && isFavorite !== undefined && (
                     <button
                         type="button"
                         onClick={(e) => {
@@ -125,23 +119,15 @@ export const TeamCard: React.FC<TeamCardProps> = ({
                             e.stopPropagation();
                             onFavoriteClick();
                         }}
-                        onMouseDown={(e) => {
-                            console.log('🔘 [TeamCard] 버튼 onMouseDown!');
-                            e.stopPropagation();
-                        }}
                         className={`mt-2 px-4 py-2 rounded-lg transition-colors ${
                             isFavorite
                                 ? 'bg-red-500 text-white hover:bg-red-600'
                                 : 'bg-blue-500 text-white hover:bg-blue-600'
                         }`}
-                        style={{ position: 'relative', zIndex: 100 }}
+                        style={{ position: 'relative', zIndex: 9999, isolation: 'isolate' }}
                     >
                         {isFavorite ? '❤️ Remove from Favorites' : '⭐ Add to Favorites'}
                     </button>
-                ) : (
-                    <div style={{ color: 'red', fontSize: '10px' }}>
-                        버튼 미렌더링: onFavoriteClick={String(!!onFavoriteClick)}, isFavorite={String(isFavorite)}
-                    </div>
                 )}
             </CardContent>
         </Card>
