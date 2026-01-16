@@ -1,7 +1,7 @@
 'use client';
 
 import '@/lib/firebase/config';
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -13,14 +13,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const startInactivityTimer = useAuthStore((state) => state.startInactivityTimer);
     const checkSessionExpiry = useAuthStore((state) => state.checkSessionExpiry);
 
-    const activityIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const sessionCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const initialCheckDone = useRef(false);
 
-    // 활동 추적 핸들러
-    const handleActivity = useCallback(() => {
-        updateActivityTime();
-    }, [updateActivityTime]);
+    // 함수 참조를 ref로 유지하여 이벤트 리스너 재등록 방지
+    const updateActivityTimeRef = useRef(updateActivityTime);
+    updateActivityTimeRef.current = updateActivityTime;
 
     // Auth 상태 변경 감지 - 한 번만 설정
     useEffect(() => {
@@ -41,9 +39,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 startInactivityTimer();
 
                 // 기존 인터벌 정리
-                if (activityIntervalRef.current) {
-                    clearInterval(activityIntervalRef.current);
-                }
                 if (sessionCheckIntervalRef.current) {
                     clearInterval(sessionCheckIntervalRef.current);
                 }
@@ -54,10 +49,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }, 60 * 60 * 1000); // 1시간
             } else {
                 // 로그아웃 시 인터벌 정리
-                if (activityIntervalRef.current) {
-                    clearInterval(activityIntervalRef.current);
-                    activityIntervalRef.current = null;
-                }
                 if (sessionCheckIntervalRef.current) {
                     clearInterval(sessionCheckIntervalRef.current);
                     sessionCheckIntervalRef.current = null;
@@ -67,9 +58,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         return () => {
             unsubscribe();
-            if (activityIntervalRef.current) {
-                clearInterval(activityIntervalRef.current);
-            }
             if (sessionCheckIntervalRef.current) {
                 clearInterval(sessionCheckIntervalRef.current);
             }
@@ -77,8 +65,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // 빈 의존성 배열 - 마운트 시 한 번만 실행
 
-    // 사용자 활동 추적 (이벤트 리스너)
+    // 사용자 활동 추적 (이벤트 리스너) - 마운트 시 한 번만 설정
     useEffect(() => {
+        // 활동 핸들러 - ref를 통해 최신 함수 참조
+        const handleActivity = () => {
+            updateActivityTimeRef.current();
+        };
+
         // 활동 이벤트들
         const events = [
             'mousedown',
@@ -103,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 window.removeEventListener(event, handleActivity);
             });
         };
-    }, [handleActivity]);
+    }, []); // 빈 의존성 배열 - 마운트 시 한 번만
 
     return <>{children}</>;
 }

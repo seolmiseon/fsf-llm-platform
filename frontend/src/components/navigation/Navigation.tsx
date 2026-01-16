@@ -2,21 +2,13 @@
 
 import { Button } from '@/components/ui/button/Button';
 import FSFLogo from '@/components/ui/logo/FSFLogo';
-import { Search, Menu, X, User, LogOut, Trophy, BarChart3, MessageCircle, Star } from 'lucide-react';
+import { Search, Menu, X, Trophy, BarChart3, MessageCircle, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useModalStore } from '@/store/useModalStore';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { usePathname } from 'next/navigation';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropDown/DropDownMenu';
 import Image from 'next/image';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase/config';
 import NotificationBell from '../notification/NotificationBell';
 
 interface NavigationProps {
@@ -73,24 +65,6 @@ export default function Navigation({ match }: NavigationProps) {
             },
         },
     ];
-
-    const handleLogout = useCallback(async () => {
-        if (!auth) return;
-        try {
-            console.log('로그아웃 시작');
-            await signOut(auth);
-            console.log('로그아웃');
-            useAuthStore.getState().setUser(null);
-            console.log('로그아웃 업데이트');
-            useModalStore.getState().close();
-            console.log('Modal closed.');
-            window.location.href = '/signin';
-        } catch (error) {
-            console.error('Logout error:', error);
-
-            alert('로그아웃에 실패했습니다. 다시 시도해 주세요.');
-        }
-    }, []);
 
     const renderAuthButtons = () => {
         if (loading) return null;

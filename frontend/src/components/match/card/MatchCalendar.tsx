@@ -132,19 +132,6 @@ export default function MatchCalendar() {
         }
     };
 
-    const handleDayCellMouseLeave = () => {
-        // 약간의 딜레이를 주어 팝오버로 이동할 시간을 줌
-        setTimeout(() => {
-            setPopoverOpen((prev) => {
-                if (!prev) {
-                    setHoveredDate(null);
-                    setHoveredMatches([]);
-                }
-                return prev;
-            });
-        }, 300);
-    };
-
     // 날짜 셀 마운트 시 이벤트 리스너 추가
     const handleDayCellDidMount = (info: DayCellContentArg) => {
         const dayEl = info.el;

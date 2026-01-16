@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import DOMPurify from 'dompurify';
 import { Button } from '@/components/ui/button/Button';
 import { Input } from '@/components/ui/input/Input';
 import { Textarea } from '@/components/ui/textArea/TextArea';
@@ -115,7 +116,11 @@ export default function PostForm({ isEdit }: PostFormProps) {
     };
 
     const sanitizeInput = (input: string) => {
-        return input.trim().replace(/<[^>]*>/g, '');
+        // DOMPurify로 XSS 공격 방지 (모든 HTML 태그 제거)
+        return DOMPurify.sanitize(input.trim(), {
+            ALLOWED_TAGS: [],
+            ALLOWED_ATTR: [],
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -310,7 +315,7 @@ export default function PostForm({ isEdit }: PostFormProps) {
                                     className="relative mt-2"
                                     onDrop={handleDrop}
                                     onDragOver={(e) => {
-                                        e.preventDefault;
+                                        e.preventDefault();
                                     }}
                                 >
                                     <Image

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { BackendApi } from '@/lib/client/api/backend';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -27,7 +27,7 @@ export default function ChatBot({ onClose }: ChatBotProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const backendApi = new BackendApi();
+  const backendApi = useMemo(() => new BackendApi(), []);
   const { user } = useAuthStore();
 
   const scrollToBottom = () => {
@@ -140,7 +140,7 @@ export default function ChatBot({ onClose }: ChatBotProps) {
             );
           },
           // 답변 업데이트 (타이핑 효과)
-          (chunk: string, toolsUsed: string[], isChunk?: boolean) => {
+          (chunk: string, toolsUsed: string[], _isChunk?: boolean) => {
             if (toolsUsed.length > 0) {
               // answer_start: tools_used 설정
               streamingToolsUsed = toolsUsed;

@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
         const data = await response.json();
         return NextResponse.json(data);
-    } catch (_error) {
+    } catch {
         return NextResponse.json({ error: 'YouTube API Error' }, { status: 500 });
     }
 }

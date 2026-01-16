@@ -83,7 +83,7 @@ if (typeof window !== 'undefined') {
         try {
             const matches = JSON.parse(cachedData);
             useLiveMatchesStore.setState({ matches });
-        } catch (e) {
+        } catch {
             // 파싱 실패 시 무시
         }
     }

@@ -2,7 +2,6 @@
 import { useFavorite } from '@/hooks/useFavorite';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Error, Loading } from '../ui/common';
-import { TeamResponse } from '@/types/api/responses';
 import { Card } from '../ui/common/card';
 import Image from 'next/image';
 import { getPlaceholderImageUrl } from '@/utils/imageUtils';
@@ -15,24 +14,12 @@ import {
     collection,
     getDocs,
     query,
-    Timestamp,
     where,
     limit,
     orderBy,
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/firebase/config';
-
-interface FavoriteTeam {
-    id: string;
-    playerId?: string;      // teamId 대신 playerId 사용
-    teamName?: string;      // 팀 이름
-    teamTla?: string;       // 팀 약어
-    teamCrest?: string;     // 팀 로고
-    userId: string;
-    type?: 'favorite' | 'vote';
-    createdAt: Timestamp;
-}
 
 type TabType = 'info' | 'teams' | 'cheers' | 'community';
 
