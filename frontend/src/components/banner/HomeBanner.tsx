@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Flame, Zap, TrendingUp, Trophy, Sparkles } from 'lucide-react';
-import { useLiveMatches } from '@/hooks/useLiveMatches';
+import { useLiveMatchesStore } from '@/store/useLiveMatchesStore';
 import styles from './HomeBanner.module.css';
 
 interface BannerCard {
@@ -16,8 +16,8 @@ interface BannerCard {
 }
 
 export const HomeBanner = () => {
+    const matches = useLiveMatchesStore((state) => state.matches);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const { matches } = useLiveMatches();
 
     // 5초마다 자동 슬라이드
     useEffect(() => {

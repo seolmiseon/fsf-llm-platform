@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { Toaster } from '@/components/ui/toast/Toaster';
-import FloatingChatBot from '@/components/chat/FloatingChatBot';  // 추가
+import FloatingChatBot from '@/components/chat/FloatingChatBot';
 import { AmplitudeProvider } from '@/components/providers/AmplitudeProvider';
 
 
@@ -36,16 +36,16 @@ export default function RootLayout({
             <body className={`${pretendard.variable} vsc-initialized`}>
                 <ErrorBoundary>
                     <AmplitudeProvider>
-                    <ThemeProvider>
-                        <AuthProvider>
-                            <Navigation />
-                            <main>{children}</main>
-                            <ModalRoot />
-                            <Toaster />
-                            <FloatingChatBot />  {/* 추가 */}
-                        </AuthProvider>
+                        <ThemeProvider>
+                            <AuthProvider>
+                                <Navigation />
+                                <main>{children}</main>
+                                <ModalRoot />
+                                <Toaster />
+                                <FloatingChatBot />
+                            </AuthProvider>
                         </ThemeProvider>
-                        </AmplitudeProvider>
+                    </AmplitudeProvider>
                 </ErrorBoundary>
             </body>
         </html>

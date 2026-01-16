@@ -1,69 +1,31 @@
-import { useState, useEffect, useCallback } from 'react';
-import { MatchResponse } from '@/types/api/responses';
-import { FootballDataApi } from '@/lib/client/api/football-data';
+import { useEffect, useRef } from 'react';
+import { useLiveMatchesStore } from '@/store/useLiveMatchesStore';
 
 export const useLiveMatches = () => {
-    const [matches, setMatches] = useState<MatchResponse[]>(() => {
-        if (typeof window !== 'undefined') {
-            const cachedData = localStorage.getItem('liveMatches');
-            return cachedData ? JSON.parse(cachedData) : [];
-        }
-        return [];
-    });
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    const loadLiveMatches = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            const api = new FootballDataApi();
-            const result = await api.getLiveMatches();
-
-            if (!result.success) {
-                setError(result.error || '라이브 매치를 불러오는데 실패했습니다.');
-                return;
-            }
-
-            console.log('useLiveMatches - API result:', {
-                success: result.success,
-                dataType: typeof result.data,
-                isArray: Array.isArray(result.data),
-                data: result.data,
-            });
-
-            if (!Array.isArray(result.data)) {
-                console.error('Invalid data format:', result.data);
-                setError('Invalid data format received');
-                return;
-            }
-
-            const sortedMatches = result.data.sort(
-                (a, b) =>
-                    new Date(b.utcDate).getTime() -
-                    new Date(a.utcDate).getTime()
-            );
-
-            setMatches(sortedMatches);
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('liveMatches', JSON.stringify(sortedMatches));
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            setError(error instanceof Error ? error.message : 'Unknown error');
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const { matches, loading, error, fetchMatches, clearError } = useLiveMatchesStore();
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        loadLiveMatches();
+        // 컴포넌트 마운트 시 데이터 fetch
+        fetchMatches();
 
-        // 10초마다 실시간 업데이트 (Live Matches용)
-        const interval = setInterval(loadLiveMatches, 10 * 1000);
-        return () => clearInterval(interval);
-    }, [loadLiveMatches]);
+        // 5분마다 업데이트 (API rate limit 방지)
+        intervalRef.current = setInterval(() => {
+            fetchMatches();
+        }, 5 * 60 * 1000);
 
-    return { matches, loading, error, refetch: loadLiveMatches };
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
+    }, [fetchMatches]);
+
+    return {
+        matches,
+        loading,
+        error,
+        refetch: fetchMatches,
+        clearError
+    };
 };
