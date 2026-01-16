@@ -35,7 +35,7 @@ export function useFavorite(userId: string) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // 즐겨찾기 목록 실시간 감지 (이 부분은 유지)
+    // 즐겨찾기 목록 실시간 감지
     useEffect(() => {
         if (!userId || !db) return;
 
