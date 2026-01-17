@@ -225,22 +225,22 @@ async def get_posts(
         posts_docs = list(query.offset(offset).limit(page_size).stream())
         
         # PostResponse 리스트 생성
-        posts = [
-            PostResponse(
-                post_id=doc.get("post_id"),
-                author_id=doc.get("author_id"),
-                author_username=doc.get("author_username"),
-                title=doc.get("title"),
-                content=doc.get("content"),
-                category=doc.get("category"),
-                views=doc.get("views", 0),
-                likes=doc.get("likes", 0),
-                comment_count=doc.get("comment_count", 0),
-                created_at=doc.get("created_at"),
-                updated_at=doc.get("updated_at")
-            )
-            for doc in posts_docs
-        ]
+        posts = []
+        for doc in posts_docs:
+            data = doc.to_dict()
+            posts.append(PostResponse(
+                post_id=data.get("post_id"),
+                author_id=data.get("author_id"),
+                author_username=data.get("author_username"),
+                title=data.get("title"),
+                content=data.get("content"),
+                category=data.get("category"),
+                views=data.get("views", 0),
+                likes=data.get("likes", 0),
+                comment_count=data.get("comment_count", 0),
+                created_at=data.get("created_at"),
+                updated_at=data.get("updated_at")
+            ))
         
         logger.info(f"✅ {len(posts)}개 게시글 조회")
         
