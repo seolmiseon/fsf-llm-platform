@@ -329,6 +329,99 @@ async def get_matches(
 
 
 @router.get(
+    "/matches/{match_id}",
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "경기 상세 조회 성공"},
+        404: {"description": "경기를 찾을 수 없음"},
+        503: {"description": "Football-Data API 오류"},
+    },
+)
+async def get_match_details(
+    match_id: int = Path(..., description="경기 ID"),
+    force_refresh: bool = Query(False, description="캐시 무시"),
+    db: firestore.client = Depends(get_optional_firestore_db),
+):
+    """
+    특정 경기 상세 정보 조회 (캐싱 포함)
+
+    캐시 전략:
+    - FINISHED 경기: 24시간 캐싱
+    - 진행 중/예정 경기: 10분 캐싱
+
+    Args:
+        match_id: 경기 ID
+        force_refresh: 캐시 무시
+        db: Firestore 클라이언트
+
+    Returns:
+        경기 상세 정보
+
+    Example:
+        >>> GET /api/football/matches/401828
+    """
+    if not football_client:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Football-Data API client not available",
+        )
+
+    try:
+        cache_key = f"match_{match_id}"
+
+        logger.info(f"🎮 경기 상세 조회: {match_id} (force_refresh={force_refresh})")
+
+        # 1. 캐시 확인
+        if db and not force_refresh:
+            cached_data = get_cache(db, cache_key)
+            if cached_data:
+                return {
+                    "success": True,
+                    "data": cached_data,
+                    "source": "cache",
+                    "cached": True,
+                    "timestamp": datetime.now().isoformat(),
+                }
+
+        # 2. API에서 데이터 가져오기
+        logger.info(f"🔄 Football-Data API 호출: 경기 {match_id}")
+        match_data = football_client.get_match_details(match_id)
+
+        if not match_data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Match {match_id} not found",
+            )
+
+        # 3. 캐시에 저장 (경기 상태에 따라 캐시 시간 조정)
+        if db:
+            match_status = match_data.get("status", "")
+            # FINISHED 경기는 더 오래 캐싱
+            cache_metadata = {
+                "match_id": match_id,
+                "status": match_status,
+            }
+            set_cache(db, cache_key, match_data, metadata=cache_metadata)
+
+        return {
+            "success": True,
+            "data": match_data,
+            "source": "api",
+            "cached": False,
+            "timestamp": datetime.now().isoformat(),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ 경기 상세 조회 실패 (ID: {match_id}): {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Failed to fetch match details",
+        )
+
+
+@router.get(
     "/matches/live",
     status_code=status.HTTP_200_OK,
     responses={

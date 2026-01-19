@@ -21,6 +21,8 @@ from ..tools import (
     PostsSearchTool,
     create_fan_preference_tool,
     CalendarTool,
+    YouTubeHighlightTool,
+    WeatherTool,
 )
 from ..tools.calendar_tool import calendar_query
 # 비용 최적화: 하이브리드 방식 (단순 질문은 chat.py, 복잡한 질문만 Agent)
@@ -64,6 +66,8 @@ base_tools = [
     PlayerCompareTool,
     PostsSearchTool,
     CalendarTool,
+    YouTubeHighlightTool,
+    WeatherTool,
 ]
 
 # Agent 초기화 (기본 - user_id 없이 사용)

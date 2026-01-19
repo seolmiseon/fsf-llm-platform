@@ -5,6 +5,7 @@ node_modules/
 dist/
 npm-debug.log*
 yarn-error.log*
+.claude/
 
 # Env / secrets
 .env

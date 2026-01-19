@@ -348,6 +348,152 @@ class CommentDocument(BaseModel):
     parent_comment_id: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: Optional[datetime] = None
-    
+
     class Config:
         from_attributes = True
+
+
+# ============================================
+# 7. 신고/경고/정지 시스템 모델
+# ============================================
+
+class ReportCategory(str, Enum):
+    """신고 카테고리"""
+    PROFANITY = "profanity"          # 욕설/비속어
+    HARASSMENT = "harassment"         # 괴롭힘/따돌림
+    HATE_SPEECH = "hate_speech"       # 혐오 발언
+    SPAM = "spam"                     # 스팸/광고
+    INAPPROPRIATE = "inappropriate"   # 부적절한 내용
+    PERSONAL_INFO = "personal_info"   # 개인정보 노출
+    OTHER = "other"                   # 기타
+
+
+class ReportStatus(str, Enum):
+    """신고 처리 상태"""
+    PENDING = "pending"       # 대기 중
+    REVIEWING = "reviewing"   # 검토 중
+    RESOLVED = "resolved"     # 처리 완료
+    DISMISSED = "dismissed"   # 기각 (무혐의)
+
+
+class ReportTargetType(str, Enum):
+    """신고 대상 유형"""
+    POST = "post"
+    COMMENT = "comment"
+    USER = "user"
+
+
+class ReportCreate(BaseModel):
+    """신고 생성 요청"""
+    target_type: ReportTargetType = Field(..., description="신고 대상 유형")
+    target_id: str = Field(..., description="신고 대상 ID")
+    category: ReportCategory = Field(..., description="신고 카테고리")
+    reason: str = Field(..., min_length=10, max_length=500, description="신고 사유 (10자 이상)")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "target_type": "post",
+                "target_id": "post123",
+                "category": "profanity",
+                "reason": "게시글에 심한 욕설이 포함되어 있습니다."
+            }
+        }
+
+
+class ReportResponse(BaseModel):
+    """신고 응답"""
+    report_id: str = Field(..., description="신고 ID")
+    reporter_id: str = Field(..., description="신고자 ID")
+    reporter_username: str = Field(..., description="신고자 이름")
+    target_type: ReportTargetType = Field(..., description="대상 유형")
+    target_id: str = Field(..., description="대상 ID")
+    target_author_id: Optional[str] = Field(default=None, description="대상 작성자 ID")
+    category: ReportCategory = Field(..., description="신고 카테고리")
+    reason: str = Field(..., description="신고 사유")
+    status: ReportStatus = Field(default=ReportStatus.PENDING, description="처리 상태")
+    admin_note: Optional[str] = Field(default=None, description="관리자 메모")
+    created_at: datetime = Field(..., description="신고 시간")
+    resolved_at: Optional[datetime] = Field(default=None, description="처리 시간")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "report_id": "report123",
+                "reporter_id": "user456",
+                "reporter_username": "john_doe",
+                "target_type": "post",
+                "target_id": "post123",
+                "target_author_id": "user789",
+                "category": "profanity",
+                "reason": "게시글에 심한 욕설이 포함되어 있습니다.",
+                "status": "pending",
+                "created_at": "2025-01-15T10:30:00Z"
+            }
+        }
+
+
+class ReportListResponse(BaseModel):
+    """신고 목록 응답"""
+    reports: List[ReportResponse] = Field(..., description="신고 목록")
+    total_count: int = Field(..., description="전체 신고 수")
+    page: int = Field(..., description="현재 페이지")
+    page_size: int = Field(..., description="페이지당 개수")
+
+
+class ReportAction(BaseModel):
+    """관리자 신고 처리 요청"""
+    status: ReportStatus = Field(..., description="처리 상태")
+    admin_note: Optional[str] = Field(default=None, max_length=500, description="관리자 메모")
+    issue_warning: bool = Field(default=False, description="경고 발급 여부")
+    warning_severity: Optional[int] = Field(default=1, ge=1, le=3, description="경고 수준 (1-3)")
+    delete_content: bool = Field(default=False, description="콘텐츠 삭제 여부")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "status": "resolved",
+                "admin_note": "욕설 확인, 경고 발급",
+                "issue_warning": True,
+                "warning_severity": 1,
+                "delete_content": True
+            }
+        }
+
+
+class WarningResponse(BaseModel):
+    """경고 응답"""
+    warning_id: str = Field(..., description="경고 ID")
+    user_id: str = Field(..., description="대상 유저 ID")
+    username: str = Field(..., description="대상 유저 이름")
+    reason: str = Field(..., description="경고 사유")
+    severity: int = Field(..., ge=1, le=3, description="경고 수준 (1: 주의, 2: 경고, 3: 강한 경고)")
+    related_report_id: Optional[str] = Field(default=None, description="관련 신고 ID")
+    issued_by: str = Field(..., description="발급 관리자 ID")
+    created_at: datetime = Field(..., description="발급 시간")
+    expires_at: Optional[datetime] = Field(default=None, description="만료 시간")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "warning_id": "warning123",
+                "user_id": "user789",
+                "username": "bad_user",
+                "reason": "욕설 사용",
+                "severity": 1,
+                "related_report_id": "report123",
+                "issued_by": "admin001",
+                "created_at": "2025-01-15T10:30:00Z"
+            }
+        }
+
+
+class UserWarningStatus(BaseModel):
+    """유저 경고 현황"""
+    user_id: str = Field(..., description="유저 ID")
+    username: str = Field(..., description="유저 이름")
+    total_warnings: int = Field(default=0, description="총 경고 횟수")
+    active_warnings: int = Field(default=0, description="유효한 경고 횟수")
+    is_banned: bool = Field(default=False, description="정지 여부")
+    ban_expires_at: Optional[datetime] = Field(default=None, description="정지 해제 시간")
+    warnings: List[WarningResponse] = Field(default=[], description="경고 내역")

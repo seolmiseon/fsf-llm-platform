@@ -9,6 +9,8 @@ from .player_compare_tool import PlayerCompareTool
 from .posts_search_tool import PostsSearchTool
 from .fan_preference_tool import FanPreferenceTool, create_fan_preference_tool
 from .calendar_tool import CalendarTool
+from .youtube_tool import YouTubeHighlightTool
+from .weather_tool import WeatherTool
 
 __all__ = [
     "RAGSearchTool",
@@ -18,5 +20,7 @@ __all__ = [
     "FanPreferenceTool",
     "create_fan_preference_tool",
     "CalendarTool",
+    "YouTubeHighlightTool",
+    "WeatherTool",
 ]
 

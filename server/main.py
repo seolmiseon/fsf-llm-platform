@@ -55,12 +55,13 @@ try:
     from backend.routers.posts import router as posts_router
     from backend.routers.users import router as users_router
     from backend.routers.football_data import router as football_router
+    from backend.routers.reports import router as reports_router  # 🆕 신고 시스템
 
     logger.info("✅ Backend 라우터들 import 및 등록 성공")
 except Exception as e:
     logger.error(f"❌ Backend 라우터 import 실패: {e}")
     # Backend 라우터 실패는 치명적이므로 종료하지 않고 계속 진행
-    auth_router = posts_router = users_router = football_router = None
+    auth_router = posts_router = users_router = football_router = reports_router = None
 
 # LLM Service 라우터들 import
 try:
@@ -109,6 +110,8 @@ if users_router:
     app.include_router(users_router, prefix="/api/users", tags=["Users"])
 if football_router:
     app.include_router(football_router, prefix="/api", tags=["Football Data"])
+if reports_router:
+    app.include_router(reports_router, prefix="/api/reports", tags=["Reports"])  # 🆕 신고 시스템
 
 # LLM Service 라우터 등록
 if chat_router:
