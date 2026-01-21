@@ -24,6 +24,7 @@ jobs:
               - 'server/backend/**'
               - 'server/main.py'
               - 'server/Dockerfile'
+              - 'server/requirements.txt'
             llm_service:
               - 'server/llm_service/**'
 
