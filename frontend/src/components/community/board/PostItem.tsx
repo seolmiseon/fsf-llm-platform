@@ -51,7 +51,13 @@ export function PostItem({
                 </div>
             </Link>
             <div className="mt-3 flex items-center text-sm text-gray-500 space-x-4">
-                <span>{post.authorName}</span>
+                <Link 
+                    href={`/user/${post.authorId}`}
+                    className="font-medium text-gray-700 hover:text-green-600 hover:underline transition"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {post.authorName}
+                </Link>
                 <span>조회 {post.views}</span>
                 <button
                     onClick={() => handleLikeToggle(post.id)}

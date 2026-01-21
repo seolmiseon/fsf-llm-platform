@@ -412,6 +412,56 @@ export class BackendApi {
     return this.fetchWithAuth('/api/users/me');
   }
 
+  /**
+   * 다른 유저의 공개 프로필 조회
+   * @param userId - 조회할 유저의 UID
+   */
+  async getUserProfile(userId: string): Promise<ApiResponse<{
+    uid: string;
+    username: string;
+    created_at: string;
+    bio: string | null;
+    profile_image: string | null;
+    favorite_team: string | null;
+    favorite_league: string | null;
+    post_count: number;
+    comment_count: number;
+    clubs: string[];
+    badges: string[];
+  }>> {
+    return this.fetch(`/api/users/profile/${userId}`);
+  }
+
+  /**
+   * 내 프로필 수정 (확장 필드 포함)
+   * @param data - 수정할 프로필 데이터
+   */
+  async updateMyProfile(data: {
+    username?: string;
+    bio?: string;
+    profile_image?: string;
+    favorite_team?: string;
+    favorite_league?: string;
+  }): Promise<ApiResponse<{
+    uid: string;
+    username: string;
+    created_at: string;
+    bio: string | null;
+    profile_image: string | null;
+    favorite_team: string | null;
+    favorite_league: string | null;
+    post_count: number;
+    comment_count: number;
+    clubs: string[];
+    badges: string[];
+  }>> {
+    return this.fetchWithAuth('/api/users/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // 기존 메서드 (하위 호환성 유지)
   async updateProfile(
     username?: string,
     bio?: string
@@ -469,6 +519,71 @@ export class BackendApi {
   }>> {
     return this.fetchWithAuth(
       `/api/posts?search=${encodeURIComponent(query)}&page=${page}`
+    );
+  }
+
+  // ============================================
+  // Reports API (신고 시스템)
+  // ============================================
+
+  /**
+   * 콘텐츠/유저 신고 생성
+   * @param targetType - 신고 대상 유형 (post, comment, user)
+   * @param targetId - 신고 대상 ID
+   * @param category - 신고 카테고리
+   * @param reason - 신고 사유 (10자 이상)
+   */
+  async createReport(
+    targetType: 'post' | 'comment' | 'user',
+    targetId: string,
+    category: 'profanity' | 'harassment' | 'hate_speech' | 'spam' | 'inappropriate' | 'personal_info' | 'other',
+    reason: string
+  ): Promise<ApiResponse<{
+    report_id: string;
+    reporter_id: string;
+    reporter_username: string;
+    target_type: string;
+    target_id: string;
+    target_author_id: string | null;
+    category: string;
+    reason: string;
+    status: string;
+    created_at: string;
+  }>> {
+    return this.fetchWithAuth('/api/reports', {
+      method: 'POST',
+      body: JSON.stringify({
+        target_type: targetType,
+        target_id: targetId,
+        category: category,
+        reason: reason,
+      }),
+    });
+  }
+
+  /**
+   * 내 신고 내역 조회
+   */
+  async getMyReports(
+    page: number = 1,
+    pageSize: number = 10
+  ): Promise<ApiResponse<{
+    reports: Array<{
+      report_id: string;
+      target_type: string;
+      target_id: string;
+      category: string;
+      reason: string;
+      status: string;
+      created_at: string;
+      resolved_at: string | null;
+    }>;
+    total_count: number;
+    page: number;
+    page_size: number;
+  }>> {
+    return this.fetchWithAuth(
+      `/api/reports/my?page=${page}&page_size=${pageSize}`
     );
   }
 }

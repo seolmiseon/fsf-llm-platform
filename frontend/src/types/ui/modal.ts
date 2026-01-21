@@ -7,7 +7,8 @@ export type ModalType =
     | 'search'
     | 'logout'
     | 'signin'
-    | 'signup';
+    | 'signup'
+    | 'report';
 
 // 팀 모달 데이터 인터페이스
 export interface TeamModalData {
@@ -54,11 +55,19 @@ export interface AuthModalData {
     mode: 'signin' | 'signup' | 'logout';
 }
 
+// 신고 모달 데이터
+export interface ReportModalData {
+    kind: 'report';
+    targetType: 'post' | 'comment' | 'user';
+    targetId: string;
+}
+
 export type ModalData =
     | TeamModalData
     | PersonModalData
     | SearchModalData
-    | AuthModalData;
+    | AuthModalData
+    | ReportModalData;
 
 // 모달 상태 인터페이스
 export interface ModalState {

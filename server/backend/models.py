@@ -65,13 +65,83 @@ class UserResponse(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    """사용자 정보 수정 모델"""
+    """사용자 정보 수정 모델 (기본)"""
     username: Optional[str] = Field(default=None, min_length=2, max_length=50)
     
     class Config:
         json_schema_extra = {
             "example": {
                 "username": "john_doe_updated"
+            }
+        }
+
+
+# ============================================
+# 1-1. 확장된 유저 프로필 모델 (B2B 대비)
+# ============================================
+
+class UserProfileResponse(BaseModel):
+    """
+    공개 유저 프로필 응답 모델
+    
+    다른 유저가 조회할 수 있는 공개 정보
+    B2B 파트너십을 위한 확장 가능한 구조
+    """
+    uid: str = Field(..., description="Firebase UID")
+    username: str = Field(..., description="사용자명")
+    created_at: datetime = Field(..., description="가입 시간")
+    
+    # === 확장 필드 (공개 프로필) ===
+    bio: Optional[str] = Field(default=None, max_length=200, description="자기소개")
+    profile_image: Optional[str] = Field(default=None, description="프로필 이미지 URL")
+    favorite_team: Optional[str] = Field(default=None, description="선호 팀")
+    favorite_league: Optional[str] = Field(default=None, description="선호 리그")
+    
+    # === 활동 통계 ===
+    post_count: int = Field(default=0, description="작성 게시글 수")
+    comment_count: int = Field(default=0, description="작성 댓글 수")
+    
+    # === 미래 확장용 (현재는 빈 배열) ===
+    clubs: List[str] = Field(default=[], description="가입한 동호회 ID 목록")
+    badges: List[str] = Field(default=[], description="획득한 배지 ID 목록")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "uid": "abc123xyz",
+                "username": "john_doe",
+                "created_at": "2025-01-15T10:30:00Z",
+                "bio": "축구 좋아하는 직장인입니다",
+                "profile_image": "https://example.com/profile.jpg",
+                "favorite_team": "토트넘",
+                "favorite_league": "EPL",
+                "post_count": 15,
+                "comment_count": 42,
+                "clubs": [],
+                "badges": []
+            }
+        }
+
+
+class UserProfileUpdate(BaseModel):
+    """
+    유저 프로필 수정 요청 모델
+    
+    사용자가 자신의 프로필을 수정할 때 사용
+    """
+    username: Optional[str] = Field(default=None, min_length=2, max_length=50, description="사용자명")
+    bio: Optional[str] = Field(default=None, max_length=200, description="자기소개")
+    profile_image: Optional[str] = Field(default=None, description="프로필 이미지 URL")
+    favorite_team: Optional[str] = Field(default=None, max_length=50, description="선호 팀")
+    favorite_league: Optional[str] = Field(default=None, max_length=50, description="선호 리그")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "username": "john_doe_updated",
+                "bio": "축구와 여행을 좋아합니다",
+                "favorite_team": "토트넘",
+                "favorite_league": "EPL"
             }
         }
 
@@ -308,12 +378,36 @@ class MessageResponse(BaseModel):
 # ============================================
 
 class UserDocument(BaseModel):
-    """Firestore User 문서"""
+    """
+    Firestore User 문서 (확장된 구조)
+    
+    B2B 파트너십 및 미래 기능 확장을 위한 필드 포함
+    """
     uid: str
     email: str
     username: str
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: Optional[datetime] = None
+    is_admin: bool = False
+    
+    # === 확장 필드 (프로필) ===
+    bio: Optional[str] = None                    # 자기소개
+    profile_image: Optional[str] = None          # 프로필 이미지 URL
+    favorite_team: Optional[str] = None          # 선호 팀
+    favorite_league: Optional[str] = None        # 선호 리그
+    
+    # === 활동 통계 (캐싱용) ===
+    post_count: int = 0                          # 작성 게시글 수
+    comment_count: int = 0                       # 작성 댓글 수
+    
+    # === 미래 확장용 ===
+    clubs: List[str] = []                        # 가입한 동호회 ID 목록
+    badges: List[str] = []                       # 획득한 배지 ID 목록
+    preferences: dict = {}                       # 기타 설정 (알림, 테마 등)
+    
+    # === B2B 연동용 (미래) ===
+    connected_services: dict = {}                # 연결된 외부 서비스 (티켓사, 여행사 등)
+    marketing_consent: bool = False              # 마케팅 동의 여부
     
     class Config:
         from_attributes = True

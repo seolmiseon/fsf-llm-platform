@@ -75,4 +75,7 @@ jobs:
             NAVER_MAP_CLIENT_ID=${{ secrets.NAVER_MAP_CLIENT_ID }}
             NAVER_MAP_CLIENT_SECRET=${{ secrets.NAVER_MAP_CLIENT_SECRET }}
             YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}
+            WEATHER_API_KEY=${{ secrets.WEATHER_API_KEY }}
+            SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+            SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
 

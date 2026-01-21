@@ -8,8 +8,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 import firebase_admin
 from firebase_admin import firestore, auth
+from supabase import Client
 
 from .models import UserResponse
+from .supabase_config import get_supabase_client
 
 logger = logging.getLogger(__name__)
 
@@ -138,19 +140,19 @@ async def get_current_user(
             detail="Invalid authentication credentials",
         )
     
-    # Firestore에서 사용자 정보 조회
+    # Supabase에서 사용자 정보 조회
     try:
-        db = firestore.client()
-        user_doc = db.collection("users").document(uid).get()
+        supabase = get_supabase_client()
+        result = supabase.table("users").select("*").eq("uid", uid).execute()
         
-        if not user_doc.exists:
+        if not result.data or len(result.data) == 0:
             logger.warning(f"⚠️ 사용자 미발견: {uid}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found",
             )
         
-        user_data = user_doc.to_dict()
+        user_data = result.data[0]
         
         # UserResponse 생성
         user = UserResponse(
@@ -164,6 +166,8 @@ async def get_current_user(
         logger.info(f"✅ 사용자 조회 성공: {user.username} ({uid})")
         return user
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ 사용자 조회 실패: {e}")
         raise HTTPException(
@@ -204,15 +208,50 @@ async def get_optional_user(
 from fastapi import status
 
 # ============================================
-# 4. Firestore 의존성
+# 4. Supabase 의존성 (PostgreSQL)
+# ============================================
+
+def get_supabase_db() -> Client:
+    """
+    Supabase 클라이언트 반환 (필수)
+    
+    - Supabase 미설정 시 500 에러 발생
+    - 유저/게시글/신고 등 DB 작업에 사용
+    """
+    try:
+        return get_supabase_client()
+    except Exception as e:
+        logger.error(f"❌ Supabase 클라이언트 가져오기 실패: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database not initialized"
+        )
+
+
+def get_optional_supabase_db() -> Optional[Client]:
+    """
+    Supabase 클라이언트 반환 (선택)
+
+    - Supabase 미설정 시 None 반환
+    - 캐시 등 선택적 기능에 사용
+    """
+    try:
+        return get_supabase_client()
+    except Exception as e:
+        logger.warning(f"⚠️ Optional Supabase init failed: {e}")
+        return None
+
+
+# ============================================
+# 4-1. Firestore 의존성 (레거시 - 점진적 제거 예정)
 # ============================================
 
 def get_firestore_db():
     """
-    Firestore 클라이언트 반환 (필수)
+    Firestore 클라이언트 반환 (레거시)
     
-    - Firebase 미초기화 시 500 에러 발생
-    - 인증/게시글 등 Firestore가 필수인 엔드포인트에서 사용
+    ⚠️ 점진적으로 Supabase로 전환 중
+    - 일부 기능에서 아직 사용 중일 수 있음
     """
     if not firebase_admin._apps:
         raise HTTPException(
@@ -225,10 +264,9 @@ def get_firestore_db():
 
 def get_optional_firestore_db():
     """
-    Firestore 클라이언트 반환 (선택)
+    Firestore 클라이언트 반환 (선택, 레거시)
 
-    - Firebase 미초기화 시 None 반환
-    - 캐시가 있으면 사용, 없으면 그냥 통과하는 read-only 용도에 사용
+    ⚠️ 점진적으로 Supabase로 전환 중
     """
     try:
         if not firebase_admin._apps:

@@ -2,9 +2,11 @@
 
 import { CommentForm } from '@/components/community/board/CommentForm';
 import { CommentList } from '@/components/community/board/CommentList';
+import { MoreMenu } from '@/components/community/MoreMenu';
 import { AlertDialog } from '@/components/ui/alert/Alert';
 import { Button } from '@/components/ui/button/Button';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useModalStore } from '@/store/useModalStore';
 import { Post } from '@/types/community/community';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -51,6 +53,7 @@ function mapBackendPostToFrontend(backendPost: any): Post {
 
 export default function PostDetailPage() {
     const { user, loading: authLoading } = useAuthStore();
+    const { open: openModal } = useModalStore();
     const params = useParams();
     const router = useRouter();
     const [post, setPost] = useState<Post | null>(null);
@@ -63,6 +66,16 @@ export default function PostDetailPage() {
     });
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const backendApi = useMemo(() => new BackendApi(), []);
+
+    // 신고 모달 열기
+    const handleOpenReportModal = () => {
+        if (!post?.id) return;
+        openModal('report', {
+            kind: 'report',
+            targetType: 'post',
+            targetId: post.id,
+        });
+    };
 
     useEffect(() => {
         const fetchPost = async () => {
@@ -177,10 +190,19 @@ export default function PostDetailPage() {
                         </div>
                     </div>
                     <div className="flex items-center text-sm text-gray-500 space-x-4 mb-6">
-                        <span>{post.authorName}</span>
+                        <Link 
+                            href={`/user/${post.authorId}`}
+                            className="font-medium text-gray-700 hover:text-green-600 hover:underline transition"
+                        >
+                            {post.authorName}
+                        </Link>
                         <span>조회 {post.views}</span>
                         <span>좋아요 {post.likes}</span>
                         <span>댓글 {post.commentCount}</span>
+                        {/* 더보기 메뉴 (본인 글 제외) */}
+                        {user && user.uid !== post.authorId && (
+                            <MoreMenu onReport={handleOpenReportModal} />
+                        )}
                     </div>
                     <div className="border-t border-b py-8">{post.content}</div>
                     {post.imageUrl && (

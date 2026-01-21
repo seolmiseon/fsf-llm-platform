@@ -1,4 +1,4 @@
-'use client ';
+'use client';
 
 import { db } from '@/lib/firebase/config';
 import { formatDistanceToNow } from 'date-fns';
@@ -11,6 +11,10 @@ import {
     Timestamp,
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useModalStore } from '@/store/useModalStore';
+import { MoreMenu } from '../MoreMenu';
 
 interface Comment {
     id: string;
@@ -25,8 +29,19 @@ interface CommentListProps {
 }
 
 export function CommentList({ postId }: CommentListProps) {
+    const { user } = useAuthStore();
+    const { open: openModal } = useModalStore();
     const [comments, setComments] = useState<Comment[]>([]);
     const [loading, setLoading] = useState(false);
+
+    // 댓글 신고 모달 열기
+    const handleOpenReportModal = (commentId: string) => {
+        openModal('report', {
+            kind: 'report',
+            targetType: 'comment',
+            targetId: commentId,
+        });
+    };
 
     useEffect(() => {
         const fetchComments = async () => {
@@ -73,18 +88,29 @@ export function CommentList({ postId }: CommentListProps) {
             {comments.map((comment) => (
                 <div key={comment.id} className="p-4 bg-gray-50 rounded-lg">
                     <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">
+                        <Link 
+                            href={`/user/${comment.authorId}`}
+                            className="font-medium text-gray-900 hover:text-green-600 hover:underline transition"
+                        >
                             {comment.authorName}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                            {formatDistanceToNow(
-                                new Date(comment.createdAt?.toDate()),
-                                {
-                                    addSuffix: true,
-                                    locale: ko,
-                                }
+                        </Link>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500">
+                                {formatDistanceToNow(
+                                    new Date(comment.createdAt?.toDate()),
+                                    {
+                                        addSuffix: true,
+                                        locale: ko,
+                                    }
+                                )}
+                            </span>
+                            {/* 더보기 메뉴 (본인 댓글 제외) */}
+                            {user && user.uid !== comment.authorId && (
+                                <MoreMenu 
+                                    onReport={() => handleOpenReportModal(comment.id)} 
+                                />
                             )}
-                        </span>
+                        </div>
                     </div>
                     <p className="text-gray-700">{comment.content}</p>
                 </div>

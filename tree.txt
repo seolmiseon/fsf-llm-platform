@@ -1,9 +1,7 @@
 .
-├── API_COMPARISON.md
 ├── BUSINESS_PLAN_2026.md
 ├── EXPERIMENT_RESULTS.md
 ├── FSF_ARCHITECTURE_DIAGRAM.md
-├── PORTFOLIO_VERIFICATION_FINAL.md
 ├── PROJECT_HANDBOOK.md
 ├── README.md
 ├── frontend
@@ -78,9 +76,12 @@
 │   │   │   │   └── page.tsx
 │   │   │   ├── not-found.tsx
 │   │   │   ├── page.tsx
-│   │   │   └── stats
-│   │   │       ├── layout.tsx
-│   │   │       └── page.tsx
+│   │   │   ├── stats
+│   │   │   │   ├── layout.tsx
+│   │   │   │   └── page.tsx
+│   │   │   └── user
+│   │   │       └── [userId]
+│   │   │           └── page.tsx
 │   │   ├── components
 │   │   │   ├── FanPickStar
 │   │   │   │   ├── CheerMessageBoard.tsx
@@ -102,6 +103,7 @@
 │   │   │   │   ├── ChatBot.tsx
 │   │   │   │   └── FloatingChatBot.tsx
 │   │   │   ├── community
+│   │   │   │   ├── MoreMenu.tsx
 │   │   │   │   └── board
 │   │   │   │       ├── CommentForm.tsx
 │   │   │   │       ├── CommentList.tsx
@@ -169,6 +171,7 @@
 │   │   │       │   ├── AuthModal.tsx
 │   │   │       │   ├── LogoutModal.tsx
 │   │   │       │   ├── ModalRoot.tsx
+│   │   │       │   ├── ReportModal.tsx
 │   │   │       │   └── SearchModal.tsx
 │   │   │       ├── popover
 │   │   │       │   └── index.tsx
@@ -194,10 +197,10 @@
 │   │   ├── store
 │   │   │   ├── useAuthStore.ts
 │   │   │   ├── useFavoritesStore.ts
+│   │   │   ├── useLiveMatchesStore.ts
 │   │   │   ├── useModalStore.ts
 │   │   │   ├── useSearchStore.ts
 │   │   │   ├── useSettingsStore.ts
-│   │   │   ├── useStarButtonEventStore.ts
 │   │   │   ├── useThemeStore.ts
 │   │   │   └── useToastStore.ts
 │   │   ├── styles
@@ -237,12 +240,14 @@
 │   │   ├── dependencies.py
 │   │   ├── firebase_config.py
 │   │   ├── models.py
-│   │   └── routers
-│   │       ├── __init__.py
-│   │       ├── auth.py
-│   │       ├── football_data.py
-│   │       ├── posts.py
-│   │       └── users.py
+│   │   ├── routers
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py
+│   │   │   ├── football_data.py
+│   │   │   ├── posts.py
+│   │   │   ├── reports.py
+│   │   │   └── users.py
+│   │   └── supabase_config.py
 │   ├── chroma_db.backup
 │   │   ├── 60abf6dd-cdfa-403c-a55e-0ff789e52ecb
 │   │   │   ├── data_level0.bin
@@ -344,7 +349,9 @@
 │   │   │   ├── match_analysis_tool.py
 │   │   │   ├── player_compare_tool.py
 │   │   │   ├── posts_search_tool.py
-│   │   │   └── rag_tool.py
+│   │   │   ├── rag_tool.py
+│   │   │   ├── weather_tool.py
+│   │   │   └── youtube_tool.py
 │   │   └── utils
 │   │       ├── __init__.py
 │   │       ├── cache_judge.py
@@ -429,12 +436,19 @@
 │   │   └── test_api_performance.py
 │   ├── requirements.txt
 │   ├── serviceAccountKey.json
-│   ├── test_agent_frontend_integration.md
-│   ├── test_agent_tools.py
-│   ├── test_content_safety.py
-│   └── test_question_classifier.py
-├── test_agent_stream.py
+│   └── tests
+│       ├── __init__.py
+│       ├── conftest.py
+│       ├── locustfile.py
+│       ├── test_agent_frontend_integration.md
+│       ├── test_agent_stream.py
+│       ├── test_agent_tools.py
+│       ├── test_content_safety.py
+│       ├── test_posts.py
+│       ├── test_question_classifier.py
+│       ├── test_reports.py
+│       └── test_users.py
 ├── tree.txt
 └── update_tree.sh
 
-120 directories, 317 files
+123 directories, 328 files
