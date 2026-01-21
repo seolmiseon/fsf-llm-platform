@@ -1,3 +1,4 @@
+# Supabase 마이그레이션 완료 - 2026.01.21
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
