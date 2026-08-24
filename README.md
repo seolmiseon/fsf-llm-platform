@@ -2,8 +2,7 @@
 
 > AI 기반 축구 분석 플랫폼 - RAG + LLM으로 경기를 분석합니다
 
-**Live Demo**: [https://fsfproject-fd2e6.web.app](https://fsfproject-fd2e6.web.app)  
-**Backend**: [Cloud Run API](https://fsf-server-303660711261.asia-northeast3.run.app/docs)
+> 포트폴리오용 웹 프로토타입입니다. 공개 배포 URL의 가용성은 보장하지 않으며, 로컬 실행에는 별도 API 키와 환경 설정이 필요합니다.
 
 ---
 
@@ -19,7 +18,7 @@
 - 트리 구조 (`tree.txt`)
 - 서비스 레이어 설계 (`server/llm_service/`)
 - 하이브리드 질문 분류 시스템 (정규식 + LLM 기반 질문 분류)
-- AI Agent + Tool 자동 선택 시스템 (LangChain 기반 6개 Tool 자동 조합)
+- AI Agent + Tool 자동 선택 시스템 (LangChain 기반 실행 경로 선택)
 - 2단계 캐싱 전략 (ChromaDB 벡터 캐시 + Firestore 캐시)
 - 정규식 + LLM 기반 콘텐츠 필터링 시스템
 - LLM 기반 카테고리 자동 분류 시스템
@@ -59,13 +58,13 @@ RAG(검색 증강 생성) 기술로 실시간 경기 데이터를 분석하고, 
 - 🔐 **인증**: Firebase Authentication
 - 📱 **반응형**: Mobile/Desktop 최적화
 
-### 🏆 기술적 성과
+### 🏆 내부 실험 결과
 
 ```
 ⚡ 응답 속도 7배 향상     350ms → 50ms (2단계 캐싱)
-💰 API 비용 40% 절감      $1/월 → $0.60/월
+💰 API 비용 40% 절감      반복 질문 캐시 실험 기준
 🎯 캐시 히트율 90%        유사 질문 중복 제거
-📦 5개 LLM API 완성       챗봇, 경기분석, 선수비교
+📦 LLM·외부 API 경로 구현  챗봇, 경기분석, 선수비교 등
 ```
 
 ---
@@ -127,7 +126,7 @@ RAG(검색 증강 생성) 기술로 실시간 경기 데이터를 분석하고, 
 - **Content Safety**: 정규식 + LLM 기반 유해 콘텐츠 필터링
 - **Category Classification**: LLM 기반 게시글 카테고리 자동 분류
 - **AI Agent**: LangChain 기반 자동 Tool 선택 시스템
-- **Agent Tools**: 6개 Tool
+- **Agent Tools**: 구현 범위의 예시
   - `rag_search`: RAG 기반 축구 정보 검색
   - `match_analysis`: 경기 분석
   - `player_compare`: 선수 비교 분석
@@ -282,12 +281,12 @@ next dev -p 3001
 2. 애매한 경우만 LLM 호출 (정확도 우선)
 3. 결과 캐시 (메모리 기반, 24시간 TTL)
 
-**테스트 결과** (2025-12-23):
+**내부 평가 결과** (2025-12-23, 고정 평가셋):
 - 전체 정확도: **97.9%** (46/47)
   - 단순 질문: 95.0% (19/20)
   - 복잡 질문: 100.0% (27/27)
 - 축약형 감지율: 80.0% (4/5)
-- 캐시 성능: 약 24,000~34,000배 빠름
+- 캐시 성능: 반복 질문 100건에서 평균 응답 시간 350ms → 50ms, 캐시 적중률 90%
 
 **비용 최적화**:
 - 초기 월 $0.07 (약 100원)
@@ -301,7 +300,7 @@ async def get_response(query: str):
     # 1️⃣ ChromaDB 벡터 캐시 (유사 질문 재사용)
     cached_answer = await chroma_cache.get_cached_answer(query)
     if cached_answer:
-        return cached_answer  # 캐시 히트 (약 0.0029초, 비용 $0)
+        return cached_answer  # 캐시 히트
     
     # 2️⃣ Firestore 캐시 (외부 API 응답, 1시간 TTL)
     firestore_result = await firestore.get_api_cache(query)
@@ -494,6 +493,5 @@ MIT License
 
 **Made with ⚽ by seolmiseon**
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-fsfproject.web.app-4285F4?style=for-the-badge&logo=firebase)](https://fsfproject-fd2e6.web.app)
-
 </div>
+
